@@ -111,16 +111,14 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
-                                                    data-item-name="Facture #{{ $facture->facture_number ?? $facture->facture_id }}"
+                                                    data-item-name="Facture #{{ $paiement->paiement_id ?? $paiement->numero_paiement }}"
                                                     data-confirm-title="Suppression paiement"
                                                     data-confirm-text="'Voulez-vous vraiment valider ce paiement ?'"
                                                     title="Supprimer" data-bs-toggle="tooltip">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
-
                                             @endif
-
                                             @if($paiement->statut !== 'annulé')
                                             <form action="{{ route('paiements.annuler', $paiement) }}" method="POST"
                                                 style="display:inline;">
@@ -131,24 +129,12 @@
                                                 </button>
                                             </form>
                                             @endif
-
-                                            <form action="{{ route('paiements.destroy', $paiement) }}" method="POST"
-                                                style="display:inline;"
-                                                onsubmit="return confirm('Supprimer ce paiement ?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                    title="Supprimer">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
                                         </td>
                                     </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-
                         <div class="d-flex justify-content-center mt-3">
                             {{ $paiements->links() }}
                         </div>
