@@ -69,6 +69,8 @@
     <!-- Scripts personnalisés des pages -->
 
     <!-- SweetAlert2 -->
+
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Script de confirmation global (à placer avant la fermeture du body dans back.blade.php) -->
@@ -177,6 +179,25 @@
                 text: '{{ session("error") }}',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#dc3545'
+            });
+            @endif
+            @if(session('warning'))
+            Swal.fire({
+                title: 'Action sensible',
+                text: 'Cette action peut avoir des conséquences importantes',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#fd7e14',
+                html: `
+                <div class="text-start">
+                    <p><strong>⚠️ Avertissement :</strong></p>
+                    <ul class="text-muted small">
+                        <li>Cette action peut affecter d'autres données</li>
+                        <li>Assurez-vous de comprendre les implications</li>
+                        <li>Une sauvegarde pourrait être recommandée</li>
+                    </ul>
+                </div>
+            `
             });
             @endif
         });

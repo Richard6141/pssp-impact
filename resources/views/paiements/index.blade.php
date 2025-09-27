@@ -106,7 +106,7 @@
                                                     class="bi bi-pencil"></i></a>
 
                                             @if($paiement->statut !== 'validé')
-                                            <form action="{{ route('paiements.valider', $paiement) }}" method="POST"
+                                            <form action="{{ route('paiements.destroy', $paiement) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
                                                 @method('DELETE')

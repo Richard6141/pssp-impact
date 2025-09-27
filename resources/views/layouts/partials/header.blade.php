@@ -170,16 +170,18 @@
                     @if(auth()->user()->avatar)
                     <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="Profile" class="rounded-circle">
                     @else
-                    <img src="{{asset('backend/assets/img/profile-img.jpg')}}" alt="Profile" class="rounded-circle">
+                    <img src="https://st2.depositphotos.com/1104517/11967/v/950/depositphotos_119675554-stock-illustration-male-avatar-profile-picture-vector.jpg"
+                        alt="Profile" class="rounded-circle">
                     @endif
-                    <span class="d-none d-md-block dropdown-toggle ps-2">
-                        {{ auth()->user()->prenom ?? auth()->user()->name }}
-                    </span>
+                    <div class="d-none d-md-block ps-2">
+                        <div class="fw-bold">{{ auth()->user()->firstname }} {{ auth()->user()->lastname }}</div>
+                        <div class="small text-muted">{{ auth()->user()->getRoleNames()->first() ?? 'Visiteur' }}</div>
+                    </div>
                 </a><!-- End Profile Image Icon -->
 
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                     <li class="dropdown-header">
-                        <h6>{{ auth()->user()->prenom }} {{ auth()->user()->nom ?? auth()->user()->name }}</h6>
+                        <h6>{{ auth()->user()->firstname }} {{ auth()->user()->lastname }}</h6>
                         <span class="badge" style="background-color: {{ 
                             match(auth()->user()->getRoleNames()->first()) {
                                 'Super Admin' => '#dc3545',

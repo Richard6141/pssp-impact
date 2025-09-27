@@ -75,6 +75,30 @@ class User extends Authenticatable
         });
     }
 
+    /**
+     * Vérifier si l'utilisateur a des rôles
+     */
+    public function hasAnyRole(...$roles): bool
+    {
+        if (empty($roles)) {
+            return $this->roles()->exists();
+        }
+
+        return parent::hasAnyRole($roles);
+    }
+
+    /**
+     * Vérifier si l'utilisateur a des permissions
+     */
+    public function hasAnyPermission(...$permissions): bool
+    {
+        if (empty($permissions)) {
+            return $this->getAllPermissions()->isNotEmpty();
+        }
+
+        return parent::hasAnyPermission($permissions);
+    }
+
     public function collectes()
     {
         return $this->hasMany(Collecte::class, 'agent_id', 'user_id');
