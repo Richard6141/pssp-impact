@@ -42,7 +42,7 @@ class TypeDechetController extends Controller
     public function edit($id)
     {
         $type = TypeDechet::findOrFail($id);
-        return view('type_dechets.edit', compact('type'));
+        return view('type_dechets.create', compact('type'));
     }
 
     // Mise à jour
@@ -60,12 +60,19 @@ class TypeDechetController extends Controller
         return redirect()->route('type_dechets.index')->with('success', 'Type de collecte mis à jour avec succès.');
     }
 
-    // Suppression
     public function destroy($id)
     {
         $type = TypeDechet::findOrFail($id);
+
+        // Vérifier si le type de déchet est utilisé dans une collecte
+        if ($type->collectes()->exists()) {
+            return redirect()->route('type_dechets.index')
+                ->with('error', 'Impossible de supprimer ce type : il est déjà utilisé dans une collecte.');
+        }
+
         $type->delete();
 
-        return redirect()->route('type_dechets.index')->with('success', 'Type de collecte supprimé avec succès.');
+        return redirect()->route('type_dechets.index')
+            ->with('success', 'Type de collecte supprimé avec succès.');
     }
 }

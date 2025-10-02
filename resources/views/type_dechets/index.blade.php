@@ -37,7 +37,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Libellé</th>
-                                    <th>Description</th>
+                                    <th>Code DBM</th>
                                     <th>Date de création</th>
                                     <th>Actions</th>
                                 </tr>
@@ -47,10 +47,10 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $type->libelle }}</td>
-                                    <td>{{ $type->description ?? '—' }}</td>
+                                    <td>{{ $type->code ?? '—' }}</td>
                                     <td>{{ $type->created_at->format('d/m/Y') }}</td>
                                     <td>
-                                        <a href="" class="btn btn-sm btn-info">Voir</a>
+                                        <!-- <a href="" class="btn btn-sm btn-info">Voir</a> -->
                                         <a href="{{ route('type_dechets.edit', $type->type_dechet_id) }}"
                                             class="btn btn-sm btn-warning">Modifier</a>
 

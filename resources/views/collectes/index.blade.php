@@ -85,13 +85,55 @@
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Confirmer la suppression ?')"
-                                                    title="Supprimer">
+
+                                                <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
+                                                    data-item-name="Collecte #{{ $collecte->collecte_id }}"
+                                                    data-confirm-title="Supprimer la collecte"
+                                                    data-confirm-text="Voulez-vous vraiment supprimer la collecte '{{ $collecte->collecte_id }}' ? Cette action est irréversible."
+                                                    title="Supprimer" data-bs-toggle="tooltip">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @if(!$collecte->isValid)
+                                            <form id="validate-form-{{ $collecte->collecte_id }}"
+                                                action="{{ route('collectes.validate', $collecte->collecte_id) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+
+                                                <button type="submit" class="btn btn-sm btn-success" data-confirm-action
+                                                    data-item-name="Collecte #{{ $collecte->collecte_id }}"
+                                                    data-confirm-title="Valider la collecte"
+                                                    data-confirm-text="Voulez-vous vraiment valider la collecte ?"
+                                                    data-confirm-btn="Oui, valider" data-confirm-color="#198754"
+                                                    title="Valider" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+
+                                            @if($collecte->isValid)
+                                            <form id="invalidate-form-{{ $collecte->collecte_id }}"
+                                                action="{{ route('collectes.invalidate', $collecte->collecte_id) }}"
+                                                method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+
+                                                <button type="submit" class="btn btn-sm btn-danger" data-confirm-action
+                                                    data-item-name="Collecte #{{ $collecte->collecte_id }}"
+                                                    data-confirm-title="Invalider la collecte"
+                                                    data-confirm-text="Voulez-vous vraiment invalider la collecte ?"
+                                                    data-confirm-btn="Oui, invalider" data-confirm-color="#dc3545"
+                                                    title="Invalider" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+
+
                                         </td>
+
+
                                     </tr>
                                     @endforeach
                                 </tbody>

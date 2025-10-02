@@ -2,6 +2,7 @@
 
 @section('content')
 <main id="main" class="main">
+    @role('Super Admin|Coordonnateur|Comptable|Agent marketing|Administrateur|Agent collecte')
     <div class="pagetitle">
         <h1>Dashboard</h1>
         <nav>
@@ -762,5 +763,6 @@
             observer.observe(card);
         });
     </script>
+    @endrole
 </main>
 @endsection

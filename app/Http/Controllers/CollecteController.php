@@ -181,4 +181,28 @@ class CollecteController extends Controller
 
         return redirect()->route('collectes.index')->with('success', 'Collecte supprimée avec succès.');
     }
+
+    /**
+     * Valider une collecte
+     */
+    public function validate(string $id)
+    {
+        $collecte = Collecte::findOrFail($id);
+        $collecte->update(['isValid' => true]);
+
+        //return response()->json(['message' => 'Collecte validée', 'collecte' => $collecte]);
+        return redirect()->route('collectes.index')->with('success', 'Collecte validée');
+    }
+
+    /**
+     * Invalider une collecte
+     */
+    public function invalidate(string $id)
+    {
+        $collecte = Collecte::findOrFail($id);
+        $collecte->update(['isValid' => false]);
+
+        //return response()->json(['message' => 'Collecte invalidée', 'collecte' => $collecte]);
+        return redirect()->route('collectes.index')->with('success', 'Collecte invalidée.');
+    }
 }

@@ -100,6 +100,46 @@
                 return Swal.fire(config);
             };
 
+            // Gestionnaire pour les confirmations d'invalidation/validation
+            document.querySelectorAll('[data-confirm-action]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    const form = this.closest('form');
+                    const itemName = this.getAttribute('data-item-name') || 'cet élément';
+                    const customTitle = this.getAttribute('data-confirm-title') ||
+                        'Confirmer l\'action';
+                    const customText = this.getAttribute('data-confirm-text') ||
+                        'Voulez-vous continuer ?';
+                    const confirmBtnText = this.getAttribute('data-confirm-btn') || 'Confirmer';
+                    const confirmBtnColor = this.getAttribute('data-confirm-color') || '#0d6efd';
+
+                    Swal.fire({
+                        title: customTitle,
+                        text: customText,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: confirmBtnColor,
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: confirmBtnText,
+                        cancelButtonText: 'Annuler',
+                        focusCancel: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                title: 'Traitement en cours...',
+                                allowEscapeKey: false,
+                                allowOutsideClick: false,
+                                didOpen: () => {
+                                    Swal.showLoading();
+                                }
+                            });
+                            form.submit();
+                        }
+                    });
+                });
+            });
+
             // Gestionnaire global pour les formulaires de suppression
             const deleteButtons = document.querySelectorAll('[data-confirm-delete]');
 

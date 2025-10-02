@@ -9,7 +9,7 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('type_dechets.index') }}">Types de Collectes</a></li>
-                <li class="breadcrumb-item active">Enregistrement</li>
+                <li class="breadcrumb-item active">{{ isset($type) ? 'Modification' : 'Enregistrement' }}</li>
             </ol>
         </nav>
     </div><!-- End Page Title -->
@@ -20,17 +20,25 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Ajouter un type de collecte</h5>
+                        <h5 class="card-title">
+                            {{ isset($type) ? 'Modifier le type de collecte' : 'Ajouter un type de collecte' }}
+                        </h5>
 
                         <!-- Formulaire -->
-                        <form action="{{ route('type_dechets.store') }}" method="POST" id="typeDechetForm">
+                        <form
+                            action="{{ isset($type) ? route('type_dechets.update', $type->type_dechet_id) : route('type_dechets.store') }}"
+                            method="POST" id="typeDechetForm">
                             @csrf
+                            @if(isset($type))
+                            @method('PUT')
+                            @endif
 
                             <div class="row mb-3">
                                 <label for="libelle" class="col-sm-2 col-form-label">Libellé <span
                                         class="text-danger">*</span></label>
                                 <div class="col-sm-10">
-                                    <input type="text" name="libelle" id="libelle" value="{{ old('libelle') }}"
+                                    <input type="text" name="libelle" id="libelle"
+                                        value="{{ old('libelle', $type->libelle ?? '') }}"
                                         class="form-control @error('libelle') is-invalid @enderror" required>
                                     @error('libelle')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -43,7 +51,7 @@
                                 <div class="col-sm-10">
                                     <textarea name="description" id="description"
                                         class="form-control @error('description') is-invalid @enderror"
-                                        rows="3">{{ old('description') }}</textarea>
+                                        rows="3">{{ old('description', $type->description ?? '') }}</textarea>
                                     @error('description')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -52,11 +60,13 @@
 
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary" id="submitBtn">
-                                    <span id="btnText">Enregistrer</span>
+                                    <span id="btnText">
+                                        {{ isset($type) ? 'Mettre à jour' : 'Enregistrer' }}
+                                    </span>
                                     <span id="btnLoader" class="d-none">
                                         <span class="spinner-border spinner-border-sm me-2" role="status"
                                             aria-hidden="true"></span>
-                                        Enregistrement en cours...
+                                        {{ isset($type) ? 'Mise à jour en cours...' : 'Enregistrement en cours...' }}
                                     </span>
                                 </button>
                                 <a href="{{ route('type_dechets.index') }}" class="btn btn-secondary">Annuler</a>

@@ -6,6 +6,7 @@ use App\Http\Controllers\SystemController;
 use App\Http\Controllers\FactureController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RapportController;
+use App\Http\Controllers\CollecteController;
 use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TypeDechetController;
@@ -121,7 +122,6 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-
     // Ressource Paiement
     Route::resource('paiements', PaiementController::class);
 
@@ -215,4 +215,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/filter/{type}/{period}', [IndexController::class, 'filterData'])->name('dashboard.filter');
         Route::get('/collectes-filter/{period}', [IndexController::class, 'filterCollectes'])->name('dashboard.collectes-filter');
     });
+    Route::patch('/collectes/{id}/validate', [CollecteController::class, 'validate'])
+        ->name('collectes.validate');
+
+    // ✅ Route pour invalider une collecte
+    Route::patch('/collectes/{id}/invalidate', [CollecteController::class, 'invalidate'])
+        ->name('collectes.invalidate');
 });

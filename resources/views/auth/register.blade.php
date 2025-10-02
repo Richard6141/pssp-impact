@@ -194,6 +194,11 @@
             color: #721c24;
         }
 
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+        }
+
         .title-gradient {
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
@@ -297,6 +302,17 @@
             transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
         }
 
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .invalid-feedback.d-block {
+            display: block !important;
+        }
+
         @media (max-width: 768px) {
             .card {
                 margin: 10px;
@@ -345,11 +361,18 @@
                             <span id="errorMessage"></span>
                         </div>
 
+                        @if(session('success'))
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            {{ session('success') }}
+                        </div>
+                        @endif
+
                         <form id="regForm" method="POST" action="{{ route('register.store') }}">
                             @csrf
 
                             <!-- Step 1: Infos personnelles -->
-                            <div class="step active">
+                            <div class="step active" data-step="0">
                                 <h4 class="mb-4 text-center">
                                     <i class="bi bi-person-fill text-primary me-2"></i>
                                     Informations personnelles
@@ -358,19 +381,26 @@
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <div class="form-floating">
-                                            <input type="text" name="firstname" class="form-control" id="firstname"
-                                                placeholder="Prénom" required>
+                                            <input type="text" name="firstname"
+                                                class="form-control @error('firstname') is-invalid @enderror"
+                                                id="firstname" placeholder="Prénom" value="{{ old('firstname') }}"
+                                                required>
                                             <label for="firstname">Prénom</label>
                                         </div>
-                                        <div class="invalid-feedback"></div>
+                                        @error('firstname')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <div class="form-floating">
-                                            <input type="text" name="lastname" class="form-control" id="lastname"
-                                                placeholder="Nom" required>
+                                            <input type="text" name="lastname"
+                                                class="form-control @error('lastname') is-invalid @enderror"
+                                                id="lastname" placeholder="Nom" value="{{ old('lastname') }}" required>
                                             <label for="lastname">Nom</label>
                                         </div>
-                                        <div class="invalid-feedback"></div>
+                                        @error('lastname')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -382,7 +412,7 @@
                             </div>
 
                             <!-- Step 2: Infos compte -->
-                            <div class="step">
+                            <div class="step" data-step="1">
                                 <h4 class="mb-4 text-center">
                                     <i class="bi bi-envelope-fill text-primary me-2"></i>
                                     Informations de compte
@@ -390,20 +420,26 @@
 
                                 <div class="mb-3">
                                     <div class="form-floating">
-                                        <input type="text" name="username" class="form-control" id="username"
-                                            placeholder="Nom d'utilisateur" required>
+                                        <input type="text" name="username"
+                                            class="form-control @error('username') is-invalid @enderror" id="username"
+                                            placeholder="Nom d'utilisateur" value="{{ old('username') }}" required>
                                         <label for="username">Nom d'utilisateur</label>
                                     </div>
-                                    <div class="invalid-feedback"></div>
+                                    @error('username')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="mb-3">
                                     <div class="form-floating">
-                                        <input type="email" name="email" class="form-control" id="email"
-                                            placeholder="Email" required>
+                                        <input type="email" name="email"
+                                            class="form-control @error('email') is-invalid @enderror" id="email"
+                                            placeholder="Email" value="{{ old('email') }}" required>
                                         <label for="email">Adresse email</label>
                                     </div>
-                                    <div class="invalid-feedback"></div>
+                                    @error('email')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="d-flex justify-content-between mt-4">
@@ -417,7 +453,7 @@
                             </div>
 
                             <!-- Step 3: Mots de passe -->
-                            <div class="step">
+                            <div class="step" data-step="2">
                                 <h4 class="mb-4 text-center">
                                     <i class="bi bi-shield-lock-fill text-primary me-2"></i>
                                     Sécurité du compte
@@ -425,7 +461,8 @@
 
                                 <div class="mb-3">
                                     <div class="form-floating position-relative">
-                                        <input type="password" name="password" class="form-control" id="password"
+                                        <input type="password" name="password"
+                                            class="form-control @error('password') is-invalid @enderror" id="password"
                                             placeholder="Mot de passe" required>
                                         <label for="password">Mot de passe</label>
                                         <button type="button" class="password-toggle"
@@ -439,7 +476,9 @@
                                     <small class="text-muted" id="passwordHelp">
                                         Le mot de passe doit contenir au moins 8 caractères
                                     </small>
-                                    <div class="invalid-feedback"></div>
+                                    @error('password')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
 
                                 <div class="mb-4">
@@ -489,11 +528,6 @@
         const progressBar = document.getElementById("progressBar");
         const stepNumbers = document.querySelectorAll(".step-number");
 
-        // Affichage des erreurs du serveur
-
-
-
-
         function showStep(n) {
             steps.forEach((step, index) => {
                 step.classList.toggle("active", index === n);
@@ -539,7 +573,6 @@
                     showInputError(input, "Ce champ est requis");
                     isValid = false;
                 } else {
-                    // Validations spécifiques
                     if (input.type === "email" && !isValidEmail(input.value)) {
                         showInputError(input, "Adresse email invalide");
                         isValid = false;
@@ -570,19 +603,23 @@
 
         function showInputError(input, message) {
             input.classList.add("is-invalid");
-            const feedback = input.closest('.form-floating, .mb-3').querySelector('.invalid-feedback');
-            if (feedback) {
-                feedback.textContent = message;
-                feedback.style.display = 'block';
+            let feedback = input.closest('.mb-3, .mb-4').querySelector('.invalid-feedback:not(.d-block)');
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                input.closest('.mb-3, .mb-4').appendChild(feedback);
             }
+            feedback.textContent = message;
+            feedback.classList.add('d-block');
         }
 
         function clearError(input) {
             input.classList.remove("is-invalid");
-            const feedback = input.closest('.form-floating, .mb-3').querySelector('.invalid-feedback');
-            if (feedback) {
-                feedback.style.display = 'none';
-            }
+            const feedbacks = input.closest('.mb-3, .mb-4').querySelectorAll('.invalid-feedback:not(.d-block)');
+            feedbacks.forEach(feedback => {
+                feedback.classList.remove('d-block');
+                feedback.textContent = '';
+            });
         }
 
         function showError(message) {
@@ -614,7 +651,6 @@
             }
         }
 
-        // Password strength checker
         document.getElementById("password").addEventListener("input", function() {
             const password = this.value;
             const strengthBar = document.getElementById("passwordStrength");
@@ -656,7 +692,6 @@
             helpText.className = strength >= 3 ? "text-success" : "text-muted";
         });
 
-        // Form submission
         document.getElementById("regForm").addEventListener("submit", function(e) {
             if (!validateStep(currentStep)) {
                 e.preventDefault();
@@ -670,7 +705,6 @@
             spinner.classList.remove("d-none");
         });
 
-        // Validation en temps réel
         document.querySelectorAll("input").forEach(input => {
             input.addEventListener("blur", function() {
                 if (this.value.trim()) {
@@ -685,21 +719,41 @@
             });
         });
 
-        // Initialiser
-        showStep(currentStep);
+        // Initialisation et gestion des erreurs serveur
+        document.addEventListener('DOMContentLoaded', function() {
+            const hasErrors = document.querySelectorAll('.form-control.is-invalid').length > 0;
 
-        // Si il y a des erreurs, aller à l'étape appropriée
-        if (errors && errors.length > 0) {
-            // Analyser les erreurs pour déterminer l'étape
-            if (errorFields.some(field => ['password', 'password_confirmation'].includes(field))) {
-                currentStep = 2;
-            } else if (errorFields.some(field => ['username', 'email'].includes(field))) {
-                currentStep = 1;
+            if (hasErrors) {
+                // Déterminer quelle étape contient des erreurs
+                const step0HasErrors = document.querySelector('[data-step="0"] .is-invalid') !== null;
+                const step1HasErrors = document.querySelector('[data-step="1"] .is-invalid') !== null;
+                const step2HasErrors = document.querySelector('[data-step="2"] .is-invalid') !== null;
+
+                if (step2HasErrors) {
+                    currentStep = 2;
+                } else if (step1HasErrors) {
+                    currentStep = 1;
+                } else if (step0HasErrors) {
+                    currentStep = 0;
+                }
+
+                showStep(currentStep);
+
+                // Afficher message d'erreur général
+                const errorMessages = [];
+                document.querySelectorAll('.invalid-feedback.d-block').forEach(el => {
+                    if (el.textContent.trim()) {
+                        errorMessages.push(el.textContent.trim());
+                    }
+                });
+
+                if (errorMessages.length > 0) {
+                    showError(errorMessages.join('<br>'));
+                }
             } else {
-                currentStep = 0;
+                showStep(0);
             }
-            showStep(currentStep);
-        }
+        });
     </script>
 </body>
 

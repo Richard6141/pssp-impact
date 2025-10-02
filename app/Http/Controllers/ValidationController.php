@@ -42,7 +42,6 @@ class ValidationController extends Controller
      */
     public function store(Request $request)
     {
-        // Supprimer le dd() qui bloque l'exécution
         $request->validate([
             'collecte_id' => 'required|uuid|exists:collectes,collecte_id',
             'type_validation' => 'required|string|max:50',
@@ -63,7 +62,6 @@ class ValidationController extends Controller
             $signatureData = str_replace(' ', '+', $signatureData);
             $signaturePath = 'signatures/' . Str::uuid() . '.png';
 
-            // Vérifier que le répertoire existe
             if (!Storage::disk('public')->exists('signatures')) {
                 Storage::disk('public')->makeDirectory('signatures');
             }
@@ -81,10 +79,15 @@ class ValidationController extends Controller
                 'signature' => $signaturePath,
             ]);
 
+            // ✅ Mettre à jour la collecte (signature_responsable_site passe à true)
+            $collecte->update([
+                'signature_responsable_site' => true,
+                'statut' => 'en_attente',
+            ]);
+
             return redirect()->route('validations.index')
                 ->with('success', 'Collecte validée avec succès.');
         } catch (\Exception $e) {
-            // En cas d'erreur, supprimer le fichier de signature s'il a été créé
             if (isset($signaturePath) && Storage::disk('public')->exists($signaturePath)) {
                 Storage::disk('public')->delete($signaturePath);
             }
@@ -94,6 +97,7 @@ class ValidationController extends Controller
                 ->with('error', 'Erreur lors de la validation : ' . $e->getMessage());
         }
     }
+
 
     /**
      * Afficher les détails d'une validation.
