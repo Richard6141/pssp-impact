@@ -44,7 +44,7 @@ class ValidationController extends Controller
     {
         $request->validate([
             'collecte_id' => 'required|uuid|exists:collectes,collecte_id',
-            'type_validation' => 'required|string|max:50',
+            //'type_validation' => 'required|string|max:50',
             'commentaire' => 'nullable|string',
             'signature' => 'required|string', // base64 obligatoire
         ]);
@@ -73,7 +73,7 @@ class ValidationController extends Controller
                 'validation_id' => Str::uuid(),
                 'collecte_id' => $request->collecte_id,
                 'validated_by' => auth()->user()->user_id,
-                'type_validation' => $request->type_validation,
+                'type_validation' => "Partielle",
                 'date_validation' => now(),
                 'commentaire' => $request->commentaire,
                 'signature' => $signaturePath,

@@ -40,21 +40,6 @@
                             <input type="hidden" name="signature" id="signature">
 
                             <div class="mb-3">
-                                <label for="type_validation" class="form-label">Type de validation</label>
-                                <select name="type_validation" id="type_validation"
-                                    class="form-select @error('type_validation') is-invalid @enderror" required>
-                                    <option value="">-- Sélectionnez --</option>
-                                    <option value="partielle"
-                                        {{ old('type_validation') == 'partielle' ? 'selected' : '' }}>Partielle</option>
-                                    <option value="totale" {{ old('type_validation') == 'totale' ? 'selected' : '' }}>
-                                        Totale</option>
-                                </select>
-                                @error('type_validation')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-3">
                                 <label for="commentaire" class="form-label">Commentaire (optionnel)</label>
                                 <textarea name="commentaire" id="commentaire"
                                     class="form-control @error('commentaire') is-invalid @enderror"

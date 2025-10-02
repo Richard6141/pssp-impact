@@ -24,11 +24,14 @@
                             Liste des types de déchets
 
                             <!-- Bouton rond bleu -->
+                            @can('type_dechets.create')
                             <a href="{{ route('type_dechets.create') }}"
                                 class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:45px; height:45px;">
+                                style="width:45px; height:45px;" title="Ajouter un type de déchet"
+                                data-bs-toggle="tooltip">
                                 <i class="bi bi-plus-lg"></i>
                             </a>
+                            @endcan
                         </h5>
 
                         <!-- Table avec DataTables -->
@@ -39,7 +42,9 @@
                                     <th>Libellé</th>
                                     <th>Code DBM</th>
                                     <th>Date de création</th>
+                                    @canany(['type_dechets.update', 'type_dechets.delete'])
                                     <th>Actions</th>
+                                    @endcanany
                                 </tr>
                             </thead>
                             <tbody>
@@ -49,24 +54,33 @@
                                     <td>{{ $type->libelle }}</td>
                                     <td>{{ $type->code ?? '—' }}</td>
                                     <td>{{ $type->created_at->format('d/m/Y') }}</td>
+                                    @canany(['type_dechets.update', 'type_dechets.delete'])
                                     <td>
-                                        <!-- <a href="" class="btn btn-sm btn-info">Voir</a> -->
+                                        <!-- Bouton Modifier -->
+                                        @can('type_dechets.update')
                                         <a href="{{ route('type_dechets.edit', $type->type_dechet_id) }}"
-                                            class="btn btn-sm btn-warning">Modifier</a>
+                                            class="btn btn-sm btn-warning" title="Modifier" data-bs-toggle="tooltip">
+                                            Modifier
+                                        </a>
+                                        @endcan
 
+                                        <!-- Bouton Supprimer -->
+                                        @can('type_dechets.delete')
                                         <form action="{{ route('type_dechets.destroy', $type->type_dechet_id) }}"
                                             method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
-                                                data-item-name="Facture #{{ $type->type_dechet_id}}"
-                                                data-confirm-title="Supprimer cette ce type ?"
-                                                data-confirm-text="Voulez-vous vraiment supprimer ce type ? Cette action est irréversible."
+                                                data-item-name="{{ $type->libelle }}"
+                                                data-confirm-title="Supprimer ce type ?"
+                                                data-confirm-text="Voulez-vous vraiment supprimer le type '{{ $type->libelle }}' ? Cette action est irréversible."
                                                 title="Supprimer" data-bs-toggle="tooltip">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
+                                        @endcan
                                     </td>
+                                    @endcanany
                                 </tr>
                                 @endforeach
                             </tbody>

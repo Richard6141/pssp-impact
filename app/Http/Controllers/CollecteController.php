@@ -42,7 +42,6 @@ class CollecteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'date_collecte' => 'required|date',
             'poids' => 'required|numeric|min:0',
             'type_dechet_id' => 'required|exists:type_dechets,type_dechet_id',
             'site_id' => 'required|exists:sites,site_id',
@@ -53,7 +52,6 @@ class CollecteController extends Controller
 
         // Créer la collecte (sans les champs incident)
         $collecteData = $request->only([
-            'date_collecte',
             'poids',
             'type_dechet_id',
             'site_id',
@@ -63,6 +61,8 @@ class CollecteController extends Controller
 
         // Générer un UUID pour la collecte
         $collecteData['collecte_id'] = Str::uuid();
+        $collecteData['date_collecte'] = now();
+
 
         // Forcer l'agent connecté comme agent_id
         $collecteData['agent_id'] = auth()->user()->user_id;

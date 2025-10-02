@@ -41,16 +41,28 @@ class FactureController extends Controller
             'date_facture' => 'required|date',
             'montant_facture' => 'required|numeric',
             'site_id' => 'required|exists:sites,site_id',
-            'photo_facture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // max 5 Mo
+            'photo_facture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
             'collecte_ids' => 'nullable|array',
             'collecte_ids.*' => 'exists:collectes,collecte_id',
         ]);
-        $numero_facture = 'FAC-' . date('Y') . '-' . str_pad(
-            Facture::whereYear('created_at', date('Y'))->count() + 1,
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
+
+        // Génération du numéro de facture (méthode la plus fiable)
+        $anneeActuelle = date('Y');
+
+        // Récupérer le dernier numéro de facture de l'année
+        $derniereFacture = Facture::withTrashed()
+            ->whereYear('created_at', $anneeActuelle)
+            ->where('numero_facture', 'LIKE', "FAC-{$anneeActuelle}-%")
+            ->orderByRaw("CAST(SUBSTRING(numero_facture, 10) AS UNSIGNED) DESC")
+            ->first();
+
+        $dernierNumero = 0;
+        if ($derniereFacture) {
+            // Extraire le numéro de la facture (ex: FAC-2025-0001 -> 1)
+            $dernierNumero = (int) substr($derniereFacture->numero_facture, -4);
+        }
+
+        $numero_facture = sprintf('FAC-%s-%04d', $anneeActuelle, $dernierNumero + 1);
 
         // Création de la facture
         $facture = new Facture();
@@ -58,7 +70,7 @@ class FactureController extends Controller
         $facture->numero_facture = $numero_facture;
         $facture->montant_facture = $request->montant_facture;
         $facture->site_id = $request->site_id;
-        $facture->comptable_id = auth()->user()->user_id; // utilisateur connecté
+        $facture->comptable_id = auth()->user()->user_id;
         $facture->save();
 
         // Gestion du fichier
@@ -68,7 +80,7 @@ class FactureController extends Controller
             $facture->save();
         }
 
-        // Association des collectes avec UUID pour la pivot table
+        // Association des collectes
         if ($request->has('collecte_ids')) {
             $syncData = collect($request->collecte_ids)->mapWithKeys(function ($collecteId) {
                 return [$collecteId => ['factureCollecte_id' => (string) \Str::uuid()]];

@@ -35,7 +35,7 @@
                                     @forelse($collectes as $index => $collecte)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $collecte->titre ?? '-' }}</td>
+                                        <td>{{ $collecte->numero_collecte ?? '-' }}</td>
                                         <td>{{ $collecte->site?->site_name ?? '-' }}</td>
                                         <td>
                                             {{ $collecte->validation?->validator?->firstname ?? '-' }}

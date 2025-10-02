@@ -24,12 +24,14 @@
                             <h5 class="card-title m-0">Liste des sites</h5>
 
                             <!-- Bouton responsive -->
+                            @can('sites.create')
                             <a href="{{ route('sites.create') }}"
                                 class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
                                 style="width:45px; height:45px; min-width:45px;" title="Ajouter un site"
                                 data-bs-toggle="tooltip">
                                 <i class="bi bi-plus-lg"></i>
                             </a>
+                            @endcan
                         </div>
 
                         <!-- Table responsive -->
@@ -43,7 +45,9 @@
                                         <th scope="col" class="d-none d-lg-table-cell">Commune</th>
                                         <th scope="col" class="d-none d-xl-table-cell">Localisation</th>
                                         <th scope="col" class="d-none d-sm-table-cell">Responsable</th>
+                                        @canany(['sites.view', 'sites.update', 'sites.delete'])
                                         <th scope="col" class="text-center text-nowrap">Actions</th>
+                                        @endcanany
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -67,25 +71,31 @@
                                         <td class="d-none d-sm-table-cell">
                                             {{ $site->responsableUser ? $site->responsableUser->firstname . ' ' . $site->responsableUser->lastname : '—' }}
                                         </td>
+                                        @canany(['sites.view', 'sites.update', 'sites.delete'])
                                         <td>
                                             <div class="d-flex flex-nowrap justify-content-center gap-1">
                                                 <!-- Bouton Voir -->
+                                                @can('sites.view')
                                                 <a href="{{ route('sites.show', $site->site_id) }}"
                                                     class="btn btn-sm btn-info d-flex align-items-center"
                                                     title="Voir les détails" data-bs-toggle="tooltip">
                                                     <i class="bi bi-eye d-sm-none"></i>
                                                     <span class="d-none d-sm-inline">Voir</span>
                                                 </a>
+                                                @endcan
 
                                                 <!-- Bouton Modifier -->
+                                                @can('sites.update')
                                                 <a href="{{ route('sites.edit', $site->site_id) }}"
                                                     class="btn btn-sm btn-warning d-flex align-items-center"
                                                     title="Modifier" data-bs-toggle="tooltip">
                                                     <i class="bi bi-pencil d-sm-none"></i>
                                                     <span class="d-none d-sm-inline">Modifier</span>
                                                 </a>
+                                                @endcan
 
                                                 <!-- Bouton Supprimer avec SweetAlert2 -->
+                                                @can('sites.delete')
                                                 <form action="{{ route('sites.destroy', $site->site_id) }}"
                                                     method="POST" class="d-inline">
                                                     @csrf
@@ -100,8 +110,10 @@
                                                         <span class="d-none d-sm-inline">Supprimer</span>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </div>
                                         </td>
+                                        @endcanany
                                     </tr>
                                     @endforeach
                                 </tbody>

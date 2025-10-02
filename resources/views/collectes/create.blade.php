@@ -31,16 +31,16 @@
                         @endif
 
                         {{-- Date et poids --}}
-                        <div class="col-md-6">
+                        <!-- <div class="col-md-6">
                             <div class="form-floating">
                                 <input type="datetime-local" class="form-control" name="date_collecte" id="dateCollecte"
                                     value="{{ old('date_collecte', isset($collecte) ? date('Y-m-d\TH:i', strtotime($collecte->date_collecte)) : '') }}"
                                     required>
                                 <label for="dateCollecte">Date et heure de collecte</label>
                             </div>
-                        </div>
+                        </div> -->
 
-                        <div class="col-md-6">
+                        <div class="col-md-12">
                             <div class="form-floating">
                                 <input type="number" step="0.01" class="form-control" name="poids" id="poids"
                                     value="{{ old('poids', isset($collecte) ? $collecte->poids : '') }}" required>

@@ -3,15 +3,6 @@
 @section('content')
 <main id="main" class="main">
 
-    <!-- <div class="pagetitle d-flex justify-content-between align-items-center">
-        <h1>Paiements</h1>
-        <a href="{{ route('paiements.create') }}"
-            class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style="width:45px; height:45px;">
-            <i class="bi bi-plus-lg"></i>
-        </a>
-    </div> -->
-
     <section class="section">
         <div class="row">
             <div class="col-lg-12">
@@ -33,7 +24,10 @@
                                         <th>Référence</th>
                                         <th>Preuve</th>
                                         <th>Statut</th>
+                                        @canany(['paiements.view', 'paiements.update', 'paiements.validate',
+                                        'paiements.delete'])
                                         <th class="text-center">Actions</th>
+                                        @endcanany
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -91,45 +85,91 @@
                                         <td>
                                             @if($paiement->statut === 'validé')
                                             <span class="badge bg-success">Validé</span>
-                                            @elseif($paiement->statut === 'annulé')
-                                            <span class="badge bg-danger">Annulé</span>
+                                            @elseif($paiement->statut === 'modifié')
+                                            <span class="badge bg-info">Modifié</span>
                                             @else
                                             <span class="badge bg-warning text-dark">En attente</span>
                                             @endif
                                         </td>
+                                        @canany(['paiements.view', 'paiements.update', 'paiements.validate',
+                                        'paiements.delete'])
                                         <td class="text-center">
+                                            {{-- Bouton Détails - Permission: paiements.view --}}
+                                            @can('paiements.view')
                                             <a href="{{ route('paiements.show', $paiement) }}"
-                                                class="btn btn-sm btn-secondary" title="Détails"><i
-                                                    class="bi bi-eye"></i></a>
-                                            <a href="{{ route('paiements.edit', $paiement) }}"
-                                                class="btn btn-sm btn-warning" title="Éditer"><i
-                                                    class="bi bi-pencil"></i></a>
+                                                class="btn btn-sm btn-secondary" title="Détails"
+                                                data-bs-toggle="tooltip">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @endcan
 
+                                            {{-- Bouton Éditer (seulement si non validé) - Permission: paiements.update --}}
+                                            @can('paiements.update')
+                                            @if($paiement->statut !== 'validé')
+                                            <a href="{{ route('paiements.edit', $paiement) }}"
+                                                class="btn btn-sm btn-warning" title="Éditer" data-bs-toggle="tooltip">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            @endif
+                                            @endcan
+
+                                            {{-- Bouton Valider (seulement si en attente) - Permission: paiements.validate --}}
+                                            @can('paiements.validate')
+                                            @if($paiement->statut !== 'validé')
+                                            <form action="{{ route('paiements.valider', $paiement) }}" method="POST"
+                                                class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-success" data-confirm-action
+                                                    data-item-name="Paiement #{{ $paiement->numero_paiement ?? $paiement->paiement_id }}"
+                                                    data-confirm-title="Valider le paiement"
+                                                    data-confirm-text="Voulez-vous vraiment valider ce paiement ? Cette action est irréversible."
+                                                    data-confirm-btn="Oui, valider" data-confirm-color="#198754"
+                                                    title="Valider le paiement" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-check-circle-fill"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+                                            @endcan
+
+                                            {{-- Bouton Annuler (seulement si non annulé et non validé) - Permission: paiements.update --}}
+                                            @can('paiements.update')
+                                            @if($paiement->statut !== 'rejeté' && $paiement->statut !== 'validé')
+                                            <form action="{{ route('paiements.annuler', $paiement) }}" method="POST"
+                                                class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-sm btn-danger" data-confirm-action
+                                                    data-item-name="Paiement #{{ $paiement->numero_paiement ?? $paiement->paiement_id }}"
+                                                    data-confirm-title="Annuler le paiement"
+                                                    data-confirm-text="Voulez-vous vraiment annuler ce paiement ?"
+                                                    data-confirm-btn="Oui, annuler" data-confirm-color="#dc3545"
+                                                    title="Annuler le paiement" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-x-circle"></i>
+                                                </button>
+                                            </form>
+                                            @endif
+                                            @endcan
+
+                                            {{-- Bouton Supprimer (seulement si non validé) - Permission: paiements.delete --}}
+                                            @can('paiements.delete')
                                             @if($paiement->statut !== 'validé')
                                             <form action="{{ route('paiements.destroy', $paiement) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
-                                                    data-item-name="Facture #{{ $paiement->paiement_id ?? $paiement->numero_paiement }}"
-                                                    data-confirm-title="Suppression paiement"
-                                                    data-confirm-text="'Voulez-vous vraiment valider ce paiement ?'"
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    data-confirm-delete
+                                                    data-item-name="Paiement #{{ $paiement->numero_paiement ?? $paiement->paiement_id }}"
+                                                    data-confirm-title="Supprimer le paiement"
+                                                    data-confirm-text="Voulez-vous vraiment supprimer ce paiement ? Cette action est irréversible."
                                                     title="Supprimer" data-bs-toggle="tooltip">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
                                             @endif
-                                            @if($paiement->statut !== 'annulé')
-                                            <form action="{{ route('paiements.annuler', $paiement) }}" method="POST"
-                                                style="display:inline;">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-danger" title="Annuler">
-                                                    <i class="bi bi-x-circle"></i>
-                                                </button>
-                                            </form>
-                                            @endif
+                                            @endcan
                                         </td>
+                                        @endcanany
                                     </tr>
                                     @endforeach
                                 </tbody>

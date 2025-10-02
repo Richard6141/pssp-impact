@@ -5,11 +5,15 @@
 
     <div class="pagetitle d-flex justify-content-between align-items-center">
         <h1>Factures</h1>
+
+        <!-- Bouton Créer - Permission: factures.create -->
+        @can('factures.create')
         <a href="{{ route('factures.create') }}"
             class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
             style="width:45px; height:45px;">
             <i class="bi bi-plus-lg"></i>
         </a>
+        @endcan
     </div>
 
     <section class="section">
@@ -33,7 +37,10 @@
                                         <th>Site</th>
                                         <th>Comptable</th>
                                         <th>Photo / PDF</th>
+                                        @canany(['factures.view', 'factures.update', 'factures.delete',
+                                        'paiements.record'])
                                         <th class="text-center">Actions</th>
+                                        @endcanany
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -92,13 +99,25 @@
                                             @endif
                                         </td>
 
+                                        @canany(['factures.view', 'factures.update', 'factures.delete',
+                                        'paiements.record'])
                                         <td class="text-center">
+                                            <!-- Bouton Voir - Permission: factures.view -->
+                                            @can('factures.view')
                                             <a href="{{ route('factures.show', $facture->facture_id) }}"
                                                 class="btn btn-sm btn-info" title="Voir"><i class="bi bi-eye"></i></a>
+                                            @endcan
 
+                                            @if($facture->statut == 'en attente')
+                                            <!-- Bouton Modifier - Permission: factures.update -->
+                                            @can('factures.update')
                                             <a href="{{ route('factures.edit', $facture->facture_id) }}"
                                                 class="btn btn-sm btn-warning" title="Modifier"><i
                                                     class="bi bi-pencil"></i></a>
+                                            @endcan
+
+                                            <!-- Bouton Supprimer - Permission: factures.delete -->
+                                            @can('factures.delete')
                                             <form action="{{ route('factures.destroy', $facture->facture_id) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
@@ -111,8 +130,10 @@
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @endcan
 
-                                            <!-- Bouton Paiement: on passe maintenant le numero_facture -->
+                                            <!-- Bouton Paiement - Permission: paiements.record -->
+                                            @can('paiements.record')
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                 data-bs-target="#paiementModal"
                                                 data-facture="{{ $facture->facture_id }}"
@@ -120,7 +141,10 @@
                                                 data-numero="{{ $facture->numero_facture }}" title="Payer">
                                                 <i class="bi bi-cash-coin"></i>
                                             </button>
+                                            @endcan
+                                            @endif
                                         </td>
+                                        @endcanany
                                     </tr>
                                     @endforeach
                                 </tbody>
@@ -133,6 +157,7 @@
                         </div>
 
                         <!-- Modal Paiement (unique réutilisable) -->
+                        @can('paiements.record')
                         <div class="modal fade" id="paiementModal" tabindex="-1" aria-labelledby="paiementModalLabel"
                             aria-hidden="true">
                             <div class="modal-dialog">
@@ -196,6 +221,7 @@
                                 </form>
                             </div>
                         </div>
+                        @endcan
                         <!-- Fin modal paiement -->
 
                     </div>
@@ -210,59 +236,63 @@
 
 @section('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const paiementModal = document.getElementById('paiementModal');
-        const factureInput = document.getElementById('facture_id');
-        const montantInput = document.getElementById('montant');
-        const numeroFactureInput = document.getElementById('numero_facture');
-        const modePaiement = document.getElementById('mode_paiement');
-        const preuveBlock = document.getElementById('preuveBlock');
-        const preuveInput = document.getElementById('paiement_photo');
-        const paiementForm = document.getElementById('paiementForm');
+document.addEventListener('DOMContentLoaded', function() {
+    const paiementModal = document.getElementById('paiementModal');
 
-        // Au moment où le modal s'ouvre, bootstrap fournit event.relatedTarget = bouton qui l'a déclenché
-        paiementModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            if (!button) return;
+    // Vérifier si le modal existe (permission paiements.record)
+    if (!paiementModal) return;
 
-            // lire data-attributes
-            const factureId = button.getAttribute('data-facture') || '';
-            const montant = button.getAttribute('data-montant') || '';
-            const numeroFacture = button.getAttribute('data-numero') || '';
+    const factureInput = document.getElementById('facture_id');
+    const montantInput = document.getElementById('montant');
+    const numeroFactureInput = document.getElementById('numero_facture');
+    const modePaiement = document.getElementById('mode_paiement');
+    const preuveBlock = document.getElementById('preuveBlock');
+    const preuveInput = document.getElementById('paiement_photo');
+    const paiementForm = document.getElementById('paiementForm');
 
-            // injecter dans le formulaire
-            factureInput.value = factureId;
-            montantInput.value = montant;
-            numeroFactureInput.value = numeroFacture;
+    // Au moment où le modal s'ouvre, bootstrap fournit event.relatedTarget = bouton qui l'a déclenché
+    paiementModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        if (!button) return;
 
-            // reset mode & preuve
-            modePaiement.value = '';
+        // lire data-attributes
+        const factureId = button.getAttribute('data-facture') || '';
+        const montant = button.getAttribute('data-montant') || '';
+        const numeroFacture = button.getAttribute('data-numero') || '';
+
+        // injecter dans le formulaire
+        factureInput.value = factureId;
+        montantInput.value = montant;
+        numeroFactureInput.value = numeroFacture;
+
+        // reset mode & preuve
+        modePaiement.value = '';
+        preuveBlock.style.display = 'none';
+        preuveInput.removeAttribute('required');
+        preuveInput.value = '';
+    });
+
+    // rendre la preuve obligatoire si mode = cheque || virement
+    modePaiement.addEventListener('change', function() {
+        const v = this.value;
+        if (v === 'cheque' || v === 'virement') {
+            preuveBlock.style.display = 'block';
+            preuveInput.setAttribute('required', 'required');
+        } else {
             preuveBlock.style.display = 'none';
             preuveInput.removeAttribute('required');
-            preuveInput.value = '';
-        });
-
-        // rendre la preuve obligatoire si mode = cheque || virement
-        modePaiement.addEventListener('change', function() {
-            const v = this.value;
-            if (v === 'cheque' || v === 'virement') {
-                preuveBlock.style.display = 'block';
-                preuveInput.setAttribute('required', 'required');
-            } else {
-                preuveBlock.style.display = 'none';
-                preuveInput.removeAttribute('required');
-            }
-        });
-
-        // Optionnel : empêcher le submit si preuve requise mais non fournie (sécurité JS supplémentaire)
-        paiementForm.addEventListener('submit', function(e) {
-            const mode = modePaiement.value;
-            if ((mode === 'cheque' || mode === 'virement') && !preuveInput.value) {
-                e.preventDefault();
-                alert('Veuillez joindre la preuve de paiement (image ou PDF) pour ce mode de paiement.');
-                return false;
-            }
-        });
+        }
     });
+
+    // Optionnel : empêcher le submit si preuve requise mais non fournie (sécurité JS supplémentaire)
+    paiementForm.addEventListener('submit', function(e) {
+        const mode = modePaiement.value;
+        if ((mode === 'cheque' || mode === 'virement') && !preuveInput.value) {
+            e.preventDefault();
+            alert('Veuillez joindre la preuve de paiement (image ou PDF) pour ce mode de paiement.');
+            return false;
+        }
+    });
+});
 </script>
 @endsection

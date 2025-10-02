@@ -23,12 +23,14 @@
                         <h5 class="card-title d-flex justify-content-between align-items-center">
                             Liste des collectes
 
-                            <!-- Bouton rond bleu -->
+                            <!-- Bouton Créer - Permission: collectes.create -->
+                            @can('collectes.create')
                             <a href="{{ route('collectes.create') }}"
                                 class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
                                 style="width:40px; height:40px;">
                                 <i class="bi bi-plus-lg"></i>
                             </a>
+                            @endcan
                         </h5>
 
                         <!-- Table sans retour à la ligne -->
@@ -43,9 +45,12 @@
                                         <th>Type</th>
                                         <th>Agent</th>
                                         <th>Site</th>
-                                        <th>Resp.</th>
-                                        <th>Validée</th>
+                                        <th>Signature Resp.</th>
+                                        <th>Coord. Approbation</th>
+                                        @canany(['collectes.view', 'collectes.update', 'collectes.delete',
+                                        'collectes.validate_final'])
                                         <th class="text-center">Actions</th>
+                                        @endcanany
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -72,15 +77,27 @@
                                             <span class="badge bg-warning text-dark">…</span>
                                             @endif
                                         </td>
+                                        @canany(['collectes.view', 'collectes.update', 'collectes.delete',
+                                        'collectes.validate_final'])
                                         <td class="text-center">
+                                            <!-- Bouton Voir - Permission: collectes.view -->
+                                            @can('collectes.view')
                                             <a href="{{ route('collectes.show', $collecte->collecte_id) }}"
                                                 class="btn btn-sm btn-info" title="Voir">
                                                 <i class="bi bi-eye"></i>
                                             </a>
+                                            @endcan
+
+                                            <!-- Bouton Modifier - Permission: collectes.update -->
+                                            @can('collectes.update')
                                             <a href="{{ route('collectes.edit', $collecte->collecte_id) }}"
                                                 class="btn btn-sm btn-warning" title="Modifier">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            @endcan
+
+                                            <!-- Bouton Supprimer - Permission: collectes.delete -->
+                                            @can('collectes.delete')
                                             <form action="{{ route('collectes.destroy', $collecte->collecte_id) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
@@ -94,6 +111,10 @@
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @endcan
+
+                                            <!-- Bouton Valider - Permission: collectes.validate_final -->
+                                            @can('collectes.validate_final')
                                             @if(!$collecte->isValid)
                                             <form id="validate-form-{{ $collecte->collecte_id }}"
                                                 action="{{ route('collectes.validate', $collecte->collecte_id) }}"
@@ -111,7 +132,10 @@
                                                 </button>
                                             </form>
                                             @endif
+                                            @endcan
 
+                                            <!-- Bouton Invalider - Permission: collectes.validate_final -->
+                                            @can('collectes.validate_final')
                                             @if($collecte->isValid)
                                             <form id="invalidate-form-{{ $collecte->collecte_id }}"
                                                 action="{{ route('collectes.invalidate', $collecte->collecte_id) }}"
@@ -129,11 +153,9 @@
                                                 </button>
                                             </form>
                                             @endif
-
-
+                                            @endcan
                                         </td>
-
-
+                                        @endcanany
                                     </tr>
                                     @endforeach
                                 </tbody>

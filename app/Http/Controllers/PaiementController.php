@@ -100,7 +100,7 @@ class PaiementController extends Controller
     public function update(Request $request, Paiement $paiement)
     {
         // Vérifier que le paiement n'est ni validé ni annulé
-        if (in_array($paiement->statut, ['validé', 'annulé'])) {
+        if (in_array($paiement->statut, ['validé'])) {
             return redirect()->route('paiements.index')
                 ->with('warning', 'Impossible de modifier un paiement déjà validé ou annulé.');
         }
@@ -114,8 +114,11 @@ class PaiementController extends Controller
 
         $data = $request->only(['facture_id', 'montant', 'mode_paiement', 'reference', 'date_paiement']);
 
+        // ✅ Mettre le statut à "modifié" lors de la modification
+        $data['statut'] = 'modifié';
+
         if ($request->hasFile('paiement_photo')) {
-            // Supprimer l’ancienne photo si elle existe
+            // Supprimer l'ancienne photo si elle existe
             if ($paiement->paiement_photo) {
                 Storage::disk('public')->delete($paiement->paiement_photo);
             }
@@ -168,7 +171,7 @@ class PaiementController extends Controller
      */
     public function annuler(Paiement $paiement)
     {
-        $paiement->update(['statut' => 'annulé']);
+        $paiement->update(['statut' => 'rejeté']);
         return back()->with('warning', 'Paiement annulé.');
     }
 }
