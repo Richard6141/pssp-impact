@@ -8,6 +8,7 @@
     <title>Dashboard - PSSP IMPACT+</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
+    <meta name="csrf-token" content="{{ csrf_token() }}"> <!-- ← AJOUTEZ CETTE LIGNE -->
 
     <!-- Favicons -->
     <link href="{{asset('backend/assets/img/favicon.png')}}" rel="icon">
@@ -242,7 +243,7 @@
             @endif
         });
     </script>
-
+    @stack('scripts')
     @yield('scripts')
 
 </body>

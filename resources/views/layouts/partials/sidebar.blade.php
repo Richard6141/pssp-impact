@@ -230,6 +230,7 @@
         @endcanany
 
         <!-- Section Super Admin uniquement -->
+
         @hasrole('Super Admin')
         <li class="nav-heading">Super Admin</li>
 
@@ -240,25 +241,40 @@
             <ul id="system-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 @can('system.logs')
                 <li>
-                    <a href="#">
-                        <!-- À créer : route('system.logs') -->
+                    <a href="{{ route('system.logs') }}">
                         <i class="bi bi-circle"></i><span>Logs Système</span>
                     </a>
                 </li>
                 @endcan
+
                 @can('system.backup')
                 <li>
-                    <a href="#">
-                        <!-- À créer : route('system.backup') -->
+                    <a href="{{ route('system.backup') }}">
                         <i class="bi bi-circle"></i><span>Sauvegardes</span>
                     </a>
                 </li>
                 @endcan
+
                 @can('system.maintenance')
                 <li>
-                    <a href="#">
-                        <!-- À créer : route('system.maintenance') -->
+                    <a href="{{ route('system.maintenance') }}">
                         <i class="bi bi-circle"></i><span>Maintenance</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('system.info')
+                <li>
+                    <a href="{{ route('system.info') }}">
+                        <i class="bi bi-circle"></i><span>Informations</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('system.database')
+                <li>
+                    <a href="{{ route('system.database') }}">
+                        <i class="bi bi-circle"></i><span>Base de données</span>
                     </a>
                 </li>
                 @endcan

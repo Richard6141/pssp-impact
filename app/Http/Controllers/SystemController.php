@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
+use Log;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 
 class SystemController extends Controller
 {
@@ -90,48 +91,256 @@ class SystemController extends Controller
         return view('system.backup', compact('backups'));
     }
 
+
     /**
      * Créer une sauvegarde
      */
     public function createBackup(Request $request)
     {
         try {
+            // Augmenter le temps d'exécution et la mémoire
+            set_time_limit(600); // 10 minutes
+            ini_set('memory_limit', '1024M');
+
             $backupName = 'backup_' . date('Y-m-d_H-i-s') . '.sql';
             $backupPath = storage_path('app/backups/' . $backupName);
 
-            $databaseName = env('DB_DATABASE');
-            $username = env('DB_USERNAME');
-            $password = env('DB_PASSWORD');
-            $host = env('DB_HOST');
+            // Vérifier que le dossier existe
+            if (!File::exists(storage_path('app/backups'))) {
+                File::makeDirectory(storage_path('app/backups'), 0755, true);
+            }
 
-            $command = sprintf(
-                'mysqldump -h %s -u %s -p%s %s > %s',
-                $host,
-                $username,
-                $password,
-                $databaseName,
-                $backupPath
-            );
+            $databaseName = config('database.connections.' . config('database.default') . '.database');
+            $username = config('database.connections.' . config('database.default') . '.username');
+            $password = config('database.connections.' . config('database.default') . '.password');
+            $host = config('database.connections.' . config('database.default') . '.host');
+            $port = config('database.connections.' . config('database.default') . '.port', '3306');
 
-            exec($command, $output, $return_var);
+            // Option 1: Utiliser mysqldump si disponible
+            if ($this->commandExists('mysqldump')) {
+                // Créer un fichier de configuration temporaire pour éviter d'exposer le mot de passe
+                $configPath = storage_path('app/backups/.my.cnf.tmp');
+                $configContent = "[client]\n";
+                $configContent .= "user=" . $username . "\n";
+                $configContent .= "password=\"" . str_replace('"', '\\"', $password) . "\"\n";
+                $configContent .= "host=" . $host . "\n";
+                $configContent .= "port=" . $port . "\n";
 
-            if ($return_var === 0) {
+                File::put($configPath, $configContent);
+                chmod($configPath, 0600);
+
+                // Construire la commande mysqldump avec options optimisées
+                $command = sprintf(
+                    'mysqldump --defaults-extra-file=%s --single-transaction --quick --lock-tables=false --skip-add-locks --skip-comments --skip-set-charset --skip-triggers %s > %s 2>&1',
+                    escapeshellarg($configPath),
+                    escapeshellarg($databaseName),
+                    escapeshellarg($backupPath)
+                );
+
+                exec($command, $output, $returnVar);
+
+                // Supprimer le fichier de configuration temporaire
+                if (File::exists($configPath)) {
+                    File::delete($configPath);
+                }
+
+                if ($returnVar === 0 && File::exists($backupPath) && File::size($backupPath) > 0) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Sauvegarde créée avec succès',
+                        'backup' => $backupName,
+                        'size' => $this->formatBytes(File::size($backupPath))
+                    ]);
+                } else {
+                    // Nettoyer le fichier vide si la sauvegarde a échoué
+                    if (File::exists($backupPath)) {
+                        File::delete($backupPath);
+                    }
+
+                    // Tenter la méthode native en cas d'échec
+                    \Log::warning('mysqldump failed, trying native method', ['output' => $output]);
+                }
+            }
+
+            // Option 2: Sauvegarde PHP native (plus lente mais fonctionne partout)
+            return $this->createBackupNative($backupPath, $backupName);
+        } catch (\Exception $e) {
+            // Nettoyer en cas d'erreur
+            if (isset($backupPath) && File::exists($backupPath)) {
+                File::delete($backupPath);
+            }
+            if (isset($configPath) && File::exists($configPath)) {
+                File::delete($configPath);
+            }
+
+            \Log::error('Backup creation failed', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la création de la sauvegarde. Veuillez réessayer.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Créer une sauvegarde en utilisant PHP natif
+     */
+    private function createBackupNative($backupPath, $backupName)
+    {
+        try {
+            $handle = fopen($backupPath, 'w');
+
+            if (!$handle) {
+                throw new \Exception('Impossible de créer le fichier de sauvegarde');
+            }
+
+            // En-tête SQL
+            fwrite($handle, "-- MySQL Dump (PHP Native)\n");
+            fwrite($handle, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
+            fwrite($handle, "-- Database: " . config('database.connections.' . config('database.default') . '.database') . "\n\n");
+            fwrite($handle, "SET FOREIGN_KEY_CHECKS=0;\n");
+            fwrite($handle, "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n");
+            fwrite($handle, "SET AUTOCOMMIT=0;\n");
+            fwrite($handle, "START TRANSACTION;\n\n");
+
+            // Récupérer toutes les tables
+            $tables = DB::select('SHOW TABLES');
+            $dbName = config('database.connections.' . config('database.default') . '.database');
+            $tableKey = 'Tables_in_' . $dbName;
+
+            $totalTables = count($tables);
+            $processedTables = 0;
+
+            foreach ($tables as $table) {
+                $tableName = $table->$tableKey;
+                $processedTables++;
+
+                // Log progression
+                if ($processedTables % 5 == 0) {
+                    \Log::info("Backup progress: {$processedTables}/{$totalTables} tables");
+                }
+
+                // Structure de la table
+                fwrite($handle, "\n--\n");
+                fwrite($handle, "-- Table structure for table `{$tableName}`\n");
+                fwrite($handle, "--\n\n");
+                fwrite($handle, "DROP TABLE IF EXISTS `{$tableName}`;\n");
+
+                $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`")[0];
+                fwrite($handle, $createTable->{'Create Table'} . ";\n\n");
+
+                // Compter le nombre de lignes
+                $count = DB::table($tableName)->count();
+
+                if ($count > 0) {
+                    fwrite($handle, "--\n");
+                    fwrite($handle, "-- Dumping data for table `{$tableName}` ({$count} rows)\n");
+                    fwrite($handle, "--\n\n");
+
+                    // Récupérer les noms de colonnes
+                    $columns = DB::getSchemaBuilder()->getColumnListing($tableName);
+                    $columnList = '`' . implode('`, `', $columns) . '`';
+
+                    // Traiter les données par lots pour économiser la mémoire
+                    $chunkSize = 500;
+                    $offset = 0;
+
+                    DB::table($tableName)->orderBy($columns[0])->chunk($chunkSize, function ($rows) use ($handle, $tableName, $columnList, $columns) {
+                        $insertStatement = "INSERT INTO `{$tableName}` ({$columnList}) VALUES\n";
+                        $values = [];
+
+                        foreach ($rows as $row) {
+                            $rowValues = [];
+                            foreach ($columns as $column) {
+                                $value = $row->$column ?? null;
+
+                                if (is_null($value)) {
+                                    $rowValues[] = 'NULL';
+                                } elseif (is_numeric($value)) {
+                                    $rowValues[] = $value;
+                                } else {
+                                    // Échapper correctement les caractères spéciaux
+                                    $escaped = str_replace(
+                                        ["\\", "\0", "\n", "\r", "'", '"', "\x1a"],
+                                        ["\\\\", "\\0", "\\n", "\\r", "\\'", '\\"', "\\Z"],
+                                        $value
+                                    );
+                                    $rowValues[] = "'" . $escaped . "'";
+                                }
+                            }
+                            $values[] = '(' . implode(', ', $rowValues) . ')';
+                        }
+
+                        if (!empty($values)) {
+                            fwrite($handle, $insertStatement);
+                            fwrite($handle, implode(",\n", $values) . ";\n\n");
+                        }
+                    });
+                }
+
+                // Libérer la mémoire
+                unset($rows, $values);
+                if ($processedTables % 10 == 0) {
+                    gc_collect_cycles();
+                }
+            }
+
+            fwrite($handle, "COMMIT;\n");
+            fwrite($handle, "SET FOREIGN_KEY_CHECKS=1;\n");
+            fclose($handle);
+
+            if (File::exists($backupPath) && File::size($backupPath) > 0) {
+                \Log::info('Backup created successfully', ['file' => $backupName, 'size' => File::size($backupPath)]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Sauvegarde créée avec succès',
-                    'backup' => $backupName
+                    'backup' => $backupName,
+                    'size' => $this->formatBytes(File::size($backupPath))
                 ]);
             } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Erreur lors de la création de la sauvegarde'
-                ], 500);
+                throw new \Exception('Le fichier de sauvegarde est vide ou invalide');
             }
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
-            ], 500);
+            if (isset($handle) && is_resource($handle)) {
+                fclose($handle);
+            }
+            if (File::exists($backupPath)) {
+                File::delete($backupPath);
+            }
+
+            Log::error('Native backup failed', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Vérifier si une commande existe
+     */
+    private function commandExists($command)
+    {
+        try {
+            $whereIsCommand = (PHP_OS_FAMILY === 'Windows') ? 'where' : 'which';
+            $process = proc_open(
+                "$whereIsCommand $command",
+                [
+                    1 => ['pipe', 'w'],
+                    2 => ['pipe', 'w'],
+                ],
+                $pipes
+            );
+
+            if ($process !== false) {
+                $stdout = stream_get_contents($pipes[1]);
+                fclose($pipes[1]);
+                fclose($pipes[2]);
+                proc_close($process);
+                return !empty(trim($stdout));
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            return false;
         }
     }
 
@@ -140,7 +349,15 @@ class SystemController extends Controller
      */
     public function maintenance(Request $request)
     {
-        $isDown = File::exists(storage_path('framework/maintenance.php'));
+        // Vérifier l'état du mode maintenance
+        $isDown = app()->isDownForMaintenance();
+
+        // Log pour debug
+        \Log::info('Maintenance status check', [
+            'isDown' => $isDown,
+            'file_exists' => File::exists(storage_path('framework/down')),
+            'storage_path' => storage_path('framework/down')
+        ]);
 
         return view('system.maintenance', compact('isDown'));
     }
@@ -151,25 +368,35 @@ class SystemController extends Controller
     public function toggleMaintenance(Request $request)
     {
         try {
-            if (File::exists(storage_path('framework/maintenance.php'))) {
-                // Désactiver la maintenance
+            $isCurrentlyDown = app()->isDownForMaintenance();
+
+            if ($isCurrentlyDown) {
                 Artisan::call('up');
                 $message = 'Mode maintenance désactivé';
                 $status = 'up';
+                $secret = null;
             } else {
-                // Activer la maintenance
+                // Générer un secret unique
+                $secret = \Illuminate\Support\Str::random(32);
+
                 Artisan::call('down', [
-                    '--render' => 'maintenance',
                     '--retry' => 60,
+                    '--secret' => $secret,
+                    '--render' => 'errors::503',
                 ]);
+
                 $message = 'Mode maintenance activé';
                 $status = 'down';
+
+                // Sauvegarder le secret
+                Cache::put('maintenance_secret', $secret, now()->addDays(1));
             }
 
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'status' => $status
+                'status' => $status,
+                'secret' => $secret, // Retourner le secret pour accès admin
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -221,18 +448,21 @@ class SystemController extends Controller
     /**
      * Informations base de données
      */
+    /**
+     * Informations base de données
+     */
     public function database(Request $request)
     {
         // Tables et leurs tailles
         $tables = DB::select("
-            SELECT 
-                table_name as name,
-                table_rows as rows,
-                round(((data_length + index_length) / 1024 / 1024), 2) as size_mb
-            FROM information_schema.TABLES 
-            WHERE table_schema = '" . config('database.connections.' . config('database.default') . '.database') . "'
-            ORDER BY (data_length + index_length) DESC
-        ");
+        SELECT 
+            table_name as name,
+            table_rows as `rows`,
+            round(((data_length + index_length) / 1024 / 1024), 2) as size_mb
+        FROM information_schema.TABLES 
+        WHERE table_schema = '" . config('database.connections.' . config('database.default') . '.database') . "'
+        ORDER BY (data_length + index_length) DESC
+    ");
 
         // Statistiques générales
         $stats = [

@@ -10,6 +10,12 @@ class RolesSeeder extends Seeder
 {
     public function run()
     {
+        // Récupérer toutes les permissions système
+        $systemPermissions = Permission::where('name', 'LIKE', 'system.%')->pluck('name')->toArray();
+
+        // Récupérer toutes les permissions sauf système
+        $allPermissionsExceptSystem = Permission::where('name', 'NOT LIKE', 'system.%')->pluck('name')->toArray();
+
         // Définition des rôles avec leurs permissions
         $rolesPermissions = [
             // === SUPER ADMIN (vous) ===
@@ -85,64 +91,8 @@ class RolesSeeder extends Seeder
                 'data.own_site_only',
             ],
 
-            // === COORDONNATEUR ===
-            'Coordonnateur' => [
-                // Gestion complète des collectes
-                'collectes.view',
-                'collectes.create',
-                'collectes.update',
-                'collectes.validate_site',
-                'collectes.validate_final',
-
-                // Gestion des sites
-                'sites.view',
-                'sites.create',
-                'sites.update',
-                'sites.delete',
-
-                // Types de déchets
-                'type_dechets.view',
-                'type_dechets.create',
-                'type_dechets.update',
-
-                // Gestion des validations
-                'validations.view',
-                'validations.create',
-                'validations.delete',
-
-                // Gestion des incidents et observations
-                'incidents.view',
-                'incidents.create',
-                'incidents.update',
-                'incidents.resolve',
-                'observations.view',
-                'observations.create',
-                'observations.delete',
-
-                // Accès aux factures et paiements (consultation)
-                'factures.view',
-                'paiements.view',
-
-                // Rapports complets
-                'rapports.view',
-                'rapports.generate',
-                'rapports.export',
-                'rapports.collectes',
-                'rapports.sites',
-
-                // Gestion des utilisateurs (agents)
-                'users.view',
-                'users.create',
-                'users.update',
-                'users.assign_roles',
-
-                // Accès à tous les sites
-                'data.all_sites',
-
-                // Export
-                'export.pdf',
-                'export.excel',
-            ],
+            // === COORDONNATEUR (mêmes permissions qu'Admin sauf système) ===
+            'Coordonnateur' => 'all_except_system',
 
             // === COMPTABLE ===
             'Comptable' => [
@@ -234,27 +184,41 @@ class RolesSeeder extends Seeder
                 'configurations.view',
                 'configurations.update',
 
-                // Gestion du système (partiel)
-                'system.settings',
-                'system.logs',
-                'system.info',
-                'system.health',
-
-                // Accès à toutes les données (lecture)
+                // Gestion des sites
                 'sites.view',
-                'collectes.view',
-                'factures.view',
-                'paiements.view',
-                'rapports.view',
-                'rapports.generate',
-                'observations.view',
-                'incidents.view',
+                'sites.create',
+                'sites.update',
+                'sites.delete',
 
                 // Types de déchets
                 'type_dechets.view',
                 'type_dechets.create',
                 'type_dechets.update',
                 'type_dechets.delete',
+
+                // Collectes (lecture)
+                'collectes.view',
+
+                // Validations
+                'validations.view',
+                'validations.create',
+                'validations.delete',
+
+                // Factures et paiements (lecture)
+                'factures.view',
+                'paiements.view',
+
+                // Rapports
+                'rapports.view',
+                'rapports.generate',
+                'rapports.export',
+                'rapports.collectes',
+                'rapports.financier',
+                'rapports.sites',
+
+                // Observations et incidents
+                'observations.view',
+                'incidents.view',
 
                 // Accès à tous les sites
                 'data.all_sites',
@@ -272,6 +236,9 @@ class RolesSeeder extends Seeder
             if ($permissions === 'all') {
                 // Pour le Super Admin, assigner toutes les permissions
                 $role->syncPermissions(Permission::all());
+            } elseif ($permissions === 'all_except_system') {
+                // Pour le Coordonnateur, assigner toutes les permissions sauf système
+                $role->syncPermissions($allPermissionsExceptSystem);
             } elseif (is_array($permissions)) {
                 // Vérifier que toutes les permissions existent avant de les assigner
                 $existingPermissions = Permission::whereIn('name', $permissions)->pluck('name')->toArray();
@@ -288,11 +255,26 @@ class RolesSeeder extends Seeder
         $this->command->info('Rôles et permissions assignés avec succès !');
 
         // Affichage des rôles créés avec comptage des permissions
-        $this->command->info('Rôles créés :');
+        $this->command->info("\nRésumé des rôles créés :");
+        $this->command->info(str_repeat('-', 60));
+
         foreach (array_keys($rolesPermissions) as $roleName) {
             $role = Role::where('name', $roleName)->first();
             $permissionCount = $role ? $role->permissions()->count() : 0;
-            $this->command->line("- {$roleName} ({$permissionCount} permissions)");
+
+            // Vérifier si le rôle a des permissions système
+            $hasSystemPerms = false;
+            if ($role) {
+                $rolePermissions = $role->permissions()->pluck('name')->toArray();
+                $hasSystemPerms = !empty(array_intersect($rolePermissions, $systemPermissions));
+            }
+
+            $systemIndicator = $hasSystemPerms ? ' [+SYSTÈME]' : '';
+            $this->command->line("✓ {$roleName}: {$permissionCount} permissions{$systemIndicator}");
         }
+
+        $this->command->info(str_repeat('-', 60));
+        $this->command->info("Total permissions dans le système: " . Permission::count());
+        $this->command->info("Permissions système: " . count($systemPermissions));
     }
 }

@@ -13,16 +13,36 @@ use Illuminate\Support\Facades\DB;
 class ConfigurationController extends Controller
 {
 
-    /**
-     * Afficher la page de configuration
-     */
     public function index()
     {
         $sites = Site::all();
         $typesDechets = TypeDechet::all();
-        $roles = Role::with('permissions')->get();
-        $permissions = Permission::all();
-        $users = User::with(['roles', 'permissions'])->where('isActive', true)->get();
+
+        // Vérifier si l'utilisateur est Super Admin
+        $isSuperAdmin = auth()->user()->hasRole('Super Admin');
+
+        if ($isSuperAdmin) {
+            // Super Admin voit tout
+            $roles = Role::with('permissions')->get();
+            $permissions = Permission::all();
+        } else {
+            // Les autres utilisateurs ne voient pas Super Admin et les permissions système
+            $roles = Role::with('permissions')
+                ->where('name', '!=', 'Super Admin')
+                ->get();
+
+            $permissions = Permission::where('name', 'NOT LIKE', 'system.%')->get();
+        }
+
+        $users = User::with(['roles', 'permissions'])
+            ->where('isActive', true)
+            ->when(!$isSuperAdmin, function ($query) {
+                // Exclure les Super Admins de la liste pour les non-Super Admins
+                $query->whereDoesntHave('roles', function ($q) {
+                    $q->where('name', 'Super Admin');
+                });
+            })
+            ->get();
 
         return view('configurations.index', compact('sites', 'typesDechets', 'roles', 'permissions', 'users'));
     }

@@ -96,7 +96,7 @@ class RolesPermissionSeeder extends Seeder
             ['name' => 'permissions.assign', 'libelle' => 'Assigner des permissions'],
             ['name' => 'permissions.revoke', 'libelle' => 'Révoquer des permissions'],
 
-            // === SYSTÈME ===
+            // === SYSTÈME (Super Admin uniquement) ===
             ['name' => 'system.settings', 'libelle' => 'Modifier les paramètres système'],
             ['name' => 'system.logs', 'libelle' => 'Consulter les logs système'],
             ['name' => 'system.backup', 'libelle' => 'Gérer les sauvegardes'],

@@ -122,8 +122,8 @@
                                         <tbody>
                                             @forelse($sites as $site)
                                             <tr>
-                                                <td>{{ $site->nom }}</td>
-                                                <td>{{ $site->adresse }}</td>
+                                                <td>{{ $site->site_name }}</td>
+                                                <td>{{ $site->site_departement }}, {{ $site->site_commune}}</td>
                                                 <td>
                                                     @if($site->latitude && $site->longitude)
                                                     {{ $site->latitude }}, {{ $site->longitude }}
@@ -134,7 +134,7 @@
                                                 <td>
                                                     <span
                                                         class="badge bg-{{ $site->is_active ? 'success' : 'danger' }}">
-                                                        {{ $site->is_active ? 'Actif' : 'Inactif' }}
+                                                        {{ $site->responsable ? 'Actif' : 'Inactif' }}
                                                     </span>
                                                 </td>
                                                 <td>
@@ -181,7 +181,7 @@
                                             <tr>
                                                 <th>Nom</th>
                                                 <th>Description</th>
-                                                <th>Couleur</th>
+                                                <th>Code</th>
                                                 <th>Statut</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -189,14 +189,10 @@
                                         <tbody>
                                             @forelse($typesDechets as $type)
                                             <tr>
-                                                <td>{{ $type->nom }}</td>
+                                                <td>{{ $type->libelle }}</td>
                                                 <td>{{ Str::limit($type->description, 50) }}</td>
                                                 <td>
-                                                    @if($type->couleur)
-                                                    <span class="badge"
-                                                        style="background-color: {{ $type->couleur }}">{{ $type->couleur }}</span>
-                                                    @else
-                                                    N/A
+                                                    @if($type->code)
                                                     @endif
                                                 </td>
                                                 <td>
