@@ -20,7 +20,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Formulaire d’ajout d’un site</h5>
+                        <h5 class="card-title">Formulaire d'ajout d'un site</h5>
 
                         <!-- Floating Labels Form -->
                         <form class="row g-3" method="POST" action="{{ route('sites.store') }}">
@@ -28,69 +28,101 @@
 
                             <div class="col-md-12">
                                 <div class="form-floating">
-                                    <input type="text" name="site_name" class="form-control" id="siteName"
-                                        placeholder="Nom du site" required>
+                                    <input type="text" name="site_name"
+                                        class="form-control @error('site_name') is-invalid @enderror" id="siteName"
+                                        placeholder="Nom du site" value="{{ old('site_name') }}" required>
                                     <label for="siteName">Nom du site</label>
+                                    @error('site_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="site_departement" class="form-control" id="siteDepartement"
-                                        placeholder="Département" required>
+                                    <input type="text" name="site_departement"
+                                        class="form-control @error('site_departement') is-invalid @enderror"
+                                        id="siteDepartement" placeholder="Département"
+                                        value="{{ old('site_departement') }}" required>
                                     <label for="siteDepartement">Département</label>
+                                    @error('site_departement')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="site_commune" class="form-control" id="siteCommune"
-                                        placeholder="Commune" required>
+                                    <input type="text" name="site_commune"
+                                        class="form-control @error('site_commune') is-invalid @enderror"
+                                        id="siteCommune" placeholder="Commune" value="{{ old('site_commune') }}"
+                                        required>
                                     <label for="siteCommune">Commune</label>
+                                    @error('site_commune')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="col-12">
                                 <div class="form-floating">
-                                    <input type="text" name="localisation" class="form-control" id="localisation"
-                                        placeholder="Localisation" required>
+                                    <input type="text" name="localisation"
+                                        class="form-control @error('localisation') is-invalid @enderror"
+                                        id="localisation" placeholder="Localisation" value="{{ old('localisation') }}"
+                                        required>
                                     <label for="localisation">Localisation</label>
+                                    @error('localisation')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="longitude" class="form-control" id="longitude"
-                                        placeholder="Longitude">
+                                    <input type="number" step="0.0000001" name="longitude"
+                                        class="form-control @error('longitude') is-invalid @enderror" id="longitude"
+                                        placeholder="Longitude" value="{{ old('longitude') }}">
                                     <label for="longitude">Longitude</label>
+                                    @error('longitude')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="col-md-6">
                                 <div class="form-floating">
-                                    <input type="text" name="latitude" class="form-control" id="latitude"
-                                        placeholder="Latitude">
+                                    <input type="number" step="0.0000001" name="latitude"
+                                        class="form-control @error('latitude') is-invalid @enderror" id="latitude"
+                                        placeholder="Latitude" value="{{ old('latitude') }}">
                                     <label for="latitude">Latitude</label>
+                                    @error('latitude')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="col-md-12">
                                 <div class="form-floating mb-3">
-                                    <select class="form-select" id="responsable" name="responsable">
+                                    <select class="form-select @error('responsable') is-invalid @enderror"
+                                        id="responsable" name="responsable">
                                         <option value="">-- Aucun --</option>
                                         @foreach($users as $user)
-                                        <option value="{{ $user->user_id }}">{{ $user->firstname }}
-                                            {{ $user->lastname }}
+                                        <option value="{{ $user->user_id }}"
+                                            {{ old('responsable') == $user->user_id ? 'selected' : '' }}>
+                                            {{ $user->firstname }} {{ $user->lastname }}
                                         </option>
                                         @endforeach
                                     </select>
                                     <label for="responsable">Responsable</label>
+                                    @error('responsable')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
 
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Enregistrer</button>
-                                <button type="reset" class="btn btn-secondary">Annuler</button>
+                                <a href="{{ route('sites.index') }}" class="btn btn-secondary">Annuler</a>
                             </div>
                         </form><!-- End floating Labels Form -->
 

@@ -191,7 +191,8 @@
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">Évolution des Collectes <span id="chart-period">/7 jours</span></h5>
-                        <div id="collectesChart" style="min-height: 400px;"></div>
+                        <!-- IMPORTANT: div vide sans attribut style -->
+                        <div id="collectesChart"></div>
                     </div>
                 </div>
             </div>
@@ -225,7 +226,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Répartition par Type de Déchet</h5>
-                        <div id="typesChart" style="min-height: 400px;"></div>
+                        <!-- IMPORTANT: div vide sans attribut style -->
+                        <div id="typesChart"></div>
 
                         <!-- Légendes détaillées -->
                         <div class="mt-3">
@@ -334,7 +336,8 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Évolution Mensuelle</h5>
-                        <div id="evolutionChart" style="min-height: 300px;"></div>
+                        <!-- IMPORTANT: div vide sans attribut style -->
+                        <div id="evolutionChart"></div>
                     </div>
                 </div>
             </div>
@@ -435,4 +438,221 @@
         @endrole
     </section>
 </main>
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // ===== GRAPHIQUE D'ÉVOLUTION DES COLLECTES =====
+        @can('rapports.collectes')
+        try {
+            const evolutionData = @json($evolutionCollectes);
+            const ctxCollectes = document.getElementById('collectesChart');
+
+            if (ctxCollectes) {
+                // Créer un canvas
+                const canvas = document.createElement('canvas');
+                canvas.id = 'collectesChartCanvas';
+                ctxCollectes.appendChild(canvas);
+
+                const collectesChart = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: evolutionData.map(item => item.label),
+                        datasets: [{
+                            label: 'Collectes',
+                            data: evolutionData.map(item => item.collectes),
+                            borderColor: '#4154f1',
+                            backgroundColor: 'rgba(65, 84, 241, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Poids (kg)',
+                            data: evolutionData.map(item => item.poids),
+                            borderColor: '#2eca6a',
+                            backgroundColor: 'rgba(46, 202, 106, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                window.updateChart = function(period) {
+                    fetch(`/api/chart-data?period=${period}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            collectesChart.data.labels = data.labels;
+                            collectesChart.data.datasets[0].data = data.collectes;
+                            collectesChart.data.datasets[1].data = data.poids || [];
+                            collectesChart.update();
+
+                            document.querySelector('#chart-period').textContent =
+                                period === '7days' ? '/7 jours' :
+                                period === '1month' ? '/1 mois' : '/3 mois';
+                        })
+                        .catch(error => console.error('Erreur:', error));
+                };
+            }
+        } catch (error) {
+            console.error('Erreur graphique collectes:', error);
+        }
+        @endcan
+
+        // ===== GRAPHIQUE RÉPARTITION PAR TYPE =====
+        @can('rapports.collectes')
+        try {
+            const typesData = @json($typesDechets);
+            const ctxTypes = document.getElementById('typesChart');
+
+            if (ctxTypes && typesData.length > 0) {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'typesChartCanvas';
+                ctxTypes.appendChild(canvas);
+
+                new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: typesData.map(item => item.libelle),
+                        datasets: [{
+                            data: typesData.map(item => item.nombre),
+                            backgroundColor: [
+                                '#4154f1',
+                                '#2eca6a',
+                                '#ff771d',
+                                '#f1416c',
+                                '#7239ea',
+                                '#ffc107',
+                                '#20c997'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur graphique types:', error);
+        }
+        @endcan
+
+        // ===== GRAPHIQUE ÉVOLUTION MENSUELLE =====
+        @can('rapports.financier')
+        try {
+            const evolutionMenData = @json($evolutionMensuelle);
+            const ctxEvolution = document.getElementById('evolutionChart');
+
+            if (ctxEvolution && evolutionMenData.length > 0) {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'evolutionChartCanvas';
+                ctxEvolution.appendChild(canvas);
+
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: evolutionMenData.map(item => item.mois),
+                        datasets: [{
+                            label: 'Collectes',
+                            data: evolutionMenData.map(item => item.collectes),
+                            backgroundColor: '#4154f1',
+                            yAxisID: 'y'
+                        }, {
+                            label: 'Revenus (FCFA)',
+                            data: evolutionMenData.map(item => item.revenus),
+                            type: 'line',
+                            borderColor: '#2eca6a',
+                            backgroundColor: 'rgba(46, 202, 106, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Collectes'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Revenus (FCFA)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur graphique évolution:', error);
+        }
+        @endcan
+
+        // ===== FONCTIONS DE FILTRAGE =====
+        window.filterData = function(type, period) {
+            fetch(`/api/filter-data/${type}/${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    const element = document.querySelector(`#${type}Total`);
+                    if (element) element.textContent = data.formatted;
+
+                    const periodElement = document.querySelector(`#${type}-period`);
+                    if (periodElement) {
+                        periodElement.textContent =
+                            period === 'today' ? '| Aujourd\'hui' :
+                            period === 'month' ? '| Ce mois' : '| Cette année';
+                    }
+                })
+                .catch(error => console.error('Erreur:', error));
+        };
+
+        window.filterCollectes = function(period) {
+            fetch(`/api/filter-collectes/${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    const filterElement = document.querySelector('#collectes-filter');
+                    if (filterElement) {
+                        filterElement.textContent =
+                            period === 'today' ? '| Aujourd\'hui' :
+                            period === 'week' ? '| Cette semaine' : '| Ce mois';
+                    }
+                })
+                .catch(error => console.error('Erreur:', error));
+        };
+    });
+</script>
+@endsection
 @endsection

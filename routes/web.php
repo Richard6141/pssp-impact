@@ -450,4 +450,17 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
 
     Route::get('/collectes-filter/{period}', [IndexController::class, 'filterCollectes'])
         ->name('dashboard.collectes-filter');
+
+    // Dashboard (accessible à tous les utilisateurs authentifiés)
+    Route::get('/chart-data', [IndexController::class, 'getChartData'])
+        ->name('chart.data');
+
+    Route::get('/refresh', [IndexController::class, 'refreshData'])
+        ->name('dashboard.refresh');
+
+    Route::get('/filter-data/{type}/{period}', [IndexController::class, 'filterData'])
+        ->name('filter.data');
+
+    Route::get('/filter-collectes/{period}', [IndexController::class, 'filterCollectes'])
+        ->name('filter.collectes');
 });
