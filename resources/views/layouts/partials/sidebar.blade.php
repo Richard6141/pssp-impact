@@ -173,7 +173,7 @@
                 </li>
                 @can('rapports.generate')
                 <li>
-                    <a href="#">
+                    <a href="{{ route('rapports.financier') }}">
                         <!-- À créer : route('rapports.financier') -->
                         <i class="bi bi-circle"></i><span>Financier</span>
                     </a>

@@ -13,6 +13,9 @@ use App\Models\Incident;
 use App\Models\Observation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use PDF; // ou use Barryvdh\DomPDF\Facade\Pdf;
+use Excel; // ou use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\FinancierExport;
 
 class RapportController extends Controller
 {
@@ -151,95 +154,7 @@ class RapportController extends Controller
         ));
     }
 
-    /**
-     * Rapport financier
-     */
-    public function financier(Request $request)
-    {
-        $dateDebut = $request->input('date_debut', now()->startOfMonth());
-        $dateFin = $request->input('date_fin', now()->endOfMonth());
-        $siteId = $request->input('site_id');
 
-        // Statistiques des factures
-        $facturesQuery = Facture::whereBetween('date_facture', [$dateDebut, $dateFin]);
-        if ($siteId) {
-            $facturesQuery->where('site_id', $siteId);
-        }
-
-        $statsFactures = [
-            'total_factures' => $facturesQuery->count(),
-            'montant_total_facture' => $facturesQuery->sum('montant_facture'),
-            'factures_payees' => (clone $facturesQuery)->where('statut', 'payee')->count(),
-            'factures_impayees' => (clone $facturesQuery)->where('statut', 'impayee')->count(),
-        ];
-
-        // Statistiques des paiements
-        $paiementsQuery = Paiement::whereBetween('date_paiement', [$dateDebut, $dateFin]);
-        if ($siteId) {
-            $paiementsQuery->whereHas('facture', function ($q) use ($siteId) {
-                $q->where('site_id', $siteId);
-            });
-        }
-
-        $statsPaiements = [
-            'total_paiements' => $paiementsQuery->count(),
-            'montant_total_paye' => $paiementsQuery->sum('montant'),
-            'paiements_valides' => (clone $paiementsQuery)->where('statut', 'valide')->count(),
-            'paiements_en_attente' => (clone $paiementsQuery)->where('statut', 'en attente')->count(),
-        ];
-
-        // Taux de recouvrement
-        $tauxRecouvrement = $statsFactures['montant_total_facture'] > 0
-            ? ($statsPaiements['montant_total_paye'] / $statsFactures['montant_total_facture']) * 100
-            : 0;
-
-        // Évolution du CA mensuel
-        $evolutionCA = Facture::select(
-            DB::raw('DATE_FORMAT(date_facture, "%Y-%m") as mois'),
-            DB::raw('sum(montant_facture) as ca')
-        )
-            ->where('date_facture', '>=', now()->subMonths(12))
-            ->groupBy(DB::raw('DATE_FORMAT(date_facture, "%Y-%m")'))
-            ->orderBy('mois')
-            ->get();
-
-        // CA par site
-        $caBySite = Facture::select('sites.site_name', DB::raw('sum(montant_facture) as ca'))
-            ->join('sites', 'factures.site_id', '=', 'sites.site_id')
-            ->whereBetween('date_facture', [$dateDebut, $dateFin])
-            ->groupBy('sites.site_id', 'sites.site_name')
-            ->orderBy('ca', 'desc')
-            ->get();
-
-        // Répartition par mode de paiement
-        $repartitionModePaiement = Paiement::select('mode_paiement', DB::raw('count(*) as total'))
-            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
-            ->groupBy('mode_paiement')
-            ->pluck('total', 'mode_paiement');
-
-        // Factures récentes
-        $facturesRecentes = Facture::with(['site', 'comptable'])
-            ->whereBetween('date_facture', [$dateDebut, $dateFin])
-            ->orderBy('date_facture', 'desc')
-            ->limit(10)
-            ->get();
-
-        $sites = Site::select('site_id', 'site_name')->get();
-
-        return view('rapports.financier', compact(
-            'statsFactures',
-            'statsPaiements',
-            'tauxRecouvrement',
-            'evolutionCA',
-            'caBySite',
-            'repartitionModePaiement',
-            'facturesRecentes',
-            'sites',
-            'dateDebut',
-            'dateFin',
-            'siteId'
-        ));
-    }
 
     /**
      * Rapport par sites
@@ -364,5 +279,195 @@ class RapportController extends Controller
     {
         // À implémenter avec Laravel Excel
         // return Excel::download(new CollectesExport($request), 'collectes.xlsx');
+    }
+
+    public function financier(Request $request)
+    {
+        $now = Carbon::now();
+
+        // Récupération des filtres
+        $dateDebut = $request->get('date_debut', $now->copy()->subMonths(6)->format('Y-m-d'));
+        $dateFin = $request->get('date_fin', $now->format('Y-m-d'));
+        $siteId = $request->get('site_id');
+        $statutFacture = $request->get('statut_facture');
+        $modePaiement = $request->get('mode_paiement');
+
+        // Query de base pour les factures
+        $facturesQuery = Facture::with(['site', 'paiements'])
+            ->whereBetween('date_facture', [$dateDebut, $dateFin]);
+
+        if ($siteId) {
+            $facturesQuery->where('site_id', $siteId);
+        }
+
+        if ($statutFacture) {
+            $facturesQuery->where('statut', $statutFacture);
+        }
+
+        // Query pour les paiements
+        $paiementsQuery = Paiement::with(['facture.site'])
+            ->whereBetween('date_paiement', [$dateDebut, $dateFin]);
+
+        if ($modePaiement) {
+            $paiementsQuery->where('mode_paiement', $modePaiement);
+        }
+
+        // ===== STATISTIQUES PRINCIPALES =====
+
+        $stats = [
+            'revenu_total' => $paiementsQuery->clone()->sum('montant'),
+            'total_factures' => $facturesQuery->clone()->count(),
+            'montant_facture' => $facturesQuery->clone()->sum('montant_facture'),
+            'total_paiements' => $paiementsQuery->clone()->count(),
+            'montant_paiements' => $paiementsQuery->clone()->sum('montant'),
+            'factures_impayees' => $facturesQuery->clone()->where('statut', '!=', 'payee')->count(),
+            'montant_impayes' => $facturesQuery->clone()->where('statut', '!=', 'payee')->sum('montant_facture')
+        ];
+
+        // ===== ÉVOLUTION MENSUELLE (6 derniers mois) =====
+
+        $evolutionMensuelle = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $mois = $now->copy()->subMonths($i);
+
+            $montantFactures = Facture::whereMonth('date_facture', $mois->month)
+                ->whereYear('date_facture', $mois->year)
+                ->when($siteId, fn($q) => $q->where('site_id', $siteId))
+                ->sum('montant_facture');
+
+            $montantPaiements = Paiement::whereMonth('date_paiement', $mois->month)
+                ->whereYear('date_paiement', $mois->year)
+                ->when($siteId, function ($q) use ($siteId) {
+                    $q->whereHas('facture', fn($query) => $query->where('site_id', $siteId));
+                })
+                ->sum('montant');
+
+            $evolutionMensuelle->push([
+                'mois' => $mois->format('M Y'),
+                'montant_factures' => $montantFactures,
+                'montant_paiements' => $montantPaiements
+            ]);
+        }
+
+        // ===== RÉPARTITION PAR MODE DE PAIEMENT =====
+
+        $repartitionModePaiement = Paiement::whereBetween('date_paiement', [$dateDebut, $dateFin])
+            ->when($siteId, function ($q) use ($siteId) {
+                $q->whereHas('facture', fn($query) => $query->where('site_id', $siteId));
+            })
+            ->selectRaw('mode_paiement, SUM(montant) as total')
+            ->groupBy('mode_paiement')
+            ->pluck('total', 'mode_paiement')
+            ->mapWithKeys(function ($value, $key) {
+                return [ucfirst(str_replace('_', ' ', $key)) => $value];
+            });
+
+        // ===== RÉPARTITION PAR STATUT FACTURE =====
+
+        $repartitionStatutFacture = Facture::whereBetween('date_facture', [$dateDebut, $dateFin])
+            ->when($siteId, fn($q) => $q->where('site_id', $siteId))
+            ->selectRaw('statut, COUNT(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut')
+            ->mapWithKeys(function ($value, $key) {
+                return [ucfirst(str_replace('_', ' ', $key)) => $value];
+            });
+
+        // ===== TOP SITES PAR REVENUS =====
+
+        $topSites = DB::table('factures')
+            ->join('sites', 'factures.site_id', '=', 'sites.site_id')
+            ->select(
+                'sites.site_name',
+                DB::raw('COUNT(factures.facture_id) as nombre_factures'),
+                DB::raw('SUM(factures.montant_facture) as montant_total')
+            )
+            ->whereBetween('factures.date_facture', [$dateDebut, $dateFin])
+            ->when($siteId, fn($q) => $q->where('sites.site_id', $siteId))
+            ->groupBy('sites.site_id', 'sites.site_name')
+            ->orderBy('montant_total', 'desc')
+            ->limit(5)
+            ->get();
+
+        // ===== DERNIERS PAIEMENTS =====
+
+        $derniersPaiements = Paiement::with('facture')
+            ->whereBetween('date_paiement', [$dateDebut, $dateFin])
+            ->when($siteId, function ($q) use ($siteId) {
+                $q->whereHas('facture', fn($query) => $query->where('site_id', $siteId));
+            })
+            ->when($modePaiement, fn($q) => $q->where('mode_paiement', $modePaiement))
+            ->orderBy('date_paiement', 'desc')
+            ->limit(10)
+            ->get();
+
+        // ===== LISTE DES FACTURES AVEC PAGINATION =====
+
+        $factures = $facturesQuery->orderBy('date_facture', 'desc')->paginate(15);
+
+        // ===== DONNÉES POUR LES FILTRES =====
+
+        $sites = Site::orderBy('site_name')->get();
+
+        // ===== GESTION DES EXPORTS =====
+
+        if ($request->has('export')) {
+            if ($request->export === 'pdf') {
+                return $this->exportFinancierPDF($request, compact(
+                    'stats',
+                    'evolutionMensuelle',
+                    'repartitionModePaiement',
+                    'repartitionStatutFacture',
+                    'topSites',
+                    'factures',
+                    'dateDebut',
+                    'dateFin'
+                ));
+            } elseif ($request->export === 'excel') {
+                return $this->exportFinancierExcel($request, compact(
+                    'stats',
+                    'evolutionMensuelle',
+                    'factures',
+                    'dateDebut',
+                    'dateFin'
+                ));
+            }
+        }
+
+        return view('rapports.financier', compact(
+            'stats',
+            'evolutionMensuelle',
+            'repartitionModePaiement',
+            'repartitionStatutFacture',
+            'topSites',
+            'derniersPaiements',
+            'factures',
+            'sites',
+            'dateDebut',
+            'dateFin',
+            'siteId',
+            'statutFacture',
+            'modePaiement'
+        ));
+    }
+
+    /**
+     * Export du rapport financier en PDF
+     */
+    private function exportFinancierPDF($request, $data)
+    {
+        $pdf = PDF::loadView('rapports.financier_pdf', $data);
+        return $pdf->download('rapport_financier_' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Export du rapport financier en Excel
+     */
+    private function exportFinancierExcel($request, $data)
+    {
+        return Excel::download(
+            new FinancierExport($data),
+            'rapport_financier_' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 }

@@ -35,7 +35,7 @@ class Facture extends Model
     ];
 
     protected $casts = [
-        'date_facture' => 'date',
+        'date_facture' => 'datetime',
         'montant_facture' => 'decimal:2'
     ];
 

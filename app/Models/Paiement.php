@@ -33,6 +33,12 @@ class Paiement extends Model
         'deleted_at',
     ];
 
+    protected $casts = [
+        'date_paiement' => 'datetime',
+    ];
+
+
+
     /**
      * Relation vers la facture associée
      */
