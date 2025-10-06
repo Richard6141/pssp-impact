@@ -19,9 +19,12 @@ class SiteController extends Controller
     // Formulaire de création
     public function create()
     {
-        $users = User::all(); // pour choisir un responsable
+        // Récupérer uniquement les utilisateurs ayant le rôle "Agent Collecte"
+        $users = User::role('Agent collecte')->get();
+
         return view('sites.create', compact('users'));
     }
+
 
     // Sauvegarde en BDD
     public function store(Request $request)
@@ -61,7 +64,7 @@ class SiteController extends Controller
     public function edit($id)
     {
         $site = Site::findOrFail($id);
-        $users = User::all();
+        $users = User::role('Agent collecte')->get();
         return view('sites.edit', compact('site', 'users'));
     }
 

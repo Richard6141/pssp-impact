@@ -285,7 +285,7 @@
                                             @forelse($permissions as $permission)
                                             <div
                                                 class="list-group-item d-flex justify-content-between align-items-center">
-                                                <span>{{ $permission->name }}</span>
+                                                <span>{{ $permission->libelle }}</span>
                                                 <form method="POST"
                                                     action="{{ route('permissions.destroy', $permission->getKey()) }}"
                                                     style="display: inline;">
@@ -345,7 +345,8 @@
                                             <label for="permissions" class="form-label">Permissions directes</label>
                                             <select name="permissions[]" id="permissions" class="form-select" multiple>
                                                 @foreach($permissions as $permission)
-                                                <option value="{{ $permission->name }}">{{ $permission->name }}</option>
+                                                <option value="{{ $permission->name }}">{{ $permission->libelle }}
+                                                </option>
                                                 @endforeach
                                             </select>
                                             <small class="text-muted">Maintenir Ctrl pour sélectionner plusieurs
