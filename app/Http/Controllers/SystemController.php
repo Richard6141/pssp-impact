@@ -110,74 +110,19 @@ class SystemController extends Controller
                 File::makeDirectory(storage_path('app/backups'), 0755, true);
             }
 
-            $databaseName = config('database.connections.' . config('database.default') . '.database');
-            $username = config('database.connections.' . config('database.default') . '.username');
-            $password = config('database.connections.' . config('database.default') . '.password');
-            $host = config('database.connections.' . config('database.default') . '.host');
-            $port = config('database.connections.' . config('database.default') . '.port', '3306');
-
-            // Option 1: Utiliser mysqldump si disponible
-            if ($this->commandExists('mysqldump')) {
-                // Créer un fichier de configuration temporaire pour éviter d'exposer le mot de passe
-                $configPath = storage_path('app/backups/.my.cnf.tmp');
-                $configContent = "[client]\n";
-                $configContent .= "user=" . $username . "\n";
-                $configContent .= "password=\"" . str_replace('"', '\\"', $password) . "\"\n";
-                $configContent .= "host=" . $host . "\n";
-                $configContent .= "port=" . $port . "\n";
-
-                File::put($configPath, $configContent);
-                chmod($configPath, 0600);
-
-                // Construire la commande mysqldump avec options optimisées
-                $command = sprintf(
-                    'mysqldump --defaults-extra-file=%s --single-transaction --quick --lock-tables=false --skip-add-locks --skip-comments --skip-set-charset --skip-triggers %s > %s 2>&1',
-                    escapeshellarg($configPath),
-                    escapeshellarg($databaseName),
-                    escapeshellarg($backupPath)
-                );
-
-                exec($command, $output, $returnVar);
-
-                // Supprimer le fichier de configuration temporaire
-                if (File::exists($configPath)) {
-                    File::delete($configPath);
-                }
-
-                if ($returnVar === 0 && File::exists($backupPath) && File::size($backupPath) > 0) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Sauvegarde créée avec succès',
-                        'backup' => $backupName,
-                        'size' => $this->formatBytes(File::size($backupPath))
-                    ]);
-                } else {
-                    // Nettoyer le fichier vide si la sauvegarde a échoué
-                    if (File::exists($backupPath)) {
-                        File::delete($backupPath);
-                    }
-
-                    // Tenter la méthode native en cas d'échec
-                    \Log::warning('mysqldump failed, trying native method', ['output' => $output]);
-                }
-            }
-
-            // Option 2: Sauvegarde PHP native (plus lente mais fonctionne partout)
+            // Utiliser uniquement la méthode PHP native (compatible avec tous les hébergeurs)
             return $this->createBackupNative($backupPath, $backupName);
         } catch (\Exception $e) {
             // Nettoyer en cas d'erreur
             if (isset($backupPath) && File::exists($backupPath)) {
                 File::delete($backupPath);
             }
-            if (isset($configPath) && File::exists($configPath)) {
-                File::delete($configPath);
-            }
 
             \Log::error('Backup creation failed', ['error' => $e->getMessage()]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création de la sauvegarde. Veuillez réessayer.'
+                'message' => 'Erreur lors de la création de la sauvegarde: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -243,7 +188,6 @@ class SystemController extends Controller
 
                     // Traiter les données par lots pour économiser la mémoire
                     $chunkSize = 500;
-                    $offset = 0;
 
                     DB::table($tableName)->orderBy($columns[0])->chunk($chunkSize, function ($rows) use ($handle, $tableName, $columnList, $columns) {
                         $insertStatement = "INSERT INTO `{$tableName}` ({$columnList}) VALUES\n";
@@ -309,7 +253,7 @@ class SystemController extends Controller
                 File::delete($backupPath);
             }
 
-            Log::error('Native backup failed', ['error' => $e->getMessage()]);
+            \Log::error('Native backup failed', ['error' => $e->getMessage()]);
             throw $e;
         }
     }
