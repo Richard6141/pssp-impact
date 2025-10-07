@@ -15,14 +15,33 @@ class CollecteController extends Controller
     /**
      * Affichage de la liste
      */
-    public function index()
+    /* public function index()
     {
         $collectes = Collecte::with(['typeDechet', 'agent', 'site'])
             ->orderBy('date_collecte', 'desc')
             ->paginate(10);
 
         return view('collectes.index', compact('collectes'));
+    } */
+
+    public function index()
+    {
+        $query = Collecte::with(['typeDechet', 'agent', 'site'])
+            ->orderBy('date_collecte', 'desc');
+
+        // Si l'utilisateur connecté est "Responsable site"
+        if (auth()->user()->hasRole('Responsable site')) {
+            // On filtre uniquement les collectes des sites dont il est responsable
+            $query->whereHas('site', function ($q) {
+                $q->where('responsable', auth()->id());
+            });
+        }
+
+        $collectes = $query->paginate(10);
+
+        return view('collectes.index', compact('collectes'));
     }
+
 
     /**
      * Formulaire de création

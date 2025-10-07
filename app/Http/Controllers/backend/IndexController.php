@@ -160,7 +160,7 @@ class IndexController extends Controller
             });
 
         // Derniers incidents
-        $derniersIncidents = Incident::with(['collecte', 'reportedBy'])
+        $derniersIncidents = Incident::with(['collecte', 'reporter'])
             ->orderBy('created_at', 'desc')
             ->take(1)
             ->get()
