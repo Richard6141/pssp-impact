@@ -745,7 +745,7 @@ class SystemController extends Controller
 
             // Logger l'action avec les détails
             \Log::info('Logs système vidés', [
-                'user' => auth()->user()->name,
+                'user' => auth()->user()->firstname,
                 'user_id' => auth()->id(),
                 'archive_file' => basename($archiveFile),
                 'original_size' => $this->formatBytes($fileSize),
