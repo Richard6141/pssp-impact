@@ -688,4 +688,115 @@ class SystemController extends Controller
 
         return view('system.health', compact('checks', 'globalStatus'));
     }
+
+    /**
+     * Vider les logs système
+     */
+    public function clearLogs(Request $request)
+    {
+        try {
+            $logFile = storage_path('logs/laravel.log');
+
+            if (!File::exists($logFile)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Fichier de logs non trouvé'
+                ], 404);
+            }
+
+            // Vérifier que le fichier n'est pas vide
+            $fileSize = File::size($logFile);
+            if ($fileSize === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Le fichier de logs est déjà vide'
+                ], 400);
+            }
+
+            // Créer le dossier d'archives s'il n'existe pas
+            $archivePath = storage_path('logs/archives');
+            if (!File::exists($archivePath)) {
+                File::makeDirectory($archivePath, 0755, true);
+            }
+
+            // Créer le nom du fichier d'archive avec timestamp
+            $timestamp = date('Y-m-d_H-i-s');
+            $archiveFile = $archivePath . '/laravel_' . $timestamp . '.log';
+
+            // Copier le fichier de log vers les archives
+            if (!File::copy($logFile, $archiveFile)) {
+                throw new \Exception('Impossible de créer la copie d\'archive des logs');
+            }
+
+            // Compresser l'archive pour économiser de l'espace (optionnel)
+            if (function_exists('gzencode')) {
+                $logContent = File::get($archiveFile);
+                $compressedFile = $archiveFile . '.gz';
+
+                if (File::put($compressedFile, gzencode($logContent, 9))) {
+                    // Supprimer la version non compressée
+                    File::delete($archiveFile);
+                    $archiveFile = $compressedFile;
+                }
+            }
+
+            // Vider le fichier de log actuel
+            File::put($logFile, '');
+
+            // Logger l'action avec les détails
+            \Log::info('Logs système vidés', [
+                'user' => auth()->user()->name,
+                'user_id' => auth()->id(),
+                'archive_file' => basename($archiveFile),
+                'original_size' => $this->formatBytes($fileSize),
+                'archive_size' => $this->formatBytes(File::size($archiveFile)),
+                'timestamp' => $timestamp
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Les logs ont été vidés avec succès',
+                'archive' => [
+                    'filename' => basename($archiveFile),
+                    'size' => $this->formatBytes(File::size($archiveFile)),
+                    'original_size' => $this->formatBytes($fileSize),
+                    'path' => 'storage/logs/archives/' . basename($archiveFile)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du vidage des logs', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du vidage des logs: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Télécharger les logs système
+     */
+    public function downloadLogs(Request $request)
+    {
+        try {
+            $logFile = storage_path('logs/laravel.log');
+
+            if (!File::exists($logFile)) {
+                abort(404, 'Fichier de logs non trouvé');
+            }
+
+            // Nom du fichier avec timestamp
+            $filename = 'laravel-logs-' . date('Y-m-d_H-i-s') . '.log';
+
+            return response()->download($logFile, $filename, [
+                'Content-Type' => 'text/plain',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors du téléchargement des logs', ['error' => $e->getMessage()]);
+            abort(500, 'Erreur lors du téléchargement des logs');
+        }
+    }
 }
