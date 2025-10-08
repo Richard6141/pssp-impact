@@ -50,6 +50,11 @@ class SiteController extends Controller
             'responsable' => $validated['responsable'] ?? null,
         ]);
 
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Site ajouté avec succès.');
+        }
+
         return redirect()->route('sites.index')->with('success', 'Site ajouté avec succès.');
     }
 
@@ -85,14 +90,24 @@ class SiteController extends Controller
 
         $site->update($validated);
 
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Site mis à jour avec succès.');
+        }
+
         return redirect()->route('sites.index')->with('success', 'Site mis à jour avec succès.');
     }
 
     // Suppression
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $site = Site::findOrFail($id);
         $site->delete();
+
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Site supprimé avec succès.');
+        }
 
         return redirect()->route('sites.index')->with('success', 'Site supprimé avec succès.');
     }
