@@ -59,6 +59,10 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'isActive' => 'boolean',
+        'social_links' => 'array',
+        'settings' => 'array',
+        'latitude' => 'decimal:7',
+        'longitude' => 'decimal:7',
     ];
 
     /**

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démo - Géolocalisation Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 50px 0;
+        }
+        .demo-card {
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .coord-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #28a745;
+        }
+        .status-message {
+            min-height: 30px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .map-preview {
+            margin-top: 20px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card demo-card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-geo-alt-fill"></i> Démo - Partage de Position GPS
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Info :</strong> Cette démo montre comment fonctionne la géolocalisation dans le profil agent.
+                    Cliquez sur le bouton ci-dessous pour partager votre position.
+                </div>
+
+                <!-- Bouton de partage de position -->
+                <div class="text-center mb-4">
+                    <button type="button" class="btn btn-success btn-lg" id="shareLocationBtn">
+                        <i class="bi bi-geo-alt-fill"></i> Partager ma position
+                    </button>
+                </div>
+
+                <!-- Message de statut -->
+                <div class="text-center">
+                    <small class="status-message" id="locationStatus"></small>
+                </div>
+
+                <!-- Affichage des coordonnées -->
+                <div class="coord-display" id="coordDisplay" style="display: none;">
+                    <h6 class="mb-3"><i class="bi bi-bullseye"></i> Coordonnées récupérées :</h6>
+                    
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Latitude :</div>
+                        <div class="col-8">
+                            <input type="text" class="form-control form-control-sm" id="latitudeDisplay" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Longitude :</div>
+                        <div class="col-8">
+                            <input type="text" class="form-control form-control-sm" id="longitudeDisplay" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Précision :</div>
+                        <div class="col-8">
+                            <span id="accuracyDisplay" class="badge bg-info"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="col-4 fw-bold">Altitude :</div>
+                        <div class="col-8">
+                            <span id="altitudeDisplay">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-4 fw-bold">Timestamp :</div>
+                        <div class="col-8">
+                            <span id="timestampDisplay" class="text-muted small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lien Google Maps -->
+                <div id="mapLink" class="text-center mt-3" style="display: none;">
+                    <a href="#" id="googleMapsLink" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-map"></i> Voir sur Google Maps
+                    </a>
+                </div>
+
+                <!-- Informations techniques -->
+                <div class="mt-4">
+                    <h6 class="border-bottom pb-2">Informations techniques</h6>
+                    <div class="small">
+                        <div class="row mb-1">
+                            <div class="col-6 text-muted">Support géolocalisation :</div>
+                            <div class="col-6" id="geoSupport"></div>
+                        </div>
+                        <div class="row mb-1">
+                            <div class="col-6 text-muted">Navigateur :</div>
+                            <div class="col-6" id="browserInfo"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 text-muted">Protocole :</div>
+                            <div class="col-6" id="protocolInfo"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card demo-card mt-4">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> Notes importantes :</h6>
+                <ul class="small mb-0">
+                    <li>La géolocalisation nécessite l'autorisation de l'utilisateur</li>
+                    <li>HTTPS est requis en production (sauf localhost)</li>
+                    <li>La précision dépend du GPS, WiFi, ou IP</li>
+                    <li>La haute précision consomme plus de batterie sur mobile</li>
+                    <li>Les coordonnées sont arrondies à 7 décimales (~11mm de précision)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Afficher les informations du système
+        document.addEventListener('DOMContentLoaded', function() {
+            // Support géolocalisation
+            const geoSupport = document.getElementById('geoSupport');
+            if (navigator.geolocation) {
+                geoSupport.innerHTML = '<span class="badge bg-success">✓ Supporté</span>';
+            } else {
+                geoSupport.innerHTML = '<span class="badge bg-danger">✗ Non supporté</span>';
+            }
+
+            // Info navigateur
+            const browserInfo = document.getElementById('browserInfo');
+            browserInfo.textContent = navigator.userAgent.split(' ').slice(-2).join(' ');
+
+            // Protocole
+            const protocolInfo = document.getElementById('protocolInfo');
+            const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost';
+            protocolInfo.innerHTML = isSecure 
+                ? '<span class="badge bg-success">' + window.location.protocol + '</span>'
+                : '<span class="badge bg-warning">' + window.location.protocol + ' (HTTPS recommandé)</span>';
+
+            // Gestionnaire du bouton
+            const shareLocationBtn = document.getElementById('shareLocationBtn');
+            const locationStatus = document.getElementById('locationStatus');
+            const coordDisplay = document.getElementById('coordDisplay');
+            const mapLink = document.getElementById('mapLink');
+            
+            const latitudeDisplay = document.getElementById('latitudeDisplay');
+            const longitudeDisplay = document.getElementById('longitudeDisplay');
+            const accuracyDisplay = document.getElementById('accuracyDisplay');
+            const altitudeDisplay = document.getElementById('altitudeDisplay');
+            const timestampDisplay = document.getElementById('timestampDisplay');
+            const googleMapsLink = document.getElementById('googleMapsLink');
+
+            if (shareLocationBtn) {
+                shareLocationBtn.addEventListener('click', function() {
+                    // Vérifier si la géolocalisation est supportée
+                    if (!navigator.geolocation) {
+                        locationStatus.textContent = '❌ La géolocalisation n\'est pas supportée par votre navigateur.';
+                        locationStatus.className = 'status-message text-danger';
+                        return;
+                    }
+
+                    // Afficher un message de chargement
+                    locationStatus.textContent = '⏳ Récupération de votre position...';
+                    locationStatus.className = 'status-message text-info fw-bold';
+                    shareLocationBtn.disabled = true;
+                    coordDisplay.style.display = 'none';
+                    mapLink.style.display = 'none';
+
+                    // Récupérer la position
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            // Succès - récupération des coordonnées
+                            const latitude = position.coords.latitude;
+                            const longitude = position.coords.longitude;
+                            const accuracy = position.coords.accuracy;
+                            const altitude = position.coords.altitude;
+                            const timestamp = new Date(position.timestamp);
+                            
+                            // Remplir les champs
+                            latitudeDisplay.value = latitude.toFixed(7);
+                            longitudeDisplay.value = longitude.toFixed(7);
+                            accuracyDisplay.textContent = Math.round(accuracy) + 'm';
+                            altitudeDisplay.textContent = altitude !== null ? Math.round(altitude) + 'm' : 'Non disponible';
+                            timestampDisplay.textContent = timestamp.toLocaleString('fr-FR');
+                            
+                            // Lien Google Maps
+                            googleMapsLink.href = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                            
+                            // Afficher un message de succès
+                            locationStatus.innerHTML = `
+                                <i class="bi bi-check-circle-fill text-success"></i>
+                                Position récupérée avec succès ! 
+                                <span class="badge bg-success">Précision: ${Math.round(accuracy)}m</span>
+                            `;
+                            locationStatus.className = 'status-message text-success fw-bold';
+                            
+                            // Afficher les coordonnées
+                            coordDisplay.style.display = 'block';
+                            mapLink.style.display = 'block';
+                            
+                            shareLocationBtn.disabled = false;
+                        },
+                        function(error) {
+                            // Erreur
+                            let errorMessage = '';
+                            let errorIcon = '❌';
+                            
+                            switch(error.code) {
+                                case error.PERMISSION_DENIED:
+                                    errorMessage = 'Vous avez refusé l\'accès à votre position.';
+                                    errorIcon = '🚫';
+                                    break;
+                                case error.POSITION_UNAVAILABLE:
+                                    errorMessage = 'Les informations de localisation ne sont pas disponibles.';
+                                    errorIcon = '📍';
+                                    break;
+                                case error.TIMEOUT:
+                                    errorMessage = 'La demande de localisation a expiré (timeout).';
+                                    errorIcon = '⏱️';
+                                    break;
+                                default:
+                                    errorMessage = 'Une erreur inconnue s\'est produite.';
+                                    break;
+                            }
+                            
+                            locationStatus.innerHTML = `
+                                ${errorIcon} <strong>Erreur :</strong> ${errorMessage}
+                                <br><small class="text-muted">Code erreur: ${error.code}</small>
+                            `;
+                            locationStatus.className = 'status-message text-danger';
+                            shareLocationBtn.disabled = false;
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        }
+                    );
+                });
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

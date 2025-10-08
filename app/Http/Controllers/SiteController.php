@@ -34,8 +34,8 @@ class SiteController extends Controller
             'site_departement' => 'required|string|max:255',
             'site_commune' => 'required|string|max:255',
             'localisation' => 'required|string|max:255',
-            'longitude' => 'nullable|numeric',
-            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
             'responsable' => 'nullable|exists:users,user_id',
         ]);
 
@@ -49,6 +49,11 @@ class SiteController extends Controller
             'latitude' => $validated['latitude'] ?? null,
             'responsable' => $validated['responsable'] ?? null,
         ]);
+
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Site ajouté avec succès.');
+        }
 
         return redirect()->route('sites.index')->with('success', 'Site ajouté avec succès.');
     }
@@ -78,21 +83,31 @@ class SiteController extends Controller
             'site_departement' => 'required|string|max:255',
             'site_commune' => 'required|string|max:255',
             'localisation' => 'required|string|max:255',
-            'longitude' => 'nullable|numeric',
-            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
             'responsable' => 'nullable|exists:users,user_id',
         ]);
 
         $site->update($validated);
 
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Site mis à jour avec succès.');
+        }
+
         return redirect()->route('sites.index')->with('success', 'Site mis à jour avec succès.');
     }
 
     // Suppression
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $site = Site::findOrFail($id);
         $site->delete();
+
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Site supprimé avec succès.');
+        }
 
         return redirect()->route('sites.index')->with('success', 'Site supprimé avec succès.');
     }

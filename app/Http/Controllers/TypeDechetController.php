@@ -35,6 +35,11 @@ class TypeDechetController extends Controller
             'description' => $validated['description'] ?? null,
         ]);
 
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Type de déchet ajouté avec succès.');
+        }
+
         return redirect()->route('type_dechets.index')->with('success', 'Type de collecte ajouté avec succès.');
     }
 
@@ -57,20 +62,35 @@ class TypeDechetController extends Controller
 
         $type->update($validated);
 
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Type de déchet mis à jour avec succès.');
+        }
+
         return redirect()->route('type_dechets.index')->with('success', 'Type de collecte mis à jour avec succès.');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $type = TypeDechet::findOrFail($id);
 
         // Vérifier si le type de déchet est utilisé dans une collecte
         if ($type->collectes()->exists()) {
+            // Redirection conditionnelle pour l'erreur
+            if ($request->input('redirect_to') === 'configuration') {
+                return redirect()->route('configuration')
+                    ->with('error', 'Impossible de supprimer ce type : il est déjà utilisé dans une collecte.');
+            }
             return redirect()->route('type_dechets.index')
                 ->with('error', 'Impossible de supprimer ce type : il est déjà utilisé dans une collecte.');
         }
 
         $type->delete();
+
+        // Redirection conditionnelle
+        if ($request->input('redirect_to') === 'configuration') {
+            return redirect()->route('configuration')->with('success', 'Type de déchet supprimé avec succès.');
+        }
 
         return redirect()->route('type_dechets.index')
             ->with('success', 'Type de collecte supprimé avec succès.');
