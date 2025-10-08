@@ -138,16 +138,16 @@
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <!-- Utiliser getKey() pour obtenir la clé primaire -->
                                                     <button type="button" class="btn btn-sm btn-outline-primary"
-                                                        onclick="editSite({{ $site->getKey() }})">
+                                                        onclick="editSite('{{ $site->site_id }}')">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
                                                     <form method="POST"
-                                                        action="{{ route('sites.destroy', $site->getKey()) }}"
+                                                        action="{{ route('sites.destroy', $site->site_id) }}"
                                                         style="display: inline;">
                                                         @csrf
                                                         @method('DELETE')
+                                                        <input type="hidden" name="redirect_to" value="configuration">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger"
                                                             onclick="return confirm('Êtes-vous sûr ?')">
                                                             <i class="bi bi-trash"></i>
@@ -192,25 +192,22 @@
                                                 <td>{{ $type->libelle }}</td>
                                                 <td>{{ Str::limit($type->description, 50) }}</td>
                                                 <td>
-                                                    @if($type->code)
-                                                    @endif
+                                                    {{ $type->code ?? 'N/A' }}
                                                 </td>
                                                 <td>
-                                                    <span
-                                                        class="badge bg-{{ $type->is_active ? 'success' : 'danger' }}">
-                                                        {{ $type->is_active ? 'Actif' : 'Inactif' }}
-                                                    </span>
+                                                    <span class="badge bg-success">Actif</span>
                                                 </td>
                                                 <td>
                                                     <button type="button" class="btn btn-sm btn-outline-primary"
-                                                        onclick="editType({{ $type->getKey() }})">
+                                                        onclick="editType('{{ $type->type_dechet_id }}')">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
                                                     <form method="POST"
-                                                        action="{{ route('type_dechets.destroy', $type->getKey()) }}"
+                                                        action="{{ route('type_dechets.destroy', $type->type_dechet_id) }}"
                                                         style="display: inline;">
                                                         @csrf
                                                         @method('DELETE')
+                                                        <input type="hidden" name="redirect_to" value="configuration">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger"
                                                             onclick="return confirm('Êtes-vous sûr ?')">
                                                             <i class="bi bi-trash"></i>
@@ -426,6 +423,7 @@
         <div class="modal-content">
             <form method="POST" action="{{ route('sites.store') }}">
                 @csrf
+                <input type="hidden" name="redirect_to" value="configuration">
                 <div class="modal-header">
                     <h5 class="modal-title">Ajouter un Site</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -445,7 +443,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="localisation" class="form-label">Localisation</label>
-                        <textarea class="form-control" id="localisation" name="localisation" rows="3"></textarea>
+                        <input type="text" class="form-control" id="localisation" name="localisation" required>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -475,27 +473,108 @@
         <div class="modal-content">
             <form method="POST" action="{{ route('type_dechets.store') }}">
                 @csrf
+                <input type="hidden" name="redirect_to" value="configuration">
                 <div class="modal-header">
                     <h5 class="modal-title">Ajouter un Type de Déchet</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="type_nom" class="form-label">Nom du type</label>
-                        <input type="text" class="form-control" id="type_nom" name="nom" required>
+                        <label for="type_libelle" class="form-label">Nom du type</label>
+                        <input type="text" class="form-control" id="type_libelle" name="libelle" required>
                     </div>
                     <div class="mb-3">
                         <label for="type_description" class="form-label">Description</label>
                         <textarea class="form-control" id="type_description" name="description" rows="3"></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="type_couleur" class="form-label">Couleur</label>
-                        <input type="color" class="form-control form-control-color" id="type_couleur" name="couleur">
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modifier Site -->
+<div class="modal fade" id="editSiteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="editSiteForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="redirect_to" value="configuration">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier le Site</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_site_name" class="form-label">Nom du site</label>
+                        <input type="text" class="form-control" id="edit_site_name" name="site_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_site_departement" class="form-label">Département</label>
+                        <input type="text" class="form-control" id="edit_site_departement" name="site_departement"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_site_commune" class="form-label">Commune</label>
+                        <input type="text" class="form-control" id="edit_site_commune" name="site_commune" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_localisation" class="form-label">Localisation</label>
+                        <input type="text" class="form-control" id="edit_localisation" name="localisation" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="edit_site_latitude" class="form-label">Latitude</label>
+                            <input type="number" step="0.0000001" class="form-control" id="edit_site_latitude"
+                                name="latitude">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_site_longitude" class="form-label">Longitude</label>
+                            <input type="number" step="0.0000001" class="form-control" id="edit_site_longitude"
+                                name="longitude">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modifier Type -->
+<div class="modal fade" id="editTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" id="editTypeForm">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="redirect_to" value="configuration">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier le Type de Déchet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_type_libelle" class="form-label">Nom du type</label>
+                        <input type="text" class="form-control" id="edit_type_libelle" name="libelle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_type_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="edit_type_description" name="description"
+                            rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Mettre à jour</button>
                 </div>
             </form>
         </div>
@@ -570,31 +649,61 @@
 </div>
 
 <script>
-    function loadUserRoles(userId) {
-        document.getElementById('user_id').value = userId;
+// Données des sites et types pour JavaScript
+const sitesData = @json($sites);
+const typesData = @json($typesDechets);
 
-        // Scroll to the form
-        document.getElementById('bordered-users-roles').scrollIntoView({
-            behavior: 'smooth'
-        });
+function loadUserRoles(userId) {
+    document.getElementById('user_id').value = userId;
 
-        // You can add AJAX call here to load current roles/permissions for this user
+    // Scroll to the form
+    document.getElementById('bordered-users-roles').scrollIntoView({
+        behavior: 'smooth'
+    });
+
+    // You can add AJAX call here to load current roles/permissions for this user
+}
+
+function editSite(siteId) {
+    const site = sitesData.find(s => s.site_id === siteId);
+
+    if (site) {
+        // Remplir le formulaire d'édition
+        document.getElementById('edit_site_name').value = site.site_name || '';
+        document.getElementById('edit_site_departement').value = site.site_departement || '';
+        document.getElementById('edit_site_commune').value = site.site_commune || '';
+        document.getElementById('edit_localisation').value = site.localisation || '';
+        document.getElementById('edit_site_latitude').value = site.latitude || '';
+        document.getElementById('edit_site_longitude').value = site.longitude || '';
+
+        // Mettre à jour l'action du formulaire
+        document.getElementById('editSiteForm').action = `/sites/${siteId}`;
+
+        // Ouvrir le modal
+        new bootstrap.Modal(document.getElementById('editSiteModal')).show();
     }
+}
 
-    function editSite(siteId) {
-        // Add your edit site logic here
-        console.log('Edit site:', siteId);
-    }
+function editType(typeId) {
+    const type = typesData.find(t => t.type_dechet_id === typeId);
 
-    function editType(typeId) {
-        // Add your edit type logic here
-        console.log('Edit type:', typeId);
-    }
+    if (type) {
+        // Remplir le formulaire d'édition
+        document.getElementById('edit_type_libelle').value = type.libelle || '';
+        document.getElementById('edit_type_description').value = type.description || '';
 
-    function editRole(roleId) {
-        // Add your edit role logic here
-        console.log('Edit role:', roleId);
+        // Mettre à jour l'action du formulaire
+        document.getElementById('editTypeForm').action = `/type_dechets/${typeId}`;
+
+        // Ouvrir le modal
+        new bootstrap.Modal(document.getElementById('editTypeModal')).show();
     }
+}
+
+function editRole(roleId) {
+    // Add your edit role logic here
+    console.log('Edit role:', roleId);
+}
 </script>
 
 @endsection
