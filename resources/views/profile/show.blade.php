@@ -28,7 +28,8 @@
                 <div class="card">
                     <div class="card-body profile-card pt-4 d-flex flex-column align-items-center">
 
-                        <img src="assets/img/profile-img.jpg" alt="Profile" class="rounded-circle">
+                        <img src="https://st2.depositphotos.com/1104517/11967/v/950/depositphotos_119675554-stock-illustration-male-avatar-profile-picture-vector.jpg"
+                            alt="Profile" class="rounded-circle">
                         <h2>{{ Auth::user()->firstname }} {{ Auth::user()->lastname }}</h2>
                         <h3>{{ Auth::user()->username }}</h3>
                     </div>
