@@ -77,15 +77,15 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-floating">
-                                    <input type="number" step="0.0000001" name="longitude"
-                                        class="form-control @error('longitude') is-invalid @enderror" id="longitude"
-                                        placeholder="Longitude" value="{{ old('longitude') }}">
-                                    <label for="longitude">Longitude</label>
-                                    @error('longitude')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Coordonnées GPS du site</label>
+                                    <div>
+                                        <button type="button" class="btn btn-success btn-sm" id="shareSiteLocationBtn">
+                                            <i class="bi bi-geo-alt-fill"></i> Récupérer les coordonnées GPS
+                                        </button>
+                                        <small class="text-muted d-block mt-2" id="siteLocationStatus"></small>
+                                    </div>
                                 </div>
                             </div>
 
@@ -93,9 +93,21 @@
                                 <div class="form-floating">
                                     <input type="number" step="0.0000001" name="latitude"
                                         class="form-control @error('latitude') is-invalid @enderror" id="latitude"
-                                        placeholder="Latitude" value="{{ old('latitude') }}">
+                                        placeholder="Latitude" value="{{ old('latitude') }}" readonly>
                                     <label for="latitude">Latitude</label>
                                     @error('latitude')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="number" step="0.0000001" name="longitude"
+                                        class="form-control @error('longitude') is-invalid @enderror" id="longitude"
+                                        placeholder="Longitude" value="{{ old('longitude') }}" readonly>
+                                    <label for="longitude">Longitude</label>
+                                    @error('longitude')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -134,4 +146,76 @@
     </section>
 
 </main>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const shareSiteLocationBtn = document.getElementById('shareSiteLocationBtn');
+    const siteLocationStatus = document.getElementById('siteLocationStatus');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+
+    if (shareSiteLocationBtn) {
+        shareSiteLocationBtn.addEventListener('click', function() {
+            // Vérifier si la géolocalisation est supportée
+            if (!navigator.geolocation) {
+                siteLocationStatus.textContent = 'La géolocalisation n\'est pas supportée par votre navigateur.';
+                siteLocationStatus.className = 'text-danger d-block mt-2';
+                return;
+            }
+
+            // Afficher un message de chargement
+            siteLocationStatus.textContent = 'Récupération de la position du site...';
+            siteLocationStatus.className = 'text-info d-block mt-2';
+            shareSiteLocationBtn.disabled = true;
+
+            // Récupérer la position
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    // Succès - récupération des coordonnées
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    // Remplir les champs
+                    latitudeInput.value = latitude.toFixed(7);
+                    longitudeInput.value = longitude.toFixed(7);
+                    
+                    // Afficher un message de succès
+                    siteLocationStatus.textContent = `Coordonnées GPS récupérées avec succès ! (Précision: ${Math.round(position.coords.accuracy)}m)`;
+                    siteLocationStatus.className = 'text-success d-block mt-2';
+                    shareSiteLocationBtn.disabled = false;
+                },
+                function(error) {
+                    // Erreur
+                    let errorMessage = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Vous avez refusé l\'accès à votre position.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Les informations de localisation ne sont pas disponibles.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'La demande de localisation a expiré.';
+                            break;
+                        default:
+                            errorMessage = 'Une erreur inconnue s\'est produite.';
+                            break;
+                    }
+                    siteLocationStatus.textContent = errorMessage;
+                    siteLocationStatus.className = 'text-danger d-block mt-2';
+                    shareSiteLocationBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    }
+});
+</script>
+@endpush
+
 @endsection

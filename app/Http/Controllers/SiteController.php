@@ -34,8 +34,8 @@ class SiteController extends Controller
             'site_departement' => 'required|string|max:255',
             'site_commune' => 'required|string|max:255',
             'localisation' => 'required|string|max:255',
-            'longitude' => 'nullable|numeric',
-            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
             'responsable' => 'nullable|exists:users,user_id',
         ]);
 
@@ -78,8 +78,8 @@ class SiteController extends Controller
             'site_departement' => 'required|string|max:255',
             'site_commune' => 'required|string|max:255',
             'localisation' => 'required|string|max:255',
-            'longitude' => 'nullable|numeric',
-            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'latitude' => 'nullable|numeric|between:-90,90',
             'responsable' => 'nullable|exists:users,user_id',
         ]);
 
