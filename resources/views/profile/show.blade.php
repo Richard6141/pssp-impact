@@ -198,8 +198,7 @@
                                         <div class="col-md-8 col-lg-9">
                                             <input name="latitude" type="number" step="0.0000001"
                                                 class="form-control @error('latitude') is-invalid @enderror"
-                                                id="latitude" value="{{ old('latitude', Auth::user()->latitude) }}"
-                                                readonly>
+                                                id="latitude" value="{{ old('latitude', Auth::user()->latitude) }}" readonly>
                                             @error('latitude')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -212,8 +211,7 @@
                                         <div class="col-md-8 col-lg-9">
                                             <input name="longitude" type="number" step="0.0000001"
                                                 class="form-control @error('longitude') is-invalid @enderror"
-                                                id="longitude" value="{{ old('longitude', Auth::user()->longitude) }}"
-                                                readonly>
+                                                id="longitude" value="{{ old('longitude', Auth::user()->longitude) }}" readonly>
                                             @error('longitude')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -289,74 +287,71 @@
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const shareLocationBtn = document.getElementById('shareLocationBtn');
-    const locationStatus = document.getElementById('locationStatus');
-    const latitudeInput = document.getElementById('latitude');
-    const longitudeInput = document.getElementById('longitude');
+    document.addEventListener('DOMContentLoaded', function() {
+        const shareLocationBtn = document.getElementById('shareLocationBtn');
+        const locationStatus = document.getElementById('locationStatus');
+        const latitudeInput = document.getElementById('latitude');
+        const longitudeInput = document.getElementById('longitude');
 
-    if (shareLocationBtn) {
-        shareLocationBtn.addEventListener('click', function() {
-            // Vérifier si la géolocalisation est supportée
-            if (!navigator.geolocation) {
-                locationStatus.textContent =
-                    'La géolocalisation n\'est pas supportée par votre navigateur.';
-                locationStatus.className = 'text-danger d-block mt-2';
-                return;
-            }
-
-            // Afficher un message de chargement
-            locationStatus.textContent = 'Récupération de votre position...';
-            locationStatus.className = 'text-info d-block mt-2';
-            shareLocationBtn.disabled = true;
-
-            // Récupérer la position
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    // Succès - récupération des coordonnées
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-
-                    // Remplir les champs
-                    latitudeInput.value = latitude.toFixed(7);
-                    longitudeInput.value = longitude.toFixed(7);
-
-                    // Afficher un message de succès
-                    locationStatus.textContent =
-                        `Position récupérée avec succès ! (Précision: ${Math.round(position.coords.accuracy)}m)`;
-                    locationStatus.className = 'text-success d-block mt-2';
-                    shareLocationBtn.disabled = false;
-                },
-                function(error) {
-                    // Erreur
-                    let errorMessage = '';
-                    switch (error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = 'Vous avez refusé l\'accès à votre position.';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage =
-                                'Les informations de localisation ne sont pas disponibles.';
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = 'La demande de localisation a expiré.';
-                            break;
-                        default:
-                            errorMessage = 'Une erreur inconnue s\'est produite.';
-                            break;
-                    }
-                    locationStatus.textContent = errorMessage;
+        if (shareLocationBtn) {
+            shareLocationBtn.addEventListener('click', function() {
+                // Vérifier si la géolocalisation est supportée
+                if (!navigator.geolocation) {
+                    locationStatus.textContent = 'La géolocalisation n\'est pas supportée par votre navigateur.';
                     locationStatus.className = 'text-danger d-block mt-2';
-                    shareLocationBtn.disabled = false;
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                    return;
                 }
-            );
-        });
-    }
-});
+
+                // Afficher un message de chargement
+                locationStatus.textContent = 'Récupération de votre position...';
+                locationStatus.className = 'text-info d-block mt-2';
+                shareLocationBtn.disabled = true;
+
+                // Récupérer la position
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        // Succès - récupération des coordonnées
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Remplir les champs
+                        latitudeInput.value = latitude.toFixed(7);
+                        longitudeInput.value = longitude.toFixed(7);
+
+                        // Afficher un message de succès
+                        locationStatus.textContent = `Position récupérée avec succès ! (Précision: ${Math.round(position.coords.accuracy)}m)`;
+                        locationStatus.className = 'text-success d-block mt-2';
+                        shareLocationBtn.disabled = false;
+                    },
+                    function(error) {
+                        // Erreur
+                        let errorMessage = '';
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMessage = 'Vous avez refusé l\'accès à votre position.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMessage = 'Les informations de localisation ne sont pas disponibles.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMessage = 'La demande de localisation a expiré.';
+                                break;
+                            default:
+                                errorMessage = 'Une erreur inconnue s\'est produite.';
+                                break;
+                        }
+                        locationStatus.textContent = errorMessage;
+                        locationStatus.className = 'text-danger d-block mt-2';
+                        shareLocationBtn.disabled = false;
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            });
+        }
+    });
 </script>
 @endpush
 
