@@ -19,6 +19,25 @@
             <div class="card-body">
                 <h5 class="card-title">Modifier l'utilisateur</h5>
 
+                @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
+
+                @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+
+                @if($errors->any())
+                <div class="alert alert-danger">
+                    <strong>Erreurs de validation :</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
+
                 <form method="POST" action="{{ route('users.update', $user->user_id) }}"
                     enctype="multipart/form-data" class="row g-3">
                     @csrf
@@ -46,11 +65,11 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Mot de passe (optionnel)</label>
-                        <input type="password" name="password" class="form-control">
+                        <input type="password" name="password" class="form-control" autocomplete="new-password">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Confirmation (optionnel)</label>
-                        <input type="password" name="password_confirmation" class="form-control">
+                        <input type="password" name="password_confirmation" class="form-control" autocomplete="new-password">
                     </div>
 
                     <div class="col-md-6">
@@ -147,7 +166,8 @@
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="isActive" id="isActive"
+                            <input type="hidden" name="isActive" value="0">
+                            <input class="form-check-input" type="checkbox" name="isActive" id="isActive" value="1"
                                 {{ old('isActive', $user->isActive) ? 'checked' : '' }}>
                             <label class="form-check-label" for="isActive">Compte actif</label>
                         </div>

@@ -9,10 +9,57 @@ use Illuminate\Support\Str;
 
 class SiteController extends Controller
 {
+    private function getVisibleSiteIds()
+    {
+        $user = auth()->user();
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
+    private function applySiteVisibility($query)
+    {
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $query->whereIn('site_id', $this->getVisibleSiteIds());
+        } elseif ($user->hasRole('Responsable site')) {
+            $query->where('responsable', $user->user_id);
+        }
+
+        return $query;
+    }
+
+    private function ensureSiteAllowed(string $siteId): void
+    {
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $allowed = $this->getVisibleSiteIds();
+            if (!in_array($siteId, $allowed, true)) {
+                abort(403);
+            }
+        } elseif ($user->hasRole('Responsable site')) {
+            $isAllowed = Site::where('site_id', $siteId)
+                ->where('responsable', $user->user_id)
+                ->exists();
+            if (!$isAllowed) {
+                abort(403);
+            }
+        }
+    }
+
     // Afficher tous les sites
     public function index()
     {
-        $sites = Site::with('responsableUser')->latest()->get();
+        $query = Site::with('responsableUser')->latest();
+        $this->applySiteVisibility($query);
+        $sites = $query->get();
         return view('sites.index', compact('sites'));
     }
 
@@ -61,6 +108,7 @@ class SiteController extends Controller
     // Voir un site
     public function show($id)
     {
+        $this->ensureSiteAllowed($id);
         $site = Site::with('responsableUser')->findOrFail($id);
         return view('sites.show', compact('site'));
     }
@@ -68,6 +116,7 @@ class SiteController extends Controller
     // Formulaire d’édition
     public function edit($id)
     {
+        $this->ensureSiteAllowed($id);
         $site = Site::findOrFail($id);
         $users = User::role('Agent collecte')->get();
         return view('sites.edit', compact('site', 'users'));
@@ -76,6 +125,7 @@ class SiteController extends Controller
     // Mise à jour
     public function update(Request $request, $id)
     {
+        $this->ensureSiteAllowed($id);
         $site = Site::findOrFail($id);
 
         $validated = $request->validate([
@@ -101,6 +151,7 @@ class SiteController extends Controller
     // Suppression
     public function destroy(Request $request, $id)
     {
+        $this->ensureSiteAllowed($id);
         $site = Site::findOrFail($id);
         $site->delete();
 

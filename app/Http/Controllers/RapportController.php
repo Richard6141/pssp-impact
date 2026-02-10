@@ -19,6 +19,47 @@ use App\Exports\FinancierExport;
 
 class RapportController extends Controller
 {
+    private function getVisibleSiteIds()
+    {
+        $user = auth()->user();
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
+    private function applyCollecteVisibility($query)
+    {
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $query->where('agent_id', $user->user_id);
+        } elseif ($user->hasRole('Responsable site')) {
+            $query->whereHas('site', function ($q) use ($user) {
+                $q->where('responsable', $user->user_id);
+            });
+        }
+
+        return $query;
+    }
+
+    private function applySiteVisibility($query)
+    {
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $query->whereIn('site_id', $this->getVisibleSiteIds());
+        } elseif ($user->hasRole('Responsable site')) {
+            $query->where('responsable', $user->user_id);
+        }
+
+        return $query;
+    }
+
 
     /**
      * Rapport des collectes
@@ -45,9 +86,16 @@ class RapportController extends Controller
         $typeDechetId = $request->input('type_dechet_id');
         $statut = $request->input('statut');
 
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $agentId = $user->user_id;
+        }
+
         // Query de base
         $collectesQuery = Collecte::with(['site', 'agent', 'typeDechet'])
             ->whereBetween('date_collecte', [$dateDebut, $dateFin]);
+
+        $this->applyCollecteVisibility($collectesQuery);
 
         // Application des filtres
         if ($siteId) {
@@ -67,6 +115,7 @@ class RapportController extends Controller
 
         // Statistiques générales - Créer une nouvelle query pour éviter les conflits
         $statsQuery = Collecte::whereBetween('date_collecte', [$dateDebut, $dateFin]);
+        $this->applyCollecteVisibility($statsQuery);
         if ($siteId) {
             $statsQuery->where('site_id', $siteId);
         }
@@ -89,6 +138,7 @@ class RapportController extends Controller
 
         // Répartition par statut - CORRECTION: Nouvelle query indépendante
         $repartitionStatutQuery = Collecte::whereBetween('date_collecte', [$dateDebut, $dateFin]);
+        $this->applyCollecteVisibility($repartitionStatutQuery);
         if ($siteId) {
             $repartitionStatutQuery->where('site_id', $siteId);
         }
@@ -106,6 +156,7 @@ class RapportController extends Controller
 
         // Répartition par type de déchet - CORRECTION: Nouvelle query indépendante
         $repartitionTypeDechetQuery = Collecte::whereBetween('date_collecte', [$dateDebut, $dateFin]);
+        $this->applyCollecteVisibility($repartitionTypeDechetQuery);
         if ($siteId) {
             $repartitionTypeDechetQuery->where('site_id', $siteId);
         }
@@ -136,6 +187,13 @@ class RapportController extends Controller
         // Top agents par nombre de collectes
         $topAgents = Collecte::select('users.firstname', 'users.lastname', DB::raw('count(*) as total'))
             ->join('users', 'collectes.agent_id', '=', 'users.user_id')
+            ->when($user->hasRole('Responsable site'), function ($q) use ($user) {
+                $q->join('sites', 'collectes.site_id', '=', 'sites.site_id')
+                    ->where('sites.responsable', $user->user_id);
+            })
+            ->when($user->hasRole('Agent collecte'), function ($q) use ($user) {
+                $q->where('collectes.agent_id', $user->user_id);
+            })
             ->whereBetween('date_collecte', [$dateDebut, $dateFin])
             ->groupBy('users.user_id', 'users.firstname', 'users.lastname')
             ->orderBy('total', 'desc')
@@ -143,8 +201,16 @@ class RapportController extends Controller
             ->get();
 
         // Données pour les filtres
-        $sites = Site::select('site_id', 'site_name')->get();
-        $agents = User::select('user_id', 'firstname', 'lastname')->get(); // Retiré ->role() qui peut causer des problèmes
+        $sitesQuery = Site::select('site_id', 'site_name');
+        $this->applySiteVisibility($sitesQuery);
+        $sites = $sitesQuery->get();
+        if ($user->hasRole('Agent collecte')) {
+            $agents = User::select('user_id', 'firstname', 'lastname')
+                ->where('user_id', $user->user_id)
+                ->get();
+        } else {
+            $agents = User::select('user_id', 'firstname', 'lastname')->get(); // Retir? ->role() qui peut causer des probl?mes
+        }
         $typesDechets = TypeDechet::select('type_dechet_id', 'libelle')->get();
 
         return view('rapports.rapports', compact(
@@ -199,6 +265,8 @@ class RapportController extends Controller
                     ->whereBetween('date_obs', [$dateDebut, $dateFin]),
             ]);
 
+        $this->applySiteVisibility($sitesQuery);
+
         // Filtres géographiques
         if ($departement) {
             $sitesQuery->where('site_departement', $departement);
@@ -248,8 +316,12 @@ class RapportController extends Controller
             ->get();
 
         // Données pour filtres
-        $departements = Site::select('site_departement')->distinct()->pluck('site_departement');
-        $communes = Site::select('site_commune')->distinct()->pluck('site_commune');
+        $departementsQuery = Site::select('site_departement')->distinct();
+        $communesQuery = Site::select('site_commune')->distinct();
+        $this->applySiteVisibility($departementsQuery);
+        $this->applySiteVisibility($communesQuery);
+        $departements = $departementsQuery->pluck('site_departement');
+        $communes = $communesQuery->pluck('site_commune');
 
         return view('rapports.sites', compact(
             'sites',
@@ -497,8 +569,15 @@ class RapportController extends Controller
         $typeDechetId = $request->input('type_dechet_id');
         $statut = $request->input('statut');
 
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $agentId = $user->user_id;
+        }
+
         $query = Collecte::with(['site', 'agent', 'typeDechet'])
             ->whereBetween('date_collecte', [$dateDebut, $dateFin]);
+
+        $this->applyCollecteVisibility($query);
 
         if ($siteId) $query->where('site_id', $siteId);
         if ($agentId) $query->where('agent_id', $agentId);

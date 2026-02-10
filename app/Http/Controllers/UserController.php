@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -55,7 +56,7 @@ class UserController extends Controller
 
         $users = $query->paginate(20);
 
-        // Données pour les filtres
+        // DonnÃ©es pour les filtres
         $roles = Role::all();
         $sites = Site::select('site_id', 'site_name')->get();
 
@@ -63,7 +64,7 @@ class UserController extends Controller
     }
 
     /**
-     * Afficher le formulaire de création
+     * Afficher le formulaire de crÃ©ation
      */
     public function create()
     {
@@ -98,12 +99,12 @@ class UserController extends Controller
             'site_id' => 'nullable|exists:sites,site_id',
             'sites' => 'nullable|array',
             'sites.*' => 'exists:sites,site_id',
-            'isActive' => 'boolean'
+            'isActive' => 'nullable|boolean'
         ]);
 
         $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
         $userData['password'] = Hash::make($request->password);
-        $userData['isActive'] = $request->has('isActive');
+        $userData['isActive'] = $request->boolean('isActive');
 
         // Upload de l'image de profil
         if ($request->hasFile('profile_image')) {
@@ -112,20 +113,39 @@ class UserController extends Controller
 
         $user = User::create($userData);
 
-        // Assigner le rôle
+        // Assigner le rÃ´le
         $user->assignRole($request->role);
 
         // Assigner les sites (Many-to-Many)
-        if ($request->has('sites')) {
-            $user->sites()->sync($request->sites);
+        $siteIds = collect($request->input('sites', []))
+            ->filter()
+            ->values();
+
+        if ($request->filled('site_id')) {
+            $siteIds->push($request->site_id);
         }
 
+        $siteIds = $siteIds->unique()->values();
+        $syncData = [];
+        foreach ($siteIds as $siteId) {
+            $syncData[$siteId] = ['is_primary' => $request->filled('site_id') && $siteId === $request->site_id];
+        }
+
+        $user->sites()->sync($syncData);
+        $assignedSitesCount = $user->sites()->count();
+        Log::info('Affectation sites utilisateur (store)', [
+            'user_id' => $user->user_id,
+            'site_id_principal' => $request->site_id,
+            'sites_ids' => $siteIds->toArray(),
+            'assigned_count' => $assignedSitesCount,
+        ]);
+
         return redirect()->route('users.index')
-            ->with('success', 'Utilisateur créé avec succès.');
+            ->with('success', 'Utilisateur cree avec succes. Sites affectes: ' . $assignedSitesCount);
     }
 
     /**
-     * Afficher les détails d'un utilisateur
+     * Afficher les dÃ©tails d'un utilisateur
      */
     public function show(User $user)
     {
@@ -150,7 +170,7 @@ class UserController extends Controller
             ];
         }
 
-        if ($user->hasRole(['Responsable site', 'Agent santé'])) {
+        if ($user->hasRole(['Responsable site', 'Agent santÃ©'])) {
             $stats['observations'] = [
                 'total' => $user->observations()->count(),
                 'ce_mois' => $user->observations()->whereMonth('created_at', now()->month)->count(),
@@ -161,7 +181,7 @@ class UserController extends Controller
     }
 
     /**
-     * Afficher le formulaire d'édition
+     * Afficher le formulaire d'Ã©dition
      */
     public function edit(User $user)
     {
@@ -174,7 +194,7 @@ class UserController extends Controller
     }
 
     /**
-     * Mettre à jour un utilisateur
+     * Mettre Ã  jour un utilisateur
      */
     public function update(Request $request, User $user)
     {
@@ -183,7 +203,7 @@ class UserController extends Controller
             'lastname' => 'required|string|max:255',
             'username' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->user_id, 'user_id')],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->user_id, 'user_id')],
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8',
             'localisation' => 'nullable|string|max:255',
             'longitude' => 'nullable|numeric|between:-180,180',
             'latitude' => 'nullable|numeric|between:-90,90',
@@ -198,13 +218,13 @@ class UserController extends Controller
             'site_id' => 'nullable|exists:sites,site_id',
             'sites' => 'nullable|array',
             'sites.*' => 'exists:sites,site_id',
-            'isActive' => 'boolean'
+            'isActive' => 'nullable|boolean'
         ]);
 
         $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
-        $userData['isActive'] = $request->has('isActive');
+        $userData['isActive'] = $request->boolean('isActive');
 
-        // Mise à jour du mot de passe si fourni
+        // Mise Ã  jour du mot de passe si fourni
         if ($request->filled('password')) {
             $userData['password'] = Hash::make($request->password);
         }
@@ -220,16 +240,35 @@ class UserController extends Controller
 
         $user->update($userData);
 
-        // Mettre à jour le rôle
+        // Mettre Ã  jour le rÃ´le
         $user->syncRoles([$request->role]);
 
-        // Mettre à jour les sites (Many-to-Many)
-        if ($request->has('sites')) {
-            $user->sites()->sync($request->sites);
+        // Mettre Ã  jour les sites (Many-to-Many)
+        $siteIds = collect($request->input('sites', []))
+            ->filter()
+            ->values();
+
+        if ($request->filled('site_id')) {
+            $siteIds->push($request->site_id);
         }
 
+        $siteIds = $siteIds->unique()->values();
+        $syncData = [];
+        foreach ($siteIds as $siteId) {
+            $syncData[$siteId] = ['is_primary' => $request->filled('site_id') && $siteId === $request->site_id];
+        }
+
+        $user->sites()->sync($syncData);
+        $assignedSitesCount = $user->sites()->count();
+        Log::info('Affectation sites utilisateur (update)', [
+            'user_id' => $user->user_id,
+            'site_id_principal' => $request->site_id,
+            'sites_ids' => $siteIds->toArray(),
+            'assigned_count' => $assignedSitesCount,
+        ]);
+
         return redirect()->route('users.index')
-            ->with('success', 'Utilisateur mis à jour avec succès.');
+            ->with('success', 'Utilisateur mis a jour avec succes. Sites affectes: ' . $assignedSitesCount);
     }
 
     /**
@@ -237,7 +276,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // Vérifier si l'utilisateur peut être supprimé
+        // VÃ©rifier si l'utilisateur peut Ãªtre supprimÃ©
         $hasRelations = [
             'collectes' => $user->collectes()->count(),
             'factures' => $user->factures()->count(),
@@ -249,7 +288,7 @@ class UserController extends Controller
 
         if (array_sum($hasRelations) > 0) {
             return redirect()->route('users.index')
-                ->with('error', 'Impossible de supprimer cet utilisateur car il a des données associées.');
+                ->with('error', 'Impossible de supprimer cet utilisateur car il a des donnÃ©es associÃ©es.');
         }
 
         // Supprimer l'image de profil
@@ -260,11 +299,11 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', 'Utilisateur supprimé avec succès.');
+            ->with('success', 'Utilisateur supprimÃ© avec succÃ¨s.');
     }
 
     /**
-     * Activer/Désactiver un utilisateur
+     * Activer/DÃ©sactiver un utilisateur
      */
     public function toggleStatus(User $user)
     {
@@ -272,11 +311,11 @@ class UserController extends Controller
 
         $user->update(['isActive' => !$user->isActive]);
 
-        $status = $user->isActive ? 'activé' : 'désactivé';
+        $status = $user->isActive ? 'activÃ©' : 'dÃ©sactivÃ©';
 
         return response()->json([
             'success' => true,
-            'message' => "Utilisateur {$status} avec succès",
+            'message' => "Utilisateur {$status} avec succÃ¨s",
             'status' => $user->isActive
         ]);
     }
@@ -305,7 +344,7 @@ class UserController extends Controller
     }
 
     /**
-     * Assigner un rôle à un utilisateur
+     * Assigner un rÃ´le Ã  un utilisateur
      */
     public function assignRole(Request $request, User $user)
     {
@@ -319,12 +358,12 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Rôle assigné avec succès'
+            'message' => 'RÃ´le assignÃ© avec succÃ¨s'
         ]);
     }
 
     /**
-     * Retirer un rôle d'un utilisateur
+     * Retirer un rÃ´le d'un utilisateur
      */
     public function removeRole(Request $request, User $user)
     {
@@ -338,12 +377,12 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Rôle retiré avec succès'
+            'message' => 'RÃ´le retirÃ© avec succÃ¨s'
         ]);
     }
 
     /**
-     * Réinitialiser le mot de passe
+     * RÃ©initialiser le mot de passe
      */
     public function resetPassword(Request $request, User $user)
     {
@@ -359,7 +398,7 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Mot de passe réinitialisé avec succès'
+            'message' => 'Mot de passe rÃ©initialisÃ© avec succÃ¨s'
         ]);
     }
 
@@ -382,24 +421,24 @@ class UserController extends Controller
         $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
 
-            // En-têtes CSV
+            // En-tÃªtes CSV
             fputcsv($file, [
                 'ID',
-                'Prénom',
+                'PrÃ©nom',
                 'Nom',
                 'Username',
                 'Email',
-                'Téléphone',
+                'TÃ©lÃ©phone',
                 'Entreprise',
                 'Poste',
                 'Site',
-                'Rôle(s)',
+                'RÃ´le(s)',
                 'Statut',
-                'Date création',
-                'Dernière connexion'
+                'Date crÃ©ation',
+                'DerniÃ¨re connexion'
             ]);
 
-            // Données
+            // DonnÃ©es
             foreach ($users as $user) {
                 fputcsv($file, [
                     $user->user_id,
@@ -438,10 +477,10 @@ class UserController extends Controller
             'recent' => User::where('created_at', '>=', now()->subDays(30))->count(),
         ];
 
-        // Répartition par rôle
+        // RÃ©partition par rÃ´le
         $roleStats = Role::withCount('users')->get();
 
-        // Utilisateurs récents (7 derniers jours)
+        // Utilisateurs rÃ©cents (7 derniers jours)
         $recentUsers = User::with('roles')
             ->where('created_at', '>=', now()->subDays(7))
             ->orderBy('created_at', 'desc')
@@ -451,3 +490,4 @@ class UserController extends Controller
         return view('users.stats', compact('stats', 'roleStats', 'recentUsers'));
     }
 }
+

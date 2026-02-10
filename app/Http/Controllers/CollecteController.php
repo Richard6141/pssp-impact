@@ -12,30 +12,62 @@ use Illuminate\Support\Str;
 
 class CollecteController extends Controller
 {
+    private function applyCollecteVisibility($query)
+    {
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $query->where('agent_id', $user->user_id);
+        } elseif ($user->hasRole('Responsable site')) {
+            $query->whereHas('site', function ($q) use ($user) {
+                $q->where('responsable', $user->user_id);
+            });
+        }
+
+        return $query;
+    }
+
+    private function getVisibleSiteIds()
+    {
+        $user = auth()->user();
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
+    private function ensureSiteAllowed(string $siteId): void
+    {
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $allowed = $this->getVisibleSiteIds();
+            if (!in_array($siteId, $allowed, true)) {
+                abort(403);
+            }
+        } elseif ($user->hasRole('Responsable site')) {
+            $isAllowed = Site::where('site_id', $siteId)
+                ->where('responsable', $user->user_id)
+                ->exists();
+            if (!$isAllowed) {
+                abort(403);
+            }
+        }
+    }
+
     /**
      * Affichage de la liste
      */
-    /* public function index()
-    {
-        $collectes = Collecte::with(['typeDechet', 'agent', 'site'])
-            ->orderBy('date_collecte', 'desc')
-            ->paginate(10);
-
-        return view('collectes.index', compact('collectes'));
-    } */
-
     public function index()
     {
         $query = Collecte::with(['typeDechet', 'agent', 'site', 'validation'])
             ->orderBy('date_collecte', 'desc');
 
-        // Si l'utilisateur connecté est "Responsable site"
-        if (auth()->user()->hasRole('Responsable site')) {
-            // On filtre uniquement les collectes des sites dont il est responsable
-            $query->whereHas('site', function ($q) {
-                $q->where('responsable', auth()->id());
-            });
-        }
+        $this->applyCollecteVisibility($query);
 
         $collectes = $query->paginate(10);
 
@@ -49,7 +81,14 @@ class CollecteController extends Controller
     public function create()
     {
         $types = TypeDechet::all();
-        $sites = Site::all();
+        $sitesQuery = Site::query();
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $sitesQuery->whereIn('site_id', $this->getVisibleSiteIds());
+        } elseif ($user->hasRole('Responsable site')) {
+            $sitesQuery->where('responsable', $user->user_id);
+        }
+        $sites = $sitesQuery->get();
         $agents = User::all();
 
         return view('collectes.create', compact('types', 'sites', 'agents'));
@@ -87,6 +126,8 @@ class CollecteController extends Controller
         $collecteData['agent_id'] = auth()->user()->user_id;
         $collecteData['numero_collecte'] = 'COL-' . strtoupper(Str::random(6));
 
+        $this->ensureSiteAllowed($collecteData['site_id']);
+
         $collecte = Collecte::create($collecteData);
 
         // Si un incident doit être créé
@@ -110,7 +151,9 @@ class CollecteController extends Controller
      */
     public function show($id)
     {
-        $collecte = Collecte::with(['typeDechet', 'agent', 'site', 'incident'])->findOrFail($id);
+        $collecte = $this->applyCollecteVisibility(
+            Collecte::with(['typeDechet', 'agent', 'site', 'incident'])
+        )->where('collecte_id', $id)->firstOrFail();
 
         return view('collectes.show', compact('collecte'));
     }
@@ -120,9 +163,18 @@ class CollecteController extends Controller
      */
     public function edit($id)
     {
-        $collecte = Collecte::with('incident')->findOrFail($id);
+        $collecte = $this->applyCollecteVisibility(
+            Collecte::with('incident')
+        )->where('collecte_id', $id)->firstOrFail();
         $types = TypeDechet::all();
-        $sites = Site::all();
+        $sitesQuery = Site::query();
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $sitesQuery->whereIn('site_id', $this->getVisibleSiteIds());
+        } elseif ($user->hasRole('Responsable site')) {
+            $sitesQuery->where('responsable', $user->user_id);
+        }
+        $sites = $sitesQuery->get();
         $agents = User::all(); // Tous les agents pour permettre de changer
 
         return view('collectes.create', compact('collecte', 'types', 'sites', 'agents'));
@@ -144,7 +196,9 @@ class CollecteController extends Controller
             'incident_date' => 'required_if:has_incident,1|nullable|date',
         ]);
 
-        $collecte = Collecte::findOrFail($id);
+        $collecte = $this->applyCollecteVisibility(
+            Collecte::query()
+        )->where('collecte_id', $id)->firstOrFail();
 
         // Mettre à jour les données de la collecte
         $collecteData = $request->only([
@@ -156,6 +210,8 @@ class CollecteController extends Controller
             'signature_responsable_site',
             'isValid'
         ]);
+
+        $this->ensureSiteAllowed($collecteData['site_id']);
 
         $collecte->update($collecteData);
 
@@ -193,7 +249,9 @@ class CollecteController extends Controller
      */
     public function destroy($id)
     {
-        $collecte = Collecte::findOrFail($id);
+        $collecte = $this->applyCollecteVisibility(
+            Collecte::query()
+        )->where('collecte_id', $id)->firstOrFail();
 
         // L'incident sera supprimé automatiquement grâce au cascade dans la foreign key
         $collecte->delete();
@@ -206,7 +264,9 @@ class CollecteController extends Controller
      */
     public function validateCollecte(string $id)
     {
-        $collecte = Collecte::findOrFail($id);
+        $collecte = $this->applyCollecteVisibility(
+            Collecte::query()
+        )->where('collecte_id', $id)->firstOrFail();
         $collecte->update(['isValid' => true]);
 
         return back()->with('success', 'Collecte validée avec succès.');
@@ -219,7 +279,9 @@ class CollecteController extends Controller
      */
     public function invalidate(string $id)
     {
-        $collecte = Collecte::findOrFail($id);
+        $collecte = $this->applyCollecteVisibility(
+            Collecte::query()
+        )->where('collecte_id', $id)->firstOrFail();
         $collecte->update(['isValid' => false]);
 
         //return response()->json(['message' => 'Collecte invalidée', 'collecte' => $collecte]);

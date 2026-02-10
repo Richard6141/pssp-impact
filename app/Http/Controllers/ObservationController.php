@@ -6,13 +6,36 @@ use App\Models\Observation;
 use App\Models\Site;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Carbon\Carbon;
 
 class ObservationController extends Controller
 {
+    private function isAgentCollecte(): bool
+    {
+        return auth()->user()->hasRole('Agent collecte');
+    }
+
+    private function applyObservationVisibility($query)
+    {
+        if ($this->isAgentCollecte()) {
+            $query->where('user_id', auth()->user()->user_id);
+        }
+
+        return $query;
+    }
+
+    private function ensureObservationAllowed(Observation $observation): void
+    {
+        if ($this->isAgentCollecte() && $observation->user_id !== auth()->user()->user_id) {
+            abort(403);
+        }
+    }
+
     public function index()
     {
-        $observations = Observation::with(['site', 'user'])->latest()->paginate(15);
+        $observations = $this->applyObservationVisibility(
+            Observation::with(['site', 'user'])
+        )->latest()->paginate(15);
+
         return view('observations.index', compact('observations'));
     }
 
@@ -38,22 +61,26 @@ class ObservationController extends Controller
             'date_obs' => $request->date_obs,
         ]);
 
-        return redirect()->route('observations.index')->with('success', 'Observation ajoutée avec succès.');
+        return redirect()->route('observations.index')->with('success', 'Observation ajoutee avec succes.');
     }
 
     public function show(Observation $observation)
     {
+        $this->ensureObservationAllowed($observation);
         return view('observations.show', compact('observation'));
     }
 
     public function edit(Observation $observation)
     {
+        $this->ensureObservationAllowed($observation);
         $sites = Site::all();
         return view('observations.edit', compact('observation', 'sites'));
     }
 
     public function update(Request $request, Observation $observation)
     {
+        $this->ensureObservationAllowed($observation);
+
         $request->validate([
             'site_id' => 'required|uuid|exists:sites,site_id',
             'contenu' => 'required|string',
@@ -66,25 +93,32 @@ class ObservationController extends Controller
             'date_obs' => $request->date_obs,
         ]);
 
-        return redirect()->route('observations.index')->with('success', 'Observation mise à jour avec succès.');
+        return redirect()->route('observations.index')->with('success', 'Observation mise a jour avec succes.');
     }
 
     public function destroy(Observation $observation)
     {
+        $this->ensureObservationAllowed($observation);
         $observation->delete();
-        return redirect()->route('observations.index')->with('success', 'Observation supprimée avec succès.');
+
+        return redirect()->route('observations.index')->with('success', 'Observation supprimee avec succes.');
     }
 
     public function trashed()
     {
-        $observations = Observation::onlyTrashed()->with(['site', 'user'])->latest()->paginate(15);
+        $observations = $this->applyObservationVisibility(
+            Observation::onlyTrashed()->with(['site', 'user'])
+        )->latest()->paginate(15);
+
         return view('observations.trashed', compact('observations'));
     }
 
     public function restore($id)
     {
         $observation = Observation::onlyTrashed()->findOrFail($id);
+        $this->ensureObservationAllowed($observation);
         $observation->restore();
-        return redirect()->route('observations.index')->with('success', 'Observation restaurée avec succès.');
+
+        return redirect()->route('observations.index')->with('success', 'Observation restauree avec succes.');
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.back')
+﻿@extends('layouts.back')
 
 @section('content')
 <main id="main" class="main">
@@ -21,7 +21,6 @@
                         <div class="table-responsive">
                             <table class="table datatable table-hover align-middle text-sm text-nowrap">
 
-                                style="white-space: nowrap;">
                                 <thead class="table-dark">
                                     <tr>
                                         <th>#</th>
@@ -36,7 +35,7 @@
                                     @foreach($observations as $index => $obs)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $obs->site?->site_name ?? '—' }}</td>
+                                        <td>{{ $obs->site?->site_name ?? 'â€”' }}</td>
                                         <td>{{ $obs->user?->firstname }} {{ $obs->user?->lastname }}</td>
                                         <td>{{ Str::limit($obs->contenu, 50) }}</td>
                                         <td>{{ \Carbon\Carbon::parse($obs->date_obs)->format('d/m/Y H:i') }}</td>
@@ -44,7 +43,7 @@
                                             <a href="{{ route('observations.show', $obs) }}" class="btn btn-sm btn-info"
                                                 title="Voir"><i class="bi bi-eye"></i></a>
                                             <a href="{{ route('observations.edit', $obs) }}"
-                                                class="btn btn-sm btn-warning" title="Éditer"><i
+                                                class="btn btn-sm btn-warning" title="Ã‰diter"><i
                                                     class="bi bi-pencil"></i></a>
                                             <form action="{{ route('observations.destroy', $obs) }}" method="POST"
                                                 class="d-inline">
@@ -53,7 +52,7 @@
                                                 <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
                                                     data-item-name="Facture #{{ $obs}}"
                                                     data-confirm-title="Supprimer cette observation ?"
-                                                    data-confirm-text="Voulez-vous vraiment supprimer cette observation ? Cette action est irréversible."
+                                                    data-confirm-text="Voulez-vous vraiment supprimer cette observation ? Cette action est irrÃ©versible."
                                                     title="Supprimer" data-bs-toggle="tooltip">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
