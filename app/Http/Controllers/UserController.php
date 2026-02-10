@@ -223,7 +223,16 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         // Vérifier si l'utilisateur peut être supprimé
-        if ($user->collectes()->count() > 0 || $user->factures()->count() > 0) {
+        $hasRelations = [
+            'collectes' => $user->collectes()->count(),
+            'factures' => $user->factures()->count(),
+            'observations' => $user->observations()->count(),
+            'incidents' => $user->incidents()->count(),
+            'validations' => $user->validations()->count(),
+            'responsable_sites' => $user->responsableSites()->count(),
+        ];
+
+        if (array_sum($hasRelations) > 0) {
             return redirect()->route('users.index')
                 ->with('error', 'Impossible de supprimer cet utilisateur car il a des données associées.');
         }

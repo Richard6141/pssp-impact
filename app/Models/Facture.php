@@ -20,11 +20,16 @@ class Facture extends Model
     protected $fillable = [
         'numero_facture',
         'date_facture',
+        'date_echeance',
         'montant_facture',
         'statut',
         'photo_facture',
         'site_id',
         'comptable_id',
+        'tva',
+        'montant_ht',
+        'montant_tva',
+        'montant_ttc',
     ];
 
     protected $dates = [
@@ -36,7 +41,12 @@ class Facture extends Model
 
     protected $casts = [
         'date_facture' => 'datetime',
-        'montant_facture' => 'decimal:2'
+        'date_echeance' => 'date',
+        'montant_facture' => 'decimal:2',
+        'tva' => 'decimal:2',
+        'montant_ht' => 'decimal:4',
+        'montant_tva' => 'decimal:4',
+        'montant_ttc' => 'decimal:4',
     ];
 
     /**

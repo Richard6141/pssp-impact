@@ -26,8 +26,20 @@ class RapportController extends Controller
     public function collectes(Request $request)
     {
         // Filtres
-        $dateDebut = $request->input('date_debut', now()->startOfMonth());
-        $dateFin = $request->input('date_fin', now()->endOfMonth());
+        $minDate = Collecte::min('date_collecte');
+        $maxDate = Collecte::max('date_collecte');
+        $defaultStart = $minDate
+            ? Carbon::parse($maxDate)->subMonths(6)->startOfDay()
+            : now()->subMonths(6)->startOfDay();
+        $defaultEnd = $maxDate
+            ? Carbon::parse($maxDate)->endOfDay()
+            : now()->endOfDay();
+
+        $dateDebutInput = $request->input('date_debut', $defaultStart->format('Y-m-d'));
+        $dateFinInput = $request->input('date_fin', $defaultEnd->format('Y-m-d'));
+
+        $dateDebut = Carbon::parse($dateDebutInput)->startOfDay();
+        $dateFin = Carbon::parse($dateFinInput)->endOfDay();
         $siteId = $request->input('site_id');
         $agentId = $request->input('agent_id');
         $typeDechetId = $request->input('type_dechet_id');
@@ -145,8 +157,8 @@ class RapportController extends Controller
             'sites',
             'agents',
             'typesDechets',
-            'dateDebut',
-            'dateFin',
+            'dateDebutInput',
+            'dateFinInput',
             'siteId',
             'agentId',
             'typeDechetId',

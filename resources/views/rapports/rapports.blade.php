@@ -111,11 +111,20 @@
         font-weight: 600;
         color: #012970;
         padding: 15px;
+        white-space: nowrap;
     }
 
     .table td {
         padding: 15px;
         vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .table td a,
+    .table td span,
+    .table td small,
+    .table td div {
+        white-space: nowrap;
     }
 
     .badge {
@@ -221,6 +230,13 @@
     </div>
 
     <section class="section dashboard">
+        @if($collectes->total() === 0)
+        <div class="alert alert-info d-flex align-items-center" role="alert">
+            <i class="bi bi-info-circle me-2"></i>
+            Aucune collecte n'est disponible en base de données pour le moment.
+        </div>
+        @endif
+
         <!-- Filtres -->
         <div class="row mb-4">
             <div class="col-12">
@@ -234,12 +250,12 @@
                                 <div class="col-md-2">
                                     <label for="date_debut" class="form-label">Date début</label>
                                     <input type="date" class="form-control" id="date_debut" name="date_debut"
-                                        value="{{ $dateDebut }}">
+                                        value="{{ $dateDebutInput }}">
                                 </div>
                                 <div class="col-md-2">
                                     <label for="date_fin" class="form-label">Date fin</label>
                                     <input type="date" class="form-control" id="date_fin" name="date_fin"
-                                        value="{{ $dateFin }}">
+                                        value="{{ $dateFinInput }}">
                                 </div>
                                 <div class="col-md-2">
                                     <label for="site_id" class="form-label">Site</label>
@@ -606,12 +622,12 @@
                     series: [{
                         name: 'Collectes',
                         data: {
-                            !!json_encode($evolutionMensuelle - > pluck('total')) !!
+                            @json($evolutionMensuelle->pluck('total'))
                         },
                     }, {
                         name: 'Poids (kg)',
                         data: {
-                            !!json_encode($evolutionMensuelle - > pluck('poids_total')) !!
+                            @json($evolutionMensuelle->pluck('poids_total'))
                         }
                     }],
                     chart: {
@@ -643,7 +659,7 @@
                     },
                     xaxis: {
                         categories: {
-                            !!json_encode($evolutionMensuelle - > pluck('mois')) !!
+                            @json($evolutionMensuelle->pluck('mois'))
                         }
                     }
                 }).render();
@@ -651,14 +667,14 @@
                 // Graphique statuts
                 new ApexCharts(document.querySelector("#statutChart"), {
                     series: {
-                        !!json_encode(array_values($repartitionStatut - > toArray())) !!
+                        @json(array_values($repartitionStatut->toArray()))
                     },
                     chart: {
                         type: 'donut',
                         height: 350
                     },
                     labels: {
-                        !!json_encode(array_keys($repartitionStatut - > toArray())) !!
+                        @json(array_keys($repartitionStatut->toArray()))
                     },
                     colors: ['#2eca6a', '#ff771d', '#4154f1']
                 }).render();
@@ -666,14 +682,14 @@
                 // Graphique types de déchets
                 new ApexCharts(document.querySelector("#typeDechetChart"), {
                     series: {
-                        !!json_encode(array_values($repartitionTypeDechet - > toArray())) !!
+                        @json(array_values($repartitionTypeDechet->toArray()))
                     },
                     chart: {
                         type: 'pie',
                         height: 350
                     },
                     labels: {
-                        !!json_encode(array_keys($repartitionTypeDechet - > toArray())) !!
+                        @json(array_keys($repartitionTypeDechet->toArray()))
                     },
                     colors: ['#ff5757', '#ff771d', '#ffc107', '#6f42c1']
                 }).render();

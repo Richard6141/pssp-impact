@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Paiement;
 use App\Models\Facture;
+use App\Services\ComptabiliteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -72,6 +73,8 @@ class PaiementController extends Controller
 
         $facture->save();
 
+        ComptabiliteService::recordPaiement($paiement);
+
         return redirect()->route('factures.index')->with('success', 'Paiement enregistré et facture mise à jour.');
     }
 
@@ -127,6 +130,8 @@ class PaiementController extends Controller
 
         $paiement->update($data);
 
+        ComptabiliteService::recordPaiement($paiement);
+
         return redirect()->route('paiements.index')
             ->with('success', 'Paiement mis à jour avec succès.');
     }
@@ -151,6 +156,8 @@ class PaiementController extends Controller
         }
 
         $paiement->delete();
+
+        ComptabiliteService::deleteEcrituresFor('paiement', $paiement->paiement_id);
 
         return redirect()->route('paiements.index')
             ->with('success', 'Paiement supprimé avec succès.');

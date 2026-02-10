@@ -105,18 +105,27 @@
     position: relative;
 }
 
-.table th {
-    border-top: none;
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #012970;
-    padding: 15px;
-}
+    .table th {
+        border-top: none;
+        background-color: #f8f9fa;
+        font-weight: 600;
+        color: #012970;
+        padding: 15px;
+        white-space: nowrap;
+    }
 
-.table td {
-    padding: 15px;
-    vertical-align: middle;
-}
+    .table td {
+        padding: 15px;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .table td a,
+    .table td span,
+    .table td small,
+    .table td div {
+        white-space: nowrap;
+    }
 
 .badge {
     padding: 8px 12px;

@@ -64,10 +64,13 @@
                                         <td>{{ $collecte->agent?->firstname }} {{ $collecte->agent?->lastname }}</td>
                                         <td>{{ $collecte->site?->site_name ?? '—' }}</td>
                                         <td>
-                                            @if($collecte->signature_responsable_site)
-                                            <span class="badge bg-success">✔</span>
+                                            @if($collecte->validation?->signature)
+                                            <img src="{{ asset('storage/'.$collecte->validation->signature) }}"
+                                                alt="Signature" width="80" class="img-thumbnail">
+                                            @elseif($collecte->signature_responsable_site)
+                                            <span class="badge bg-success">???</span>
                                             @else
-                                            <span class="badge bg-danger">✘</span>
+                                            <span class="badge bg-danger">???</span>
                                             @endif
                                         </td>
                                         <td>

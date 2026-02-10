@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\TypeDechet;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class TypeDechetController extends Controller
 {
@@ -27,12 +28,14 @@ class TypeDechetController extends Controller
         $validated = $request->validate([
             'libelle' => 'required|string|max:255|unique:type_dechets,libelle',
             'description' => 'nullable|string',
+            'code' => 'nullable|string|max:20|unique:type_dechets,code',
         ]);
 
         TypeDechet::create([
             'type_dechet_id' => Str::uuid(),
             'libelle' => $validated['libelle'],
             'description' => $validated['description'] ?? null,
+            'code' => $validated['code'] ?? null,
         ]);
 
         // Redirection conditionnelle
@@ -58,6 +61,12 @@ class TypeDechetController extends Controller
         $validated = $request->validate([
             'libelle' => 'required|string|max:255|unique:type_dechets,libelle,' . $type->type_dechet_id . ',type_dechet_id',
             'description' => 'nullable|string',
+            'code' => [
+                'nullable',
+                'string',
+                'max:20',
+                Rule::unique('type_dechets', 'code')->ignore($type->type_dechet_id, 'type_dechet_id'),
+            ],
         ]);
 
         $type->update($validated);

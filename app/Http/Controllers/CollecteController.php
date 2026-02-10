@@ -26,7 +26,7 @@ class CollecteController extends Controller
 
     public function index()
     {
-        $query = Collecte::with(['typeDechet', 'agent', 'site'])
+        $query = Collecte::with(['typeDechet', 'agent', 'site', 'validation'])
             ->orderBy('date_collecte', 'desc');
 
         // Si l'utilisateur connecté est "Responsable site"

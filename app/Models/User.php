@@ -3,6 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Site;
+use App\Models\Facture;
+use App\Models\Incident;
+use App\Models\Observation;
+use App\Models\Validation;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -39,6 +44,7 @@ class User extends Authenticatable
         'localisation',
         'longitude',
         'latitude',
+        'site_id',
         'social_links',
         'settings',
         'isActive',
@@ -106,5 +112,35 @@ class User extends Authenticatable
     public function collectes()
     {
         return $this->hasMany(Collecte::class, 'agent_id', 'user_id');
+    }
+
+    public function factures()
+    {
+        return $this->hasMany(Facture::class, 'comptable_id', 'user_id');
+    }
+
+    public function observations()
+    {
+        return $this->hasMany(Observation::class, 'user_id', 'user_id');
+    }
+
+    public function incidents()
+    {
+        return $this->hasMany(Incident::class, 'reported_by', 'user_id');
+    }
+
+    public function validations()
+    {
+        return $this->hasMany(Validation::class, 'validated_by', 'user_id');
+    }
+
+    public function responsableSites()
+    {
+        return $this->hasMany(Site::class, 'responsable', 'user_id');
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(Site::class, 'site_id', 'site_id');
     }
 }

@@ -156,6 +156,27 @@
         </li><!-- End Paiements Nav -->
         @endcan
 
+        <!-- ComptabilitÃ© -->
+        @can('rapports.financier')
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#compta-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-journal-text"></i><span>ComptabilitÃ©</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="compta-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{{ route('comptabilite.journal') }}">
+                        <i class="bi bi-circle"></i><span>Journal</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('comptabilite.export') }}">
+                        <i class="bi bi-circle"></i><span>Export comptable</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End ComptabilitÃ© Nav -->
+        @endcan
+
         <!-- Section Rapports (pour les rôles ayant accès) -->
         @can('rapports.view')
         <li class="nav-heading">Rapports</li>
@@ -202,15 +223,13 @@
             </a>
             <ul id="users-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li>
-                    <a href="#">
-                        <!-- À créer : route('users.index') -->
+                    <a href="{{ route('users.index') }}">
                         <i class="bi bi-circle"></i><span>Liste des Utilisateurs</span>
                     </a>
                 </li>
                 @can('users.create')
                 <li>
-                    <a href="#">
-                        <!-- À créer : route('users.create') -->
+                    <a href="{{ route('users.create') }}">
                         <i class="bi bi-circle"></i><span>Nouvel Utilisateur</span>
                     </a>
                 </li>
@@ -320,6 +339,18 @@
         color: #28a745;
     }
 
+    /* Onglet actif dans la sidebar */
+    #sidebar .nav-link.active,
+    #sidebar .nav-content a.active {
+        color: #fff !important;
+        background: #0d6efd;
+        border-radius: 6px;
+    }
+
+    #sidebar .nav-content a.active {
+        padding-left: 1.5rem;
+    }
+
     /* Style conditionnel selon le rôle */
     @php $userRole=auth()->user()->getRoleNames()->first();
     $roleColors=[ 'Super Admin'=>'#dc3545',
@@ -344,3 +375,27 @@
 </style>
 @endif
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const currentPath = window.location.pathname.replace(/\/+$/, '');
+        const links = document.querySelectorAll('#sidebar-nav a[href]:not([href="#"])');
+
+        links.forEach(link => {
+            const linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/+$/, '');
+            if (linkPath === currentPath) {
+                link.classList.add('active');
+
+                const parentCollapse = link.closest('.nav-content.collapse');
+                if (parentCollapse) {
+                    parentCollapse.classList.add('show');
+                    const toggle = parentCollapse.closest('.nav-item')?.querySelector('.nav-link');
+                    if (toggle) {
+                        toggle.classList.remove('collapsed');
+                        toggle.classList.add('active');
+                    }
+                }
+            }
+        });
+    });
+</script>

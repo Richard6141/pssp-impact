@@ -484,6 +484,11 @@
                         <input type="text" class="form-control" id="type_libelle" name="libelle" required>
                     </div>
                     <div class="mb-3">
+                        <label for="type_code" class="form-label">Code DBM</label>
+                        <input type="text" class="form-control" id="type_code" name="code"
+                            placeholder="Ex: DBM0001">
+                    </div>
+                    <div class="mb-3">
                         <label for="type_description" class="form-label">Description</label>
                         <textarea class="form-control" id="type_description" name="description" rows="3"></textarea>
                     </div>
@@ -565,6 +570,11 @@
                     <div class="mb-3">
                         <label for="edit_type_libelle" class="form-label">Nom du type</label>
                         <input type="text" class="form-control" id="edit_type_libelle" name="libelle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_type_code" class="form-label">Code DBM</label>
+                        <input type="text" class="form-control" id="edit_type_code" name="code"
+                            placeholder="Ex: DBM0001">
                     </div>
                     <div class="mb-3">
                         <label for="edit_type_description" class="form-label">Description</label>
@@ -677,7 +687,7 @@ function editSite(siteId) {
         document.getElementById('edit_site_longitude').value = site.longitude || '';
 
         // Mettre à jour l'action du formulaire
-        document.getElementById('editSiteForm').action = `/sites/${siteId}`;
+        document.getElementById('editSiteForm').action = `{{ url('sites') }}/${siteId}/update`;
 
         // Ouvrir le modal
         new bootstrap.Modal(document.getElementById('editSiteModal')).show();
@@ -690,10 +700,11 @@ function editType(typeId) {
     if (type) {
         // Remplir le formulaire d'édition
         document.getElementById('edit_type_libelle').value = type.libelle || '';
+        document.getElementById('edit_type_code').value = type.code || '';
         document.getElementById('edit_type_description').value = type.description || '';
 
         // Mettre à jour l'action du formulaire
-        document.getElementById('editTypeForm').action = `/type_dechets/${typeId}`;
+        document.getElementById('editTypeForm').action = `{{ url('type-dechets') }}/${typeId}/update`;
 
         // Ouvrir le modal
         new bootstrap.Modal(document.getElementById('editTypeModal')).show();
@@ -707,3 +718,5 @@ function editRole(roleId) {
 </script>
 
 @endsection
+
+

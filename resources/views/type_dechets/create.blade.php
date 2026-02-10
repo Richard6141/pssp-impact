@@ -15,8 +15,8 @@
     </div><!-- End Page Title -->
 
     <section class="section">
-        <div class="row">
-            <div class="col-lg-8">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
 
                 <div class="card">
                     <div class="card-body">
@@ -32,6 +32,18 @@
                             @if(isset($type))
                             @method('PUT')
                             @endif
+                            <div class="row mb-3">
+                                <label for="code" class="col-sm-2 col-form-label">Code DBM</label>
+                                <div class="col-sm-10">
+                                    <input type="text" name="code" id="code"
+                                        value="{{ old('code', $type->code ?? '') }}"
+                                        class="form-control @error('code') is-invalid @enderror"
+                                        placeholder="Ex: DBM0001">
+                                    @error('code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
 
                             <div class="row mb-3">
                                 <label for="libelle" class="col-sm-2 col-form-label">Libellé <span
@@ -45,7 +57,6 @@
                                     @enderror
                                 </div>
                             </div>
-
                             <div class="row mb-3">
                                 <label for="description" class="col-sm-2 col-form-label">Description</label>
                                 <div class="col-sm-10">
@@ -147,3 +158,4 @@
 </script>
 
 @endsection
+

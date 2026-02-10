@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Site;
 use App\Models\Facture;
 use App\Models\Collecte;
+use App\Services\ComptabiliteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +40,7 @@ class FactureController extends Controller
     {
         $request->validate([
             'date_facture' => 'required|date',
+            'date_echeance' => 'nullable|date',
             'montant_facture' => 'required|numeric',
             'site_id' => 'required|exists:sites,site_id',
             'photo_facture' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
@@ -69,6 +71,7 @@ class FactureController extends Controller
         $facture->date_facture = $request->date_facture;
         $facture->numero_facture = $numero_facture;
         $facture->montant_facture = $request->montant_facture;
+        $facture->date_echeance = $request->date_echeance;
         $facture->site_id = $request->site_id;
         $facture->comptable_id = auth()->user()->user_id;
         $facture->save();
@@ -88,6 +91,8 @@ class FactureController extends Controller
 
             $facture->collectes()->sync($syncData);
         }
+
+        ComptabiliteService::recordFacture($facture);
 
         return redirect()->route('factures.index')->with('success', 'Facture ajoutée avec succès.');
     }
@@ -110,6 +115,7 @@ class FactureController extends Controller
     {
         $request->validate([
             'date_facture' => 'required|date',
+            'date_echeance' => 'nullable|date',
             'montant_facture' => 'required|numeric',
             'statut' => 'nullable|string',
             'site_id' => 'required|exists:sites,site_id',
@@ -118,7 +124,7 @@ class FactureController extends Controller
             'collecte_ids.*' => 'exists:collectes,collecte_id',
         ]);
 
-        $data = $request->only(['date_facture', 'montant_facture', 'statut', 'site_id']);
+        $data = $request->only(['date_facture', 'date_echeance', 'montant_facture', 'statut', 'site_id']);
         $data['comptable_id'] = auth()->id();
 
         // Gestion du fichier (image ou PDF)
@@ -146,6 +152,8 @@ class FactureController extends Controller
             $facture->collectes()->detach();
         }
 
+        ComptabiliteService::recordFacture($facture);
+
         return redirect()->route('factures.index')->with('success', 'Facture mise à jour avec succès.');
     }
 
@@ -168,6 +176,7 @@ class FactureController extends Controller
         }
 
         $facture->collectes()->detach(); // retirer les relations
+        ComptabiliteService::deleteEcrituresFor('facture', $facture->facture_id);
         $facture->delete();
 
         return redirect()->route('factures.index')->with('success', 'Facture supprimée avec succès.');

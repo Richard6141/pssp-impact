@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // OU l'ajouter comme middleware nommé si vous préférez
         $middleware->alias([
             'bypass.maintenance' => \App\Http\Middleware\BypassMaintenanceForSuperAdmin::class,
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

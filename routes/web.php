@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\TypeDechetController;
 use App\Http\Controllers\ValidationController;
 use App\Http\Controllers\ObservationController;
+use App\Http\Controllers\ComptabiliteController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\backend\IndexController;
 use App\Http\Controllers\ConfigurationController;
@@ -364,6 +365,25 @@ Route::middleware(['auth'])->prefix('rapports')->name('rapports.')->group(functi
             ->middleware('can:export.excel')
             ->name('export.excel');
     });
+});
+
+// === COMPTABILITÉ ===
+Route::middleware(['auth'])->prefix('comptabilite')->name('comptabilite.')->group(function () {
+    Route::get('/journal', [ComptabiliteController::class, 'journal'])
+        ->middleware('can:rapports.financier')
+        ->name('journal');
+    Route::get('/journal/pdf', [ComptabiliteController::class, 'journalPdf'])
+        ->middleware('can:rapports.financier')
+        ->name('journal.pdf');
+    Route::get('/export', [ComptabiliteController::class, 'export'])
+        ->middleware('can:rapports.financier')
+        ->name('export');
+    Route::get('/export/csv', [ComptabiliteController::class, 'exportCsv'])
+        ->middleware('can:rapports.financier')
+        ->name('export.csv');
+    Route::get('/export/excel', [ComptabiliteController::class, 'exportExcel'])
+        ->middleware('can:rapports.financier')
+        ->name('export.excel');
 });
 
 // === SYSTÈME (Super Admin uniquement) ===
