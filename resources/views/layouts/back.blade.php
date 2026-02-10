@@ -31,6 +31,12 @@
 
     <!-- Template Main CSS File -->
     <link href="{{asset('backend/assets/css/style.css')}}" rel="stylesheet">
+    
+    <!-- PSSP IMPACT+ v2.0 Premium Design System -->
+    <link href="{{asset('backend/assets/css/premium-design.css')}}" rel="stylesheet">
+    
+    <!-- Désactiver les dégradés (couleurs plates uniquement) -->
+    <link href="{{asset('backend/assets/css/no-gradients.css')}}" rel="stylesheet">
 
     <!-- =======================================================
   * Template Name: NiceAdmin

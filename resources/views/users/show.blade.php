@@ -20,6 +20,14 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Informations</h5>
+                        <div class="mb-3 d-flex align-items-center gap-3">
+                            <img src="{{ $user->profile_image ? asset('storage/'.$user->profile_image) : 'https://st2.depositphotos.com/1104517/11967/v/950/depositphotos_119675554-stock-illustration-male-avatar-profile-picture-vector.jpg' }}"
+                                alt="Avatar" class="rounded-circle" width="72" height="72">
+                            <div>
+                                <div class="fw-bold">{{ $user->firstname }} {{ $user->lastname }}</div>
+                                <div class="text-muted">{{ $user->email }}</div>
+                            </div>
+                        </div>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Nom :</strong> {{ $user->firstname }}
                                 {{ $user->lastname }}</li>

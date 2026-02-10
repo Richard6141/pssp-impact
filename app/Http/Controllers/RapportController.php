@@ -482,4 +482,97 @@ class RapportController extends Controller
             'rapport_financier_' . now()->format('Y-m-d') . '.xlsx'
         );
     }
+
+    /**
+     * Export du rapport des collectes en PDF
+     */
+    private function exportCollectesPdf(Request $request)
+    {
+        // Filtres
+        $dateDebut = Carbon::parse($request->input('date_debut', now()->subMonths(6)->format('Y-m-d')))->startOfDay();
+        $dateFin = Carbon::parse($request->input('date_fin', now()->format('Y-m-d')))->endOfDay();
+        
+        $siteId = $request->input('site_id');
+        $agentId = $request->input('agent_id');
+        $typeDechetId = $request->input('type_dechet_id');
+        $statut = $request->input('statut');
+
+        $query = Collecte::with(['site', 'agent', 'typeDechet'])
+            ->whereBetween('date_collecte', [$dateDebut, $dateFin]);
+
+        if ($siteId) $query->where('site_id', $siteId);
+        if ($agentId) $query->where('agent_id', $agentId);
+        if ($typeDechetId) $query->where('type_dechet_id', $typeDechetId);
+        if ($statut) $query->where('statut', $statut);
+
+        $collectes = $query->orderBy('date_collecte', 'desc')->get();
+
+        // Stats
+        $stats = [
+            'total_collectes' => $collectes->count(),
+            'poids_total' => $collectes->sum('poids'),
+            'collectes_validees' => $collectes->where('isValid', true)->count(),
+            'collectes_signees' => $collectes->where('signature_responsable_site', true)->count(),
+        ];
+        
+        // Répartition Type Déchet
+        $repartitionTypeDechet = $collectes->groupBy(fn($c) => $c->typeDechet->libelle ?? 'Autre')
+            ->map(fn($group) => $group->count());
+
+        // Top Agents
+        $topAgents = $collectes->groupBy('agent_id')
+            ->map(function ($group) {
+                $first = $group->first();
+                return (object) [
+                    'firstname' => $first->agent->firstname ?? '',
+                    'lastname' => $first->agent->lastname ?? '',
+                    'total' => $group->count()
+                ];
+            })
+            ->sortByDesc('total')
+            ->take(10);
+
+        $pdf = PDF::loadView('rapports.collectes_pdf', compact('collectes', 'stats', 'repartitionTypeDechet', 'topAgents', 'dateDebut', 'dateFin'));
+        return $pdf->download('rapport_collectes_' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Export du rapport des sites en PDF
+     */
+    private function exportSitesPdf(Request $request)
+    {
+        $dateDebut = $request->input('date_debut', now()->startOfMonth());
+        $dateFin = $request->input('date_fin', now()->endOfMonth());
+        
+        $sites = Site::withCount(['collectes' => function($q) use ($dateDebut, $dateFin) {
+                $q->whereBetween('date_collecte', [$dateDebut, $dateFin]);
+            }])
+            ->withSum(['collectes' => function($q) use ($dateDebut, $dateFin) {
+                $q->whereBetween('date_collecte', [$dateDebut, $dateFin]);
+            }], 'poids')
+            ->get();
+
+        $statsGenerales = [
+            'total_sites' => $sites->count(),
+            'sites_actifs' => $sites->where('collectes_count', '>', 0)->count(),
+            'moyenne_collectes_par_site' => $sites->avg('collectes_count'),
+            'moyenne_poids_par_site' => $sites->avg('collectes_sum_poids')
+        ];
+
+        $repartitionDepartement = $sites->groupBy('site_departement')->map->count();
+        
+        $topSites = $sites->sortByDesc('collectes_count')->take(10);
+        
+        // Incidents (simplifié pour l'export)
+        $sitesAvecIncidents = Site::whereHas('collectes.incidents', function($q) use ($dateDebut, $dateFin) {
+            $q->whereBetween('date_incident', [$dateDebut, $dateFin]);
+        })->withCount(['collectes as total_incidents' => function($q) use ($dateDebut, $dateFin) {
+            $q->whereHas('incidents', function($qi) use ($dateDebut, $dateFin) {
+                $qi->whereBetween('date_incident', [$dateDebut, $dateFin]);
+            });
+        }])->get();
+
+        $pdf = PDF::loadView('rapports.sites_pdf', compact('sites', 'statsGenerales', 'repartitionDepartement', 'topSites', 'sitesAvecIncidents', 'dateDebut', 'dateFin'));
+        return $pdf->download('rapport_sites_' . now()->format('Y-m-d') . '.pdf');
+    }
 }

@@ -13,6 +13,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ComptabiliteController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:rapports.financier');
+    }
+
     public function journal(Request $request)
     {
         ComptabiliteService::backfillIfEmpty();

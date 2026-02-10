@@ -55,6 +55,7 @@
                     </div>
                 </form>
 
+                @can('rapports.export')
                 <div class="d-flex justify-content-end gap-2 mb-3">
                     <a href="{{ route('comptabilite.export.csv', request()->query()) }}"
                         class="btn btn-outline-success btn-sm">
@@ -65,6 +66,7 @@
                         <i class="bi bi-file-earmark-excel"></i> Excel
                     </a>
                 </div>
+                @endcan
 
                 <div class="table-responsive">
                     <table class="table table-striped align-middle table-nowrap">

@@ -23,6 +23,8 @@ class RolesPermissionSeeder extends Seeder
             ['name' => 'users.assign_roles', 'libelle' => 'Assigner un rôle à un utilisateur'],
             ['name' => 'users.export', 'libelle' => 'Exporter les utilisateurs'],
             ['name' => 'users.stats', 'libelle' => 'Voir les statistiques utilisateurs'],
+            ['name' => 'users.import', 'libelle' => 'Importer des utilisateurs (CSV)'],
+            ['name' => 'users.invite', 'libelle' => 'Inviter des utilisateurs'],
 
             // === GESTION DES SITES ===
             ['name' => 'sites.view', 'libelle' => 'Consulter les sites'],
@@ -95,6 +97,12 @@ class RolesPermissionSeeder extends Seeder
             ['name' => 'permissions.view', 'libelle' => 'Consulter les permissions'],
             ['name' => 'permissions.assign', 'libelle' => 'Assigner des permissions'],
             ['name' => 'permissions.revoke', 'libelle' => 'Révoquer des permissions'],
+
+            // === SÉCURITÉ & AUDIT ===
+            ['name' => 'audit.view', 'libelle' => 'Consulter le journal d\'audit'],
+            ['name' => 'audit.export', 'libelle' => 'Exporter le journal d\'audit'],
+            ['name' => '2fa.manage', 'libelle' => 'Gérer la double authentification'],
+            ['name' => 'sessions.manage', 'libelle' => 'Gérer les sessions utilisateurs'],
 
             // === SYSTÈME (Super Admin uniquement) ===
             ['name' => 'system.settings', 'libelle' => 'Modifier les paramètres système'],

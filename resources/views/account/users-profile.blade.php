@@ -58,6 +58,20 @@
                                     data-bs-target="#profile-change-password">Change Password</button>
                             </li>
 
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab"
+                                    data-bs-target="#profile-security">
+                                    <i class="bi bi-shield-lock"></i> Sécurité & 2FA
+                                </button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button class="nav-link" data-bs-toggle="tab"
+                                    data-bs-target="#profile-professional">
+                                    <i class="bi bi-briefcase"></i> Infos Pro
+                                </button>
+                            </li>
+
                         </ul>
                         <div class="tab-content pt-2">
 
@@ -261,6 +275,167 @@
                                     </div>
                                 </form><!-- End Change Password Form -->
 
+                            </div>
+
+                            <div class="tab-pane fade pt-3" id="profile-security">
+                                <!-- Security Settings -->
+                                <h5 class="card-title">Paramètres de Sécurité</h5>
+
+                                @php
+                                    $tfaService = app(\App\Services\TwoFactorAuthService::class);
+                                    $tfaEnabled = $tfaService->isEnabled(Auth::user());
+                                @endphp
+
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            L'authentification à deux facteurs (2FA) ajoute une couche de sécurité supplémentaire à votre compte.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label class="col-md-4 col-lg-3 col-form-label">
+                                        <i class="bi bi-shield-lock text-primary"></i> Authentification 2FA
+                                    </label>
+                                    <div class="col-md-8 col-lg-9">
+                                        @if($tfaEnabled)
+                                            <span class="badge bg-success mb-2">
+                                                <i class="bi bi-check-circle"></i> Activé
+                                            </span>
+                                            <p class="text-muted mb-2">Votre compte est protégé par l'authentification à deux facteurs.</p>
+                                            
+                                            <div class="d-flex gap-2">
+                                                <a href="{{ route('2fa.recovery-codes') }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-key"></i> Codes de récupération
+                                                </a>
+                                                
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="document.getElementById('disable-2fa-form').style.display='block'">
+                                                    <i class="bi bi-shield-x"></i> Désactiver
+                                                </button>
+                                            </div>
+
+                                            <form id="disable-2fa-form" method="POST" action="{{ route('2fa.disable') }}" 
+                                                style="display:none;" class="mt-3">
+                                                @csrf
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Mot de passe actuel</label>
+                                                        <input type="password" name="password" class="form-control" required>
+                                                        <small class="text-danger">
+                                                            Entrez votre mot de passe pour désactiver le 2FA
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-danger" 
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir désactiver le 2FA ?')">
+                                                    Confirmer la désactivation
+                                                </button>
+                                                <button type="button" class="btn btn-secondary" 
+                                                    onclick="document.getElementById('disable-2fa-form').style.display='none'">
+                                                    Annuler
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="badge bg-secondary mb-2">
+                                                <i class="bi bi-x-circle"></i> Désactivé
+                                            </span>
+                                            <p class="text-muted mb-2">
+                                                Nous vous recommandons fortement d'activer l'authentification à deux facteurs.
+                                            </p>
+                                            <a href="{{ route('2fa.enable') }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-shield-plus"></i> Activer le 2FA
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label class="col-md-4 col-lg-3 col-form-label">
+                                        <i class="bi bi-laptop text-info"></i> Sessions actives
+                                    </label>
+                                    <div class="col-md-8 col-lg-9">
+                                        <p class="text-muted mb-2">Gérez les appareils connectés à votre compte.</p>
+                                        <a href="{{ route('admin.sessions.index') }}" class="btn btn-sm btn-outline-info">
+                                            <i class="bi bi-eye"></i> Voir mes sessions
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <label class="col-md-4 col-lg-3 col-form-label">
+                                        <i class="bi bi-clock-history text-secondary"></i> Dernière connexion
+                                    </label>
+                                    <div class="col-md-8 col-lg-9">
+                                        @if(Auth::user()->last_login_at)
+                                            <p class="mb-0">
+                                                {{ Auth::user()->last_login_at->format('d/m/Y à H:i') }}
+                                            </p>
+                                            @if(Auth::user()->last_login_ip)
+                                                <small class="text-muted">IP: {{ Auth::user()->last_login_ip }}</small>
+                                            @endif
+                                        @else
+                                            <p class="text-muted mb-0">Aucune connexion enregistrée</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            </div>
+
+                            <div class="tab-pane fade pt-3" id="profile-professional">
+                                <h5 class="card-title">Informations Professionnelles</h5>
+                                
+                                <form method="POST" action="{{ route('profile.update-professional') }}">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="row mb-3">
+                                        <label for="availability_status" class="col-md-4 col-lg-3 col-form-label">Statut de disponibilité</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            <select name="availability_status" class="form-select @error('availability_status') is-invalid @enderror">
+                                                <option value="available" {{ Auth::user()->availability_status == 'available' ? 'selected' : '' }}>Disponible</option>
+                                                <option value="busy" {{ Auth::user()->availability_status == 'busy' ? 'selected' : '' }}>Occupé</option>
+                                                <option value="offline" {{ Auth::user()->availability_status == 'offline' ? 'selected' : '' }}>Hors ligne</option>
+                                            </select>
+                                            @error('availability_status')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label for="service_communes" class="col-md-4 col-lg-3 col-form-label">Zones d'intervention</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            <input type="text" name="service_communes" class="form-control @error('service_communes') is-invalid @enderror"
+                                                value="{{ is_array(Auth::user()->service_communes) ? implode(', ', Auth::user()->service_communes) : Auth::user()->service_communes }}"
+                                                placeholder="Ex: Cotonou, Porto-Novo, Calavi (séparés par des virgules)">
+                                            @error('service_communes')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                            <div class="form-text">Communes ou quartiers où vous intervenez.</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <label for="specialties" class="col-md-4 col-lg-3 col-form-label">Spécialités</label>
+                                        <div class="col-md-8 col-lg-9">
+                                            <input type="text" name="specialties" class="form-control @error('specialties') is-invalid @enderror"
+                                                value="{{ is_array(Auth::user()->specialties) ? implode(', ', Auth::user()->specialties) : Auth::user()->specialties }}"
+                                                placeholder="Ex: DASRI, Déchets chimiques, Collecte (séparés par des virgules)">
+                                            @error('specialties')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <div class="text-center mt-4">
+                                        <button type="submit" class="btn btn-primary">Enregistrer les informations</button>
+                                    </div>
+                                </form>
                             </div>
 
                         </div><!-- End Bordered Tabs -->

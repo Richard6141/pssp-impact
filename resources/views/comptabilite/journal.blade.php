@@ -46,12 +46,14 @@
                         <a href="{{ route('comptabilite.journal') }}" class="btn btn-outline-secondary w-100">Reset</a>
                     </div>
                 </form>
+                @can('rapports.export')
                 <div class="d-flex justify-content-end mb-3">
                     <a href="{{ route('comptabilite.journal.pdf', request()->query()) }}"
                         class="btn btn-danger btn-sm">
                         <i class="bi bi-file-earmark-pdf"></i> PDF
                     </a>
                 </div>
+                @endcan
 
                 <div class="table-responsive">
                     <table class="table table-striped align-middle table-nowrap">

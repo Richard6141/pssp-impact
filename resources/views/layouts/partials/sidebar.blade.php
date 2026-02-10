@@ -156,11 +156,11 @@
         </li><!-- End Paiements Nav -->
         @endcan
 
-        <!-- ComptabilitÃ© -->
+        <!-- Comptabilité -->
         @can('rapports.financier')
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-target="#compta-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-journal-text"></i><span>ComptabilitÃ©</span><i class="bi bi-chevron-down ms-auto"></i>
+                <i class="bi bi-journal-text"></i><span>Comptabilité</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="compta-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li>
@@ -174,7 +174,7 @@
                     </a>
                 </li>
             </ul>
-        </li><!-- End ComptabilitÃ© Nav -->
+        </li><!-- End Comptabilité Nav -->
         @endcan
 
         <!-- Section Rapports (pour les rôles ayant accès) -->
@@ -188,20 +188,19 @@
             <ul id="rapports-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li>
                     <a href="{{ route('rapports.collectes') }}">
-                        <!-- À créer : route('rapports.collectes') -->
                         <i class="bi bi-circle"></i><span>Collectes</span>
                     </a>
                 </li>
-                @can('rapports.generate')
+                @can('rapports.financier')
                 <li>
                     <a href="{{ route('rapports.financier') }}">
-                        <!-- À créer : route('rapports.financier') -->
                         <i class="bi bi-circle"></i><span>Financier</span>
                     </a>
                 </li>
+                @endcan
+                @can('rapports.sites')
                 <li>
-                    <a href="#">
-                        <!-- À créer : route('rapports.sites') -->
+                    <a href="{{ route('rapports.sites') }}">
                         <i class="bi bi-circle"></i><span>Par Site</span>
                     </a>
                 </li>

@@ -577,14 +577,10 @@ document.addEventListener('DOMContentLoaded', function() {
     new ApexCharts(document.querySelector("#revenusChart"), {
         series: [{
             name: 'Factures',
-            data: {
-                !!json_encode($evolutionMensuelle - > pluck('montant_factures')) !!
-            }
+            data: {!! json_encode($evolutionMensuelle->pluck('montant_factures')) !!}
         }, {
             name: 'Paiements',
-            data: {
-                !!json_encode($evolutionMensuelle - > pluck('montant_paiements')) !!
-            }
+            data: {!! json_encode($evolutionMensuelle->pluck('montant_paiements')) !!}
         }],
         chart: {
             height: 350,
@@ -614,9 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
             width: 2
         },
         xaxis: {
-            categories: {
-                !!json_encode($evolutionMensuelle - > pluck('mois')) !!
-            }
+            categories: {!! json_encode($evolutionMensuelle->pluck('mois')) !!}
         },
         yaxis: {
             labels: {
@@ -636,16 +630,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Graphique modes de paiement
     new ApexCharts(document.querySelector("#modePaiementChart"), {
-        series: {
-            !!json_encode(array_values($repartitionModePaiement - > toArray())) !!
-        },
+        series: {!! json_encode(array_values($repartitionModePaiement->toArray())) !!},
         chart: {
             type: 'donut',
             height: 350
         },
-        labels: {
-            !!json_encode(array_keys($repartitionModePaiement - > toArray())) !!
-        },
+        labels: {!! json_encode(array_keys($repartitionModePaiement->toArray())) !!},
         colors: ['#2eca6a', '#4154f1', '#ff771d', '#0dcaf0'],
         legend: {
             position: 'bottom'
@@ -654,16 +644,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Graphique statuts factures
     new ApexCharts(document.querySelector("#statutFactureChart"), {
-        series: {
-            !!json_encode(array_values($repartitionStatutFacture - > toArray())) !!
-        },
+        series: {!! json_encode(array_values($repartitionStatutFacture->toArray())) !!},
         chart: {
             type: 'pie',
             height: 350
         },
-        labels: {
-            !!json_encode(array_keys($repartitionStatutFacture - > toArray())) !!
-        },
+        labels: {!! json_encode(array_keys($repartitionStatutFacture->toArray())) !!},
         colors: ['#2eca6a', '#ff771d', '#4154f1', '#ff5757']
     }).render();
 });
@@ -672,13 +658,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function exportPDF() {
     const params = new URLSearchParams(window.location.search);
     params.set('export', 'pdf');
-    window.open(`{{ route('rapports.financier') }}?${params.toString()}`);
+    window.location.href = "{{ route('rapports.financier') }}?" + params.toString();
 }
 
 function exportExcel() {
     const params = new URLSearchParams(window.location.search);
     params.set('export', 'excel');
-    window.location.href = `{{ route('rapports.financier') }}?${params.toString()}`;
+    window.location.href = "{{ route('rapports.financier') }}?" + params.toString();
 }
 </script>
 @endpush

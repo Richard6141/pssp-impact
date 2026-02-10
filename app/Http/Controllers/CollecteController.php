@@ -204,14 +204,15 @@ class CollecteController extends Controller
     /**
      * Valider une collecte
      */
-    public function validate(string $id)
+    public function validateCollecte(string $id)
     {
         $collecte = Collecte::findOrFail($id);
         $collecte->update(['isValid' => true]);
 
-        //return response()->json(['message' => 'Collecte validée', 'collecte' => $collecte]);
-        return redirect()->route('collectes.index')->with('success', 'Collecte validée');
+        return back()->with('success', 'Collecte validée avec succès.');
     }
+
+
 
     /**
      * Invalider une collecte

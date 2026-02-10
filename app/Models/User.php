@@ -28,6 +28,7 @@ class User extends Authenticatable
     /**
      * Attributs remplissables (mass assignable).
      */
+    // Dans $fillable
     protected $fillable = [
         'firstname',
         'lastname',
@@ -44,32 +45,47 @@ class User extends Authenticatable
         'localisation',
         'longitude',
         'latitude',
-        'site_id',
+        'site_id', // Site principal (legacy ou par défaut)
         'social_links',
         'settings',
         'isActive',
+        'availability_status',
+        'service_communes',
+        'specialties',
+        'last_active_at',
     ];
 
-    /**
-     * Attributs cachés (exclus de la sérialisation).
-     */
+    // Dans $casts
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Attributs castés automatiquement.
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'isActive' => 'boolean',
         'social_links' => 'array',
         'settings' => 'array',
+        'service_communes' => 'array',
+        'specialties' => 'array',
+        'last_active_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'password_changed_at' => 'datetime',
         'latitude' => 'decimal:7',
         'longitude' => 'decimal:7',
     ];
+
+    /**
+     * Relation Many-to-Many avec les sites
+     * Un utilisateur peut être affecté à plusieurs sites
+     */
+    public function sites()
+    {
+        return $this->belongsToMany(Site::class, 'site_user', 'user_id', 'site_id')
+                    ->withPivot('is_primary')
+                    ->withTimestamps();
+    }
 
     /**
      * Boot method pour générer automatiquement un UUID.

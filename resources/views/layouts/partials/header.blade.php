@@ -167,11 +167,11 @@
             <!-- Profil utilisateur -->
             <li class="nav-item dropdown pe-3">
                 <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-                    @if(auth()->user()->avatar)
-                    <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="Profile" class="rounded-circle">
+                    @if(auth()->user()->profile_image)
+                    <img src="{{ asset('storage/'.auth()->user()->profile_image) }}" alt="Profil" class="rounded-circle">
                     @else
                     <img src="https://st2.depositphotos.com/1104517/11967/v/950/depositphotos_119675554-stock-illustration-male-avatar-profile-picture-vector.jpg"
-                        alt="Profile" class="rounded-circle">
+                        alt="Profil" class="rounded-circle">
                     @endif
                     <div class="d-none d-md-block ps-2">
                         <div class="fw-bold">{{ auth()->user()->firstname }} {{ auth()->user()->lastname }}</div>

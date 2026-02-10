@@ -309,9 +309,11 @@
                             <button class="btn btn-success btn-sm" onclick="exportPDF()">
                                 <i class="bi bi-file-earmark-pdf"></i> PDF
                             </button>
+                            <!--
                             <button class="btn btn-info btn-sm" onclick="exportExcel()">
                                 <i class="bi bi-file-earmark-excel"></i> Excel
                             </button>
+                            -->
                         </div>
                         @endcan
                     </div>
@@ -698,14 +700,12 @@
             // Export functions
             function exportPDF() {
                 const params = new URLSearchParams(window.location.search);
-                params.set('export', 'pdf');
-                window.open(`{{ route('rapports.collectes') }}?${params.toString()}`);
+                const url = "{{ route('rapports.export.pdf', ['type' => 'collectes']) }}?" + params.toString();
+                window.location.href = url;
             }
 
             function exportExcel() {
-                const params = new URLSearchParams(window.location.search);
-                params.set('export', 'excel');
-                window.location.href = `{{ route('rapports.collectes') }}?${params.toString()}`;
+                alert("L'export Excel sera disponible prochainement.");
             }
         </script>
         @endpush

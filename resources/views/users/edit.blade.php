@@ -75,6 +75,19 @@
                             </option>
                             @endforeach
                         </select>
+                        <div class="form-text">Site principal (rattachement hiérarchique)</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Sites autorisés (Accès)</label>
+                        <select name="sites[]" class="form-select" multiple size="4">
+                            @foreach($sites as $site)
+                            <option value="{{ $site->site_id }}" {{ in_array($site->site_id, old('sites', $user->sites->pluck('site_id')->toArray())) ? 'selected' : '' }}>
+                                {{ $site->site_name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs sites.</div>
                     </div>
 
                     <div class="col-md-6">
@@ -128,7 +141,7 @@
                         @if($user->profile_image)
                         <div class="mt-2">
                             <img src="{{ asset('storage/'.$user->profile_image) }}" alt="Profil" width="80"
-                                class="img-thumbnail">
+                                class="img-thumbnail rounded-circle">
                         </div>
                         @endif
                     </div>

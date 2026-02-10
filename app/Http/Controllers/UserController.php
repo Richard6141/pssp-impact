@@ -96,10 +96,12 @@ class UserController extends Controller
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'role' => 'required|exists:roles,name',
             'site_id' => 'nullable|exists:sites,site_id',
+            'sites' => 'nullable|array',
+            'sites.*' => 'exists:sites,site_id',
             'isActive' => 'boolean'
         ]);
 
-        $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image']);
+        $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
         $userData['password'] = Hash::make($request->password);
         $userData['isActive'] = $request->has('isActive');
 
@@ -112,6 +114,11 @@ class UserController extends Controller
 
         // Assigner le rôle
         $user->assignRole($request->role);
+
+        // Assigner les sites (Many-to-Many)
+        if ($request->has('sites')) {
+            $user->sites()->sync($request->sites);
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur créé avec succès.');
@@ -158,6 +165,7 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $user->load('sites');
         $roles = Role::all();
         $sites = Site::select('site_id', 'site_name')->get();
         $userRoles = $user->getRoleNames();
@@ -188,10 +196,12 @@ class UserController extends Controller
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'role' => 'required|exists:roles,name',
             'site_id' => 'nullable|exists:sites,site_id',
+            'sites' => 'nullable|array',
+            'sites.*' => 'exists:sites,site_id',
             'isActive' => 'boolean'
         ]);
 
-        $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image']);
+        $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
         $userData['isActive'] = $request->has('isActive');
 
         // Mise à jour du mot de passe si fourni
@@ -212,6 +222,11 @@ class UserController extends Controller
 
         // Mettre à jour le rôle
         $user->syncRoles([$request->role]);
+
+        // Mettre à jour les sites (Many-to-Many)
+        if ($request->has('sites')) {
+            $user->sites()->sync($request->sites);
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur mis à jour avec succès.');

@@ -20,6 +20,9 @@ use App\Http\Controllers\Auth\UserProfileController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\Admin\AuditController;
+use App\Http\Controllers\Admin\SessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::put('/profile/professional', [ProfileController::class, 'updateProfessional'])->name('profile.update-professional');
 });
 
 Route::group(['prefix' => 'account', 'middleware' => 'auth'], function () {
@@ -145,7 +149,7 @@ Route::middleware(['auth'])->prefix('collectes')->name('collectes.')->group(func
         ->middleware('can:collectes.delete')
         ->name('destroy');
 
-    Route::patch('/{id}/validate', [CollecteController::class, 'validate'])
+    Route::patch('/{id}/validate', [CollecteController::class, 'validateCollecte'])
         ->middleware('can:collectes.validate_final')
         ->name('validate');
 
@@ -338,6 +342,10 @@ Route::middleware(['auth'])->group(function () {
 
 // === GESTION DES UTILISATEURS ===
 Route::middleware(['auth'])->group(function () {
+    Route::get('users/export', [App\Http\Controllers\UserController::class, 'export'])
+        ->middleware('can:users.view')
+        ->name('users.export');
+
     Route::resource('users', App\Http\Controllers\UserController::class)
         ->middleware('can:users.view');
 });
@@ -373,16 +381,16 @@ Route::middleware(['auth'])->prefix('comptabilite')->name('comptabilite.')->grou
         ->middleware('can:rapports.financier')
         ->name('journal');
     Route::get('/journal/pdf', [ComptabiliteController::class, 'journalPdf'])
-        ->middleware('can:rapports.financier')
+        ->middleware('can:rapports.export')
         ->name('journal.pdf');
     Route::get('/export', [ComptabiliteController::class, 'export'])
         ->middleware('can:rapports.financier')
         ->name('export');
     Route::get('/export/csv', [ComptabiliteController::class, 'exportCsv'])
-        ->middleware('can:rapports.financier')
+        ->middleware('can:rapports.export')
         ->name('export.csv');
     Route::get('/export/excel', [ComptabiliteController::class, 'exportExcel'])
-        ->middleware('can:rapports.financier')
+        ->middleware('can:rapports.export')
         ->name('export.excel');
 });
 
@@ -484,3 +492,59 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
     Route::get('/filter-collectes/{period}', [IndexController::class, 'filterCollectes'])
         ->name('filter.collectes');
 });
+
+Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
+    Route::resource('audit', AuditController::class)->only(['index', 'show']);
+    Route::get('audit/export', [AuditController::class, 'export'])->name('audit.export');
+    Route::post('audit/cleanup', [AuditController::class, 'cleanup'])->name('audit.cleanup');
+});
+
+// === ROUTES 2FA (Authentification à Deux Facteurs) ===
+Route::middleware('auth')->prefix('2fa')->name('2fa.')->group(function () {
+    Route::get('/enable', [TwoFactorController::class, 'enable'])->name('enable');
+    Route::post('/confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
+    Route::post('/disable', [TwoFactorController::class, 'disable'])->name('disable');
+    Route::get('/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('recovery-codes');
+});
+
+// Vérification 2FA au login (sans middleware auth)
+Route::middleware('guest')->group(function () {
+    Route::get('/2fa/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify');
+    Route::post('/2fa/verify', [TwoFactorController::class, 'validateCode'])->name('2fa.validate');
+});
+
+// === GESTION DES SESSIONS ===
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
+    Route::delete('/sessions/{session}', [SessionController::class, 'destroy'])->name('sessions.destroy');
+    Route::delete('/sessions-others', [SessionController::class, 'destroyOthers'])->name('sessions.destroy-others');
+});
+
+// === PARAMÈTRES DE SÉCURITÉ ===
+Route::middleware('auth')->group(function () {
+    Route::get('/account/security', [TwoFactorController::class, 'securitySettings'])->name('account.security');
+});
+
+// === GESTION DES INVITATIONS (ADMIN) ===
+Route::middleware(['auth'])->prefix('admin/users/invitations')->name('admin.users.invitations.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\UserInvitationController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\Admin\UserInvitationController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\Admin\UserInvitationController::class, 'store'])->name('store');
+    Route::post('/{id}/resend', [App\Http\Controllers\Admin\UserInvitationController::class, 'resend'])->name('resend');
+    Route::delete('/{id}', [App\Http\Controllers\Admin\UserInvitationController::class, 'destroy'])->name('destroy');
+});
+
+// === GESTION DES UTILISATEURS (IMPORT CSV) ===
+Route::middleware(['auth', 'can:users.create'])->prefix('admin/users/import')->name('admin.users.import.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\UserImportController::class, 'index'])->name('index');
+    Route::post('/', [App\Http\Controllers\Admin\UserImportController::class, 'store'])->name('store');
+    Route::get('/template', [App\Http\Controllers\Admin\UserImportController::class, 'downloadTemplate'])->name('template');
+});
+
+// === ACCEPTATION INVITATION (PUBLIC) ===
+Route::middleware(['guest'])->group(function () {
+    Route::get('/invitation/accept/{token}', [App\Http\Controllers\Auth\InvitationController::class, 'show'])->name('invitation.accept');
+    Route::post('/invitation/accept/{token}', [App\Http\Controllers\Auth\InvitationController::class, 'accept'])->name('invitation.accept.store');
+});
+
+

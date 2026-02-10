@@ -1,0 +1,208 @@
+/* ============================================
+   PSSP IMPACT+ v2.0 - NO GRADIENTS OVERRIDE
+   ============================================ */
+
+/* Désactiver tous les dégradés et utiliser des couleurs plates */
+
+:root {
+  /* Remplacer les gradients par des couleurs plates */
+  --gradient-primary: #667eea;
+  --gradient-success: #10b981;
+  --gradient-danger: #ef4444;
+  --gradient-warning: #f59e0b;
+  --gradient-info: #3b82f6;
+}
+
+/* Cartes premium - retirer les dégradés */
+.premium-card-gradient {
+  background: var(--white) !important;
+  border: 2px solid var(--primary) !important;
+}
+
+.premium-card-gradient.variant-success {
+  border-color: #10b981 !important;
+}
+
+.premium-card-gradient.variant-danger {
+  border-color: #ef4444 !important;
+}
+
+.premium-card-gradient.variant-warning {
+  border-color: #f59e0b !important;
+}
+
+.premium-card-gradient.variant-info {
+  border-color: #3b82f6 !important;
+}
+
+/* Boutons gradient - utiliser couleurs plates */
+.btn-gradient-primary {
+  background: #667eea !important;
+  background-image: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-gradient-primary:hover {
+  background: #5568d3 !important;
+  transform: translateY(-2px);
+}
+
+.btn-gradient-success {
+  background: #10b981 !important;
+  background-image: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-gradient-success:hover {
+  background: #059669 !important;
+}
+
+.btn-gradient-danger {
+  background: #ef4444 !important;
+  background-image: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-gradient-danger:hover {
+  background: #dc2626 !important;
+}
+
+.btn-gradient-warning {
+  background: #f59e0b !important;
+  background-image: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-gradient-warning:hover {
+  background: #d97706 !important;
+}
+
+.btn-gradient-info {
+  background: #3b82f6 !important;
+  background-image: none !important;
+  border: none !important;
+  color: white !important;
+}
+
+.btn-gradient-info:hover {
+  background: #2563eb !important;
+}
+
+/* Stats cards - retirer les overlays dégradés */
+.stats-card .gradient-overlay {
+  display: none !important;
+}
+
+/* Badges - retirer les dégradés */
+.badge-modern.has-glow {
+  background: var(--primary) !important;
+  background-image: none !important;
+}
+
+.badge-modern.type-success.has-glow {
+  background: #10b981 !important;
+}
+
+.badge-modern.type-danger.has-glow {
+  background: #ef4444 !important;
+}
+
+.badge-modern.type-warning.has-glow {
+  background: #f59e0b !important;
+}
+
+.badge-modern.type-info.has-glow {
+  background: #3b82f6 !important;
+}
+
+/* Notification bell - retirer le dégradé */
+.notification-bell-badge {
+  background: #ef4444 !important;
+  background-image: none !important;
+}
+
+/* Forms - retirer les focus dégradés */
+.form-control-modern:focus,
+.form-select-modern:focus {
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  border-color: #667eea !important;
+}
+
+/* Tableaux - retirer les dégradés des en-têtes */
+.table-premium thead th {
+  background: #667eea !important;
+  background-image: none !important;
+  color: white !important;
+}
+
+/* Sidebar - retirer les dégradés */
+.sidebar-premium {
+  background: var(--dark-900) !important;
+  background-image: none !important;
+}
+
+.sidebar-premium .nav-link.active {
+  background: var(--primary) !important;
+  background-image: none !important;
+}
+
+/* Header - retirer les dégradés */
+.header-premium {
+  background: var(--white) !important;
+  background-image: none !important;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+/* Loading states - retirer les animations dégradées */
+.loading-gradient {
+  background: var(--gray-200) !important;
+  background-image: none !important;
+  animation: pulse 1.5s ease-in-out infinite !important;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Modales - retirer les dégradés */
+.modal-premium .modal-header {
+  background: var(--primary) !important;
+  background-image: none !important;
+  color: white !important;
+}
+
+/* Toasts/Notifications - retirer les dégradés */
+.toast-premium.type-success {
+  background: #10b981 !important;
+  background-image: none !important;
+}
+
+.toast-premium.type-danger {
+  background: #ef4444 !important;
+  background-image: none !important;
+}
+
+.toast-premium.type-warning {
+  background: #f59e0b !important;
+  background-image: none !important;
+}
+
+.toast-premium.type-info {
+  background: #3b82f6 !important;
+  background-image: none !important;
+}
+
+/* Retirer tous les background-image globalement pour les éléments premium */
+[class*="gradient"],
+[class*="premium-"][class*="-gradient"] {
+  background-image: none !important;
+}

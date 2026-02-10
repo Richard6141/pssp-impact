@@ -14,9 +14,35 @@
             </nav>
         </div>
         @can('users.create')
-        <a href="{{ route('users.create') }}" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Nouvel Utilisateur
-        </a>
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-gear"></i> Actions
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" href="{{ route('admin.users.invitations.index') }}">
+                            <i class="bi bi-envelope me-2"></i> Gérer les invitations
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('admin.users.import.index') }}">
+                            <i class="bi bi-file-earmark-arrow-up me-2"></i> Importer (CSV)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{{ route('users.export') }}">
+                            <i class="bi bi-file-earmark-arrow-down me-2"></i> Exporter (CSV)
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a href="{{ route('users.create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Nouvel Utilisateur
+            </a>
+        </div>
         @endcan
     </div>
 
@@ -56,7 +82,7 @@
                     <table class="table table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
-                                <th>Nom</th>
+                                <th>Utilisateur</th>
                                 <th>Email</th>
                                 <th>Rôle(s)</th>
                                 <th>Statut</th>
@@ -66,7 +92,13 @@
                         <tbody>
                             @forelse($users as $user)
                             <tr>
-                                <td>{{ $user->firstname }} {{ $user->lastname }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="{{ $user->profile_image ? asset('storage/'.$user->profile_image) : 'https://st2.depositphotos.com/1104517/11967/v/950/depositphotos_119675554-stock-illustration-male-avatar-profile-picture-vector.jpg' }}"
+                                            alt="Avatar" class="rounded-circle" width="32" height="32">
+                                        <span>{{ $user->firstname }} {{ $user->lastname }}</span>
+                                    </div>
+                                </td>
                                 <td>{{ $user->email }}</td>
                                 <td>
                                     @forelse($user->roles as $role)

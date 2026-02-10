@@ -70,6 +70,19 @@
                             </option>
                             @endforeach
                         </select>
+                        <div class="form-text">Site principal (rattachement hiérarchique)</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Sites autorisés (Accès)</label>
+                        <select name="sites[]" class="form-select" multiple size="4">
+                            @foreach($sites as $site)
+                            <option value="{{ $site->site_id }}" {{ in_array($site->site_id, old('sites', [])) ? 'selected' : '' }}>
+                                {{ $site->site_name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs sites.</div>
                     </div>
 
                     <div class="col-md-6">
@@ -112,7 +125,11 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Photo de profil</label>
-                        <input type="file" name="profile_image" class="form-control" accept="image/*">
+                        <input type="file" name="profile_image" class="form-control" accept="image/*"
+                            id="profile_image_input">
+                        <div class="mt-2 d-none" id="profile_image_preview">
+                            <img src="" alt="Aperçu" width="80" height="80" class="img-thumbnail rounded-circle">
+                        </div>
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
                         <div class="form-check">
@@ -132,4 +149,27 @@
     </section>
 
 </main>
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('profile_image_input');
+        const previewWrapper = document.getElementById('profile_image_preview');
+        const previewImg = previewWrapper?.querySelector('img');
+
+        if (!input || !previewWrapper || !previewImg) return;
+
+        input.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) {
+                previewWrapper.classList.add('d-none');
+                previewImg.src = '';
+                return;
+            }
+            const url = URL.createObjectURL(file);
+            previewImg.src = url;
+            previewWrapper.classList.remove('d-none');
+        });
+    });
+</script>
+@endpush
 @endsection

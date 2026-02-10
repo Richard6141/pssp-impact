@@ -44,7 +44,13 @@ class Site extends Model
         });
     }
 
-    // 🔹 Relation avec l'utilisateur responsable
+    // Relation avec l'utilisateur responsable (nommée responsable pour correspondre à l'appel du contrôleur)
+    public function responsable()
+    {
+        return $this->belongsTo(User::class, 'responsable', 'user_id');
+    }
+
+    // Alias pour la clarté (optionnel, mais garde responsableUser pour compatibilité)
     public function responsableUser()
     {
         return $this->belongsTo(User::class, 'responsable', 'user_id');
@@ -67,7 +73,9 @@ class Site extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class, 'site_id', 'site_id');
+        return $this->belongsToMany(User::class, 'site_user', 'site_id', 'user_id')
+                    ->withPivot('is_primary')
+                    ->withTimestamps();
     }
 
     // Scopes
