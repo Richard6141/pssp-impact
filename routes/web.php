@@ -13,6 +13,7 @@ use App\Http\Controllers\TypeDechetController;
 use App\Http\Controllers\ValidationController;
 use App\Http\Controllers\ObservationController;
 use App\Http\Controllers\ComptabiliteController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\backend\IndexController;
 use App\Http\Controllers\ConfigurationController;
@@ -34,6 +35,8 @@ use App\Http\Controllers\Admin\SessionController;
 Route::middleware('auth')->group(function () {
     Route::get('/', [IndexController::class, 'index'])->name('home');
     Route::get('/dashboard', [IndexController::class, 'index'])->name('dashboard');
+    Route::get('/search', [GlobalSearchController::class, 'index'])->name('search.global');
+    Route::get('/search/suggest', [GlobalSearchController::class, 'suggest'])->name('search.suggest');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
 

@@ -10,11 +10,13 @@
     </div><!-- End Logo -->
 
     <div class="search-bar">
-        <form class="search-form d-flex align-items-center" method="GET" action="{{ route('dashboard') }}">
-            <input type="text" name="query" placeholder="Rechercher..."
+        <form class="search-form d-flex align-items-center" method="GET" action="{{ route('search.global') }}">
+            <input type="text" id="globalSearchInput" name="query" placeholder="Rechercher..."
+                autocomplete="off"
                 title="Rechercher des sites, collectes, factures..." value="{{ request('query') }}">
             <button type="submit" title="Rechercher"><i class="bi bi-search"></i></button>
         </form>
+        <div id="globalSearchSuggestions" class="global-search-suggestions d-none"></div>
     </div><!-- End Search Bar -->
 
     <nav class="header-nav ms-auto">
@@ -321,6 +323,51 @@
         color: #adb5bd;
     }
 
+    .search-bar {
+        position: relative;
+    }
+
+    .global-search-suggestions {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        z-index: 1050;
+        max-height: 360px;
+        overflow-y: auto;
+    }
+
+    .global-search-item {
+        display: block;
+        padding: 10px 12px;
+        color: #212529;
+        text-decoration: none;
+        border-bottom: 1px solid #f1f3f5;
+    }
+
+    .global-search-item:last-child {
+        border-bottom: 0;
+    }
+
+    .global-search-item:hover {
+        background: #f8f9fa;
+    }
+
+    .global-search-item .meta {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .global-search-empty {
+        padding: 10px 12px;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
     /* Responsive pour mobile */
     @media (max-width: 768px) {
         .nav-profile span {
@@ -332,3 +379,92 @@
         }
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const input = document.getElementById('globalSearchInput');
+        const box = document.getElementById('globalSearchSuggestions');
+        if (!input || !box) return;
+
+        let timer = null;
+        let lastQuery = '';
+
+        const hideBox = () => {
+            box.classList.add('d-none');
+            box.innerHTML = '';
+        };
+
+        const renderItems = (items, query) => {
+            if (!items.length) {
+                box.innerHTML = '<div class="global-search-empty">Aucune suggestion.</div>';
+                box.classList.remove('d-none');
+                return;
+            }
+
+            const html = items.map(item => `
+                <a href="${item.url}" class="global-search-item">
+                    <div><strong>${item.title ?? ''}</strong></div>
+                    <div class="meta">${item.section ?? ''} | ${item.subtitle ?? ''}</div>
+                </a>
+            `).join('') + `
+                <a href="{{ route('search.global') }}?query=${encodeURIComponent(query)}" class="global-search-item">
+                    <strong>Voir tous les resultats</strong>
+                </a>
+            `;
+
+            box.innerHTML = html;
+            box.classList.remove('d-none');
+        };
+
+        input.addEventListener('input', function() {
+            const query = input.value.trim();
+            if (query.length < 2) {
+                hideBox();
+                return;
+            }
+
+            if (query === lastQuery) return;
+            lastQuery = query;
+
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(async () => {
+                try {
+                    const url = `{{ route('search.suggest') }}?query=${encodeURIComponent(query)}`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        hideBox();
+                        return;
+                    }
+
+                    const data = await response.json();
+                    renderItems(data.items || [], query);
+                } catch (e) {
+                    hideBox();
+                }
+            }, 250);
+        });
+
+        input.addEventListener('focus', function() {
+            if (box.innerHTML.trim() !== '') {
+                box.classList.remove('d-none');
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!box.contains(e.target) && e.target !== input) {
+                hideBox();
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideBox();
+            }
+        });
+    });
+</script>
