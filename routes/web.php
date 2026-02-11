@@ -35,20 +35,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [IndexController::class, 'index'])->name('home');
     Route::get('/dashboard', [IndexController::class, 'index'])->name('dashboard');
     Route::get('/search', [GlobalSearchController::class, 'index'])->name('search.global');
-    Route::get('/search/suggest', [GlobalSearchController::class, 'suggest'])->name('search.suggest');
+    Route::get('/search/suggest', [GlobalSearchController::class, 'suggest'])
+        ->middleware('throttle:search-suggest')
+        ->name('search.suggest');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
 
 // Routes d'authentification
 Route::group(['prefix' => 'auth'], function () {
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
+    Route::post('/register', [RegisterController::class, 'store'])
+        ->middleware('throttle:auth-register')
+        ->name('register.store');
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.store');
+    Route::post('/login', [LoginController::class, 'login'])
+        ->middleware('throttle:auth-login')
+        ->name('login.store');
     Route::get('/password/reset', [PasswordResetController::class, 'requestForm'])->name('password.request');
-    Route::post('/password/email', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/password/email', [PasswordResetController::class, 'sendResetLink'])
+        ->middleware('throttle:password-email')
+        ->name('password.email');
     Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
+    Route::post('/password/reset', [PasswordResetController::class, 'reset'])
+        ->middleware('throttle:password-reset')
+        ->name('password.update');
 });
 
 // Routes pour le profil
@@ -449,7 +459,7 @@ Route::middleware(['auth'])->prefix('system')->name('system.')->group(function (
 });
 
 // === API ENDPOINTS POUR RAPPORTS (AJAX) ===
-Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
+Route::middleware(['auth', 'throttle:api-read'])->prefix('api')->name('api.')->group(function () {
     // Données pour graphiques
     Route::get('/collectes/chart-data', [RapportController::class, 'getCollectesChartData'])
         ->middleware('can:rapports.collectes')
@@ -504,15 +514,23 @@ Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
 // === ROUTES 2FA (Authentification à Deux Facteurs) ===
 Route::middleware('auth')->prefix('2fa')->name('2fa.')->group(function () {
     Route::get('/enable', [TwoFactorController::class, 'enable'])->name('enable');
-    Route::post('/confirm', [TwoFactorController::class, 'confirm'])->name('confirm');
-    Route::post('/disable', [TwoFactorController::class, 'disable'])->name('disable');
-    Route::get('/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])->name('recovery-codes');
+    Route::post('/confirm', [TwoFactorController::class, 'confirm'])
+        ->middleware('throttle:two-factor')
+        ->name('confirm');
+    Route::post('/disable', [TwoFactorController::class, 'disable'])
+        ->middleware('throttle:two-factor')
+        ->name('disable');
+    Route::get('/recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes'])
+        ->middleware('throttle:two-factor')
+        ->name('recovery-codes');
 });
 
 // Vérification 2FA au login (sans middleware auth)
 Route::middleware('guest')->group(function () {
     Route::get('/2fa/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify');
-    Route::post('/2fa/verify', [TwoFactorController::class, 'validateCode'])->name('2fa.validate');
+    Route::post('/2fa/verify', [TwoFactorController::class, 'validateCode'])
+        ->middleware('throttle:two-factor')
+        ->name('2fa.validate');
 });
 
 // === GESTION DES SESSIONS ===
@@ -531,8 +549,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth'])->prefix('admin/users/invitations')->name('admin.users.invitations.')->group(function () {
     Route::get('/', [App\Http\Controllers\Admin\UserInvitationController::class, 'index'])->name('index');
     Route::get('/create', [App\Http\Controllers\Admin\UserInvitationController::class, 'create'])->name('create');
-    Route::post('/', [App\Http\Controllers\Admin\UserInvitationController::class, 'store'])->name('store');
-    Route::post('/{id}/resend', [App\Http\Controllers\Admin\UserInvitationController::class, 'resend'])->name('resend');
+    Route::post('/', [App\Http\Controllers\Admin\UserInvitationController::class, 'store'])
+        ->middleware('throttle:mail-send')
+        ->name('store');
+    Route::post('/{id}/resend', [App\Http\Controllers\Admin\UserInvitationController::class, 'resend'])
+        ->middleware('throttle:mail-send')
+        ->name('resend');
     Route::delete('/{id}', [App\Http\Controllers\Admin\UserInvitationController::class, 'destroy'])->name('destroy');
 });
 
@@ -546,7 +568,9 @@ Route::middleware(['auth', 'can:users.create'])->prefix('admin/users/import')->n
 // === ACCEPTATION INVITATION (PUBLIC) ===
 Route::middleware(['guest'])->group(function () {
     Route::get('/invitation/accept/{token}', [App\Http\Controllers\Auth\InvitationController::class, 'show'])->name('invitation.accept');
-    Route::post('/invitation/accept/{token}', [App\Http\Controllers\Auth\InvitationController::class, 'accept'])->name('invitation.accept.store');
+    Route::post('/invitation/accept/{token}', [App\Http\Controllers\Auth\InvitationController::class, 'accept'])
+        ->middleware('throttle:auth-register')
+        ->name('invitation.accept.store');
 });
 
 
