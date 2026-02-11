@@ -179,6 +179,8 @@ class RolesSeeder extends Seeder
                 'permissions.view',
                 'permissions.assign',
                 'permissions.revoke',
+                'audit.view',
+                'audit.export',
 
                 // Gestion des configurations
                 'configurations.view',

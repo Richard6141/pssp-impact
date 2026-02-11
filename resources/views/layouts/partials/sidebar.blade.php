@@ -210,7 +210,7 @@
         @endcan
 
         <!-- Section Administration -->
-        @canany(['users.view', 'roles.view', 'system.settings', 'configurations.view'])
+        @canany(['users.view', 'roles.view', 'system.settings', 'configurations.view', 'audit.view'])
         <li class="nav-heading">Administration</li>
         @endcanany
 
@@ -235,6 +235,16 @@
                 @endcan
             </ul>
         </li><!-- End Users Nav -->
+        @endcan
+
+        <!-- Audit -->
+        @can('audit.view')
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{{ route('admin.audit.index') }}">
+                <i class="bi bi-shield-check"></i>
+                <span>Audit</span>
+            </a>
+        </li><!-- End Audit Nav -->
         @endcan
 
         <!-- Configuration générale -->
