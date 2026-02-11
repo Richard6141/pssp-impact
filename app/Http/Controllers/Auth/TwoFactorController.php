@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TwoFactorEnabledMail;
+use App\Models\TwoFactorAuth;
 use App\Services\TwoFactorAuthService;
 use App\Services\SessionManagementService;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class TwoFactorController extends Controller
 {
@@ -50,6 +54,19 @@ class TwoFactorController extends Controller
         $user = auth()->user();
         
         if ($this->tfaService->enable($user, $request->code)) {
+            // Envoi d'un email de notification 2FA activee (non bloquant)
+            try {
+                $tfa = TwoFactorAuth::where('user_id', $user->user_id)->first();
+                $recoveryCodes = $tfa?->recovery_codes ?? [];
+                Mail::to($user->email)->queue(new TwoFactorEnabledMail($user, $recoveryCodes));
+            } catch (\Throwable $mailException) {
+                Log::error('Echec envoi email activation 2FA', [
+                    'user_id' => $user->user_id,
+                    'email' => $user->email,
+                    'error' => $mailException->getMessage(),
+                ]);
+            }
+
             $this->auditService->log([
                 'user_id' => $user->user_id,
                 'action' => '2fa_enabled',

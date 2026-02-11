@@ -52,7 +52,7 @@ class UserInvitationService
 
         // Envoyer l'email
         try {
-            Mail::to($email)->send(new UserInvitationMail($invitation));
+            Mail::to($email)->queue(new UserInvitationMail($invitation));
         } catch (Exception $e) {
             // Log l'erreur mais ne pas bloquer
             \Log::error("Erreur lors de l'envoi de l'invitation à $email: " . $e->getMessage());
@@ -132,7 +132,7 @@ class UserInvitationService
         ]);
 
         // Renvoyer l'email
-        Mail::to($invitation->email)->send(new UserInvitationMail($invitation));
+        Mail::to($invitation->email)->queue(new UserInvitationMail($invitation));
 
         return $invitation;
     }
