@@ -19,7 +19,6 @@ use App\Http\Controllers\backend\IndexController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\Auth\UserProfileController;
 use App\Http\Controllers\Auth\PasswordResetController;
-use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Admin\AuditController;
@@ -48,15 +47,15 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login.store');
     Route::get('/password/reset', [PasswordResetController::class, 'requestForm'])->name('password.request');
     Route::post('/password/email', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
-    Route::get('/password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+    Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 });
 
 // Routes pour le profil
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::put('/profile/professional', [ProfileController::class, 'updateProfessional'])->name('profile.update-professional');
 });
 

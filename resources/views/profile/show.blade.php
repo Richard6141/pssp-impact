@@ -257,7 +257,7 @@
 
                             <div class="tab-pane fade pt-3" id="profile-change-password">
                                 <!-- Formulaire de changement de mot de passe -->
-                                <form method="POST" action="{{ route('password.update') }}">
+                                <form method="POST" action="{{ route('profile.password.update') }}">
                                     @csrf
                                     @method('PUT')
 
