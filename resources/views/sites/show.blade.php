@@ -52,6 +52,13 @@
 
                             <div class="col-md-6">
                                 <div class="mb-3">
+                                    <label class="text-muted small">Code du site</label>
+                                    <p class="mb-0"><span class="badge bg-secondary">{{ $site->site_code ?? 'N/A' }}</span></p>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="mb-3">
                                     <label class="text-muted small">Département</label>
                                     <p class="mb-0">{{ $site->site_departement }}</p>
                                 </div>

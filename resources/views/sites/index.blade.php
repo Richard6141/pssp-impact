@@ -24,14 +24,19 @@
                             <h5 class="card-title m-0">Liste des sites</h5>
 
                             <!-- Bouton responsive -->
-                            @can('sites.create')
-                            <a href="{{ route('sites.create') }}"
-                                class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:45px; height:45px; min-width:45px;" title="Ajouter un site"
-                                data-bs-toggle="tooltip">
-                                <i class="bi bi-plus-lg"></i>
-                            </a>
-                            @endcan
+                            <div class="d-flex align-items-center gap-2">
+                                @can('sites.create')
+                                <a href="{{ route('sites.import') }}" class="btn btn-outline-secondary btn-sm" title="Importer des sites">
+                                    <i class="bi bi-upload"></i> Importer
+                                </a>
+                                <a href="{{ route('sites.create') }}"
+                                    class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width:45px; height:45px; min-width:45px;" title="Ajouter un site"
+                                    data-bs-toggle="tooltip">
+                                    <i class="bi bi-plus-lg"></i>
+                                </a>
+                                @endcan
+                            </div>
                         </div>
 
                         <!-- Table responsive -->
@@ -40,6 +45,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th scope="col" class="text-nowrap">#</th>
+                                        <th scope="col" class="text-nowrap">Code</th>
                                         <th scope="col" class="text-nowrap">Nom</th>
                                         <th scope="col" class="d-none d-md-table-cell">Département</th>
                                         <th scope="col" class="d-none d-lg-table-cell">Commune</th>
@@ -54,6 +60,9 @@
                                     @foreach($sites as $index => $site)
                                     <tr>
                                         <td class="fw-bold">{{ $index + 1 }}</td>
+                                        <td class="text-nowrap">
+                                            <span class="badge bg-secondary">{{ $site->site_code ?? 'N/A' }}</span>
+                                        </td>
                                         <td class="text-nowrap">
                                             <strong>{{ $site->site_name }}</strong>
                                         </td>

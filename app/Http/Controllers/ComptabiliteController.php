@@ -142,6 +142,39 @@ class ComptabiliteController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function exportTxt(Request $request)
+    {
+        $rows = $this->paiementsExportQuery($request)->get();
+
+        $lines = [];
+        $lines[] = 'Date paiement|Code site|Reference facture|Montant paye';
+        $lines[] = str_repeat('-', strlen($lines[0]));
+
+        foreach ($rows as $row) {
+            $datePaiement = $row->date_paiement
+                ? \Carbon\Carbon::parse($row->date_paiement)->format('d/m/Y')
+                : '';
+            $codeSite = $row->site_code ?? ($row->site_name ?? '');
+            $referenceFacture = $row->numero_facture ?? '';
+            $montantPaye = number_format((float) ($row->montant ?? 0), 2, ',', '');
+
+            $lines[] = implode('|', [
+                $datePaiement,
+                $codeSite,
+                $referenceFacture,
+                $montantPaye,
+            ]);
+        }
+
+        $content = implode(PHP_EOL, $lines) . PHP_EOL;
+        $filename = 'export_paiements_' . now()->format('Y-m-d') . '.txt';
+
+        return response($content, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
     public function journalPdf(Request $request)
     {
         ComptabiliteService::backfillIfEmpty();
@@ -205,6 +238,33 @@ class ComptabiliteController extends Controller
                 'p.statut_paiement as statut_paiement',
                 DB::raw('f.montant_facture - COALESCE(p.montant_paye, 0) as solde_restant'),
             ]);
+
+        if ($request->filled('site_id')) {
+            $query->where('f.site_id', $request->site_id);
+        }
+        if ($request->filled('comptable_id')) {
+            $query->where('f.comptable_id', $request->comptable_id);
+        }
+        if ($request->filled('statut_facture')) {
+            $query->where('f.statut', $request->statut_facture);
+        }
+
+        return $query;
+    }
+
+    protected function paiementsExportQuery(Request $request)
+    {
+        $query = DB::table('paiements as p')
+            ->join('factures as f', 'p.facture_id', '=', 'f.facture_id')
+            ->leftJoin('sites as s', 'f.site_id', '=', 's.site_id')
+            ->select([
+                'p.date_paiement as date_paiement',
+                's.site_code as site_code',
+                's.site_name as site_name',
+                'f.numero_facture as numero_facture',
+                'p.montant as montant',
+            ])
+            ->orderBy('p.date_paiement', 'desc');
 
         if ($request->filled('site_id')) {
             $query->where('f.site_id', $request->site_id);

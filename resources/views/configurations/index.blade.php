@@ -112,6 +112,7 @@
                                     <table class="table table-striped">
                                         <thead>
                                             <tr>
+                                                <th>Code</th>
                                                 <th>Nom</th>
                                                 <th>Adresse</th>
                                                 <th>Coordonnées</th>
@@ -122,6 +123,7 @@
                                         <tbody>
                                             @forelse($sites as $site)
                                             <tr>
+                                                <td><span class="badge bg-secondary">{{ $site->site_code ?? 'N/A' }}</span></td>
                                                 <td>{{ $site->site_name }}</td>
                                                 <td>{{ $site->site_departement }}, {{ $site->site_commune}}</td>
                                                 <td>
@@ -157,7 +159,7 @@
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="5" class="text-center">Aucun site enregistré</td>
+                                                <td colspan="6" class="text-center">Aucun site enregistré</td>
                                             </tr>
                                             @endforelse
                                         </tbody>
@@ -430,6 +432,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
+                        <label for="site_code" class="form-label">Code du site</label>
+                        <input type="text" class="form-control" id="site_code" name="site_code" required>
+                    </div>
+                    <div class="mb-3">
                         <label for="site_name" class="form-label">Nom du site</label>
                         <input type="text" class="form-control" id="site_name" name="site_name" required>
                     </div>
@@ -515,6 +521,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_site_code" class="form-label">Code du site</label>
+                        <input type="text" class="form-control" id="edit_site_code" name="site_code" required>
+                    </div>
                     <div class="mb-3">
                         <label for="edit_site_name" class="form-label">Nom du site</label>
                         <input type="text" class="form-control" id="edit_site_name" name="site_name" required>
@@ -679,6 +689,7 @@ function editSite(siteId) {
 
     if (site) {
         // Remplir le formulaire d'édition
+        document.getElementById('edit_site_code').value = site.site_code || 'N/A';
         document.getElementById('edit_site_name').value = site.site_name || '';
         document.getElementById('edit_site_departement').value = site.site_departement || '';
         document.getElementById('edit_site_commune').value = site.site_commune || '';

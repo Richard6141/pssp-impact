@@ -20,6 +20,7 @@ class Site extends Model
     protected $fillable = [
         'site_id',
         'site_name',
+        'site_code',
         'site_departement',
         'site_commune',
         'localisation',

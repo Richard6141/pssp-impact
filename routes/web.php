@@ -106,6 +106,18 @@ Route::middleware(['auth'])->prefix('sites')->name('sites.')->group(function () 
         ->middleware('can:sites.view')
         ->name('index');
 
+    Route::get('/import', [SiteController::class, 'importForm'])
+        ->middleware('can:sites.create')
+        ->name('import');
+
+    Route::post('/import', [SiteController::class, 'importStore'])
+        ->middleware('can:sites.create')
+        ->name('import.store');
+
+    Route::get('/import/template', [SiteController::class, 'downloadTemplate'])
+        ->middleware('can:sites.create')
+        ->name('import.template');
+
     Route::get('/create', [SiteController::class, 'create'])
         ->middleware('can:sites.create')
         ->name('create');
@@ -381,6 +393,9 @@ Route::middleware(['auth'])->prefix('rapports')->name('rapports.')->group(functi
             ->middleware('can:export.pdf')
             ->name('export.pdf');
 
+        Route::get('/export/txt/{type}', [RapportController::class, 'exportTxt'])
+            ->name('export.txt');
+
         Route::get('/export/excel/{type}', [RapportController::class, 'exportExcel'])
             ->middleware('can:export.excel')
             ->name('export.excel');
@@ -401,6 +416,9 @@ Route::middleware(['auth'])->prefix('comptabilite')->name('comptabilite.')->grou
     Route::get('/export/csv', [ComptabiliteController::class, 'exportCsv'])
         ->middleware('can:rapports.export')
         ->name('export.csv');
+    Route::get('/export/txt', [ComptabiliteController::class, 'exportTxt'])
+        ->middleware('can:rapports.export')
+        ->name('export.txt');
     Route::get('/export/excel', [ComptabiliteController::class, 'exportExcel'])
         ->middleware('can:rapports.export')
         ->name('export.excel');

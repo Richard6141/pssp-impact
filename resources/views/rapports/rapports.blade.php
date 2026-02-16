@@ -309,6 +309,9 @@
                             <button class="btn btn-success btn-sm" onclick="exportPDF()">
                                 <i class="bi bi-file-earmark-pdf"></i> PDF
                             </button>
+                            <button class="btn btn-secondary btn-sm ms-2" onclick="exportTXT()">
+                                <i class="bi bi-file-earmark-text"></i> TXT
+                            </button>
                             <!--
                             <button class="btn btn-info btn-sm" onclick="exportExcel()">
                                 <i class="bi bi-file-earmark-excel"></i> Excel
@@ -623,14 +626,10 @@
                 new ApexCharts(document.querySelector("#reportsChart"), {
                     series: [{
                         name: 'Collectes',
-                        data: {
-                            @json($evolutionMensuelle->pluck('total'))
-                        },
+                        data: @json($evolutionMensuelle->pluck('total')),
                     }, {
                         name: 'Poids (kg)',
-                        data: {
-                            @json($evolutionMensuelle->pluck('poids_total'))
-                        }
+                        data: @json($evolutionMensuelle->pluck('poids_total'))
                     }],
                     chart: {
                         height: 350,
@@ -660,39 +659,29 @@
                         width: 2
                     },
                     xaxis: {
-                        categories: {
-                            @json($evolutionMensuelle->pluck('mois'))
-                        }
+                        categories: @json($evolutionMensuelle->pluck('mois'))
                     }
                 }).render();
 
                 // Graphique statuts
                 new ApexCharts(document.querySelector("#statutChart"), {
-                    series: {
-                        @json(array_values($repartitionStatut->toArray()))
-                    },
+                    series: @json(array_values($repartitionStatut->toArray())),
                     chart: {
                         type: 'donut',
                         height: 350
                     },
-                    labels: {
-                        @json(array_keys($repartitionStatut->toArray()))
-                    },
+                    labels: @json(array_keys($repartitionStatut->toArray())),
                     colors: ['#2eca6a', '#ff771d', '#4154f1']
                 }).render();
 
                 // Graphique types de déchets
                 new ApexCharts(document.querySelector("#typeDechetChart"), {
-                    series: {
-                        @json(array_values($repartitionTypeDechet->toArray()))
-                    },
+                    series: @json(array_values($repartitionTypeDechet->toArray())),
                     chart: {
                         type: 'pie',
                         height: 350
                     },
-                    labels: {
-                        @json(array_keys($repartitionTypeDechet->toArray()))
-                    },
+                    labels: @json(array_keys($repartitionTypeDechet->toArray())),
                     colors: ['#ff5757', '#ff771d', '#ffc107', '#6f42c1']
                 }).render();
             });
@@ -707,5 +696,12 @@
             function exportExcel() {
                 alert("L'export Excel sera disponible prochainement.");
             }
+
+            function exportTXT() {
+                const params = new URLSearchParams(window.location.search);
+                const url = "{{ route('rapports.export.txt', ['type' => 'collectes']) }}?" + params.toString();
+                window.location.href = url;
+            }
         </script>
         @endpush
+

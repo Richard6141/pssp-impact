@@ -61,6 +61,10 @@
                         class="btn btn-outline-success btn-sm">
                         <i class="bi bi-filetype-csv"></i> CSV
                     </a>
+                    <a href="{{ route('comptabilite.export.txt', request()->query()) }}"
+                        class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-file-earmark-text"></i> TXT
+                    </a>
                     <a href="{{ route('comptabilite.export.excel', request()->query()) }}"
                         class="btn btn-outline-success btn-sm">
                         <i class="bi bi-file-earmark-excel"></i> Excel

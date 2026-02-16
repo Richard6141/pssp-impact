@@ -6,9 +6,15 @@ use Illuminate\Http\Request;
 use App\Models\Site;
 use App\Models\User;
 use Illuminate\Support\Str;
+use App\Services\SiteImportService;
+use Illuminate\Validation\Rule;
 
 class SiteController extends Controller
 {
+    public function __construct(private SiteImportService $siteImportService)
+    {
+    }
+
     private function getVisibleSiteIds()
     {
         $user = auth()->user();
@@ -72,11 +78,73 @@ class SiteController extends Controller
         return view('sites.create', compact('users'));
     }
 
+    public function importForm()
+    {
+        return view('sites.import');
+    }
+
+    public function importStore(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,csv,txt|max:5120',
+        ]);
+
+        $result = $this->siteImportService->import($request->file('file'));
+
+        $message = "Import terminé: {$result['success_count']} site(s) créé(s)";
+        if ($result['error_count'] > 0) {
+            $message .= " et {$result['error_count']} ligne(s) en erreur.";
+        } else {
+            $message .= '.';
+        }
+
+        return redirect()
+            ->route('sites.import')
+            ->with($result['error_count'] > 0 ? 'warning' : 'success', $message)
+            ->with('import_errors', $result['errors']);
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sites_import_template.csv"',
+        ];
+
+        $callback = function () {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'site_code',
+                'site_name',
+                'site_departement',
+                'site_commune',
+                'localisation',
+                'latitude',
+                'longitude',
+                'responsable_email',
+            ]);
+            fputcsv($handle, [
+                'SIT-TG-001',
+                'Clinique Baguida',
+                'Maritime',
+                'Lome',
+                'Baguida, route nationale',
+                '6.1650000',
+                '1.3650000',
+                'agent.collecte@example.com',
+            ]);
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
 
     // Sauvegarde en BDD
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'site_code' => 'required|string|max:20|unique:sites,site_code',
             'site_name' => 'required|string|max:255',
             'site_departement' => 'required|string|max:255',
             'site_commune' => 'required|string|max:255',
@@ -88,6 +156,7 @@ class SiteController extends Controller
 
         Site::create([
             'site_id' => Str::uuid(),
+            'site_code' => strtoupper(trim($validated['site_code'])),
             'site_name' => $validated['site_name'],
             'site_departement' => $validated['site_departement'],
             'site_commune' => $validated['site_commune'],
@@ -129,6 +198,12 @@ class SiteController extends Controller
         $site = Site::findOrFail($id);
 
         $validated = $request->validate([
+            'site_code' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('sites', 'site_code')->ignore($site->site_id, 'site_id'),
+            ],
             'site_name' => 'required|string|max:255',
             'site_departement' => 'required|string|max:255',
             'site_commune' => 'required|string|max:255',
@@ -138,6 +213,7 @@ class SiteController extends Controller
             'responsable' => 'nullable|exists:users,user_id',
         ]);
 
+        $validated['site_code'] = strtoupper(trim($validated['site_code']));
         $site->update($validated);
 
         // Redirection conditionnelle

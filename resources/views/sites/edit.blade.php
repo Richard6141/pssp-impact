@@ -21,11 +21,22 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Formulaire de modification</h5>
-
                         <!-- Formulaire -->
                         <form class="row g-3" method="POST" action="{{ route('sites.update', $site->site_id) }}">
                             @csrf
                             @method('PUT')
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control @error('site_code') is-invalid @enderror"
+                                        name="site_code" id="siteCode"
+                                        value="{{ old('site_code', $site->site_code) }}" required>
+                                    <label for="siteCode">Code du site</label>
+                                    @error('site_code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
 
                             <div class="col-md-6">
                                 <div class="form-floating">

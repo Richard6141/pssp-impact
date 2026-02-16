@@ -361,8 +361,18 @@ class RapportController extends Controller
      */
     public function exportExcel(Request $request, $type)
     {
-        // Ã€ implÃ©menter avec Laravel Excel
+        // À implémenter avec Laravel Excel
         // return Excel::download(new CollectesExport($request), 'collectes.xlsx');
+    }
+
+    public function exportTxt(Request $request, $type)
+    {
+        switch ($type) {
+            case 'collectes':
+                return $this->exportCollectesTxt($request);
+            default:
+                abort(404);
+        }
     }
 
     public function financier(Request $request)
@@ -654,4 +664,67 @@ class RapportController extends Controller
         $pdf = PDF::loadView('rapports.sites_pdf', compact('sites', 'statsGenerales', 'repartitionDepartement', 'topSites', 'sitesAvecIncidents', 'dateDebut', 'dateFin'));
         return $pdf->download('rapport_sites_' . now()->format('Y-m-d') . '.pdf');
     }
+    private function exportCollectesTxt(Request $request)
+    {
+        $dateDebut = Carbon::parse($request->input('date_debut', now()->subMonths(6)->format('Y-m-d')))->startOfDay();
+        $dateFin = Carbon::parse($request->input('date_fin', now()->format('Y-m-d')))->endOfDay();
+
+        $siteId = $request->input('site_id');
+        $agentId = $request->input('agent_id');
+        $typeDechetId = $request->input('type_dechet_id');
+        $statut = $request->input('statut');
+
+        $user = auth()->user();
+        if ($user->hasRole('Agent collecte')) {
+            $agentId = $user->user_id;
+        }
+
+        $query = Collecte::with(['site', 'agent', 'typeDechet'])
+            ->whereBetween('date_collecte', [$dateDebut, $dateFin]);
+
+        $this->applyCollecteVisibility($query);
+
+        if ($siteId) {
+            $query->where('site_id', $siteId);
+        }
+        if ($agentId) {
+            $query->where('agent_id', $agentId);
+        }
+        if ($typeDechetId) {
+            $query->where('type_dechet_id', $typeDechetId);
+        }
+        if ($statut) {
+            $query->where('statut', $statut);
+        }
+
+        $collectes = $query->orderBy('date_collecte', 'desc')->get();
+
+        $lines = [];
+        $lines[] = 'Periode: ' . $dateDebut->format('d/m/Y') . ' au ' . $dateFin->format('d/m/Y');
+
+        foreach ($collectes as $collecte) {
+            $date = optional($collecte->date_collecte)->format('d/m/Y') ?: '';
+            $reference = $collecte->numero_collecte ?? ($collecte->collecte_id ?? '');
+            $codeSite = $collecte->site->site_code ?? ($collecte->site->site_name ?? '');
+            $codeTypeDechet = $collecte->typeDechet->code ?? ($collecte->typeDechet->code_dbm ?? '');
+            $poids = number_format((float) ($collecte->poids ?? 0), 2, ',', '');
+            $lines[] = sprintf(
+                '%-10s| %-10s| %-10s | %-16s| %-8s|',
+                mb_substr($date, 0, 10),
+                mb_substr($reference, 0, 10),
+                mb_substr($codeSite, 0, 10),
+                mb_substr($codeTypeDechet, 0, 16),
+                mb_substr($poids, 0, 8)
+            );
+        }
+
+        $content = implode(PHP_EOL, $lines) . PHP_EOL;
+        $filename = 'rapport_collectes_' . now()->format('Y-m-d') . '.txt';
+
+        return response($content, 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }
+

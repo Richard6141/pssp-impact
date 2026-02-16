@@ -21,12 +21,28 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Formulaire d'ajout d'un site</h5>
+                        <div class="alert alert-info py-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Le code du site est genere automatiquement lors de l'enregistrement.
+                        </div>
 
                         <!-- Floating Labels Form -->
                         <form class="row g-3" method="POST" action="{{ route('sites.store') }}">
                             @csrf
 
-                            <div class="col-md-12">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    <input type="text" name="site_code"
+                                        class="form-control @error('site_code') is-invalid @enderror" id="siteCode"
+                                        placeholder="Code du site" value="{{ old('site_code') }}" required>
+                                    <label for="siteCode">Code du site</label>
+                                    @error('site_code')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="text" name="site_name"
                                         class="form-control @error('site_name') is-invalid @enderror" id="siteName"
