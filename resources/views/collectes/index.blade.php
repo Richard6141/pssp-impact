@@ -101,9 +101,17 @@
 
                                             <!-- Bouton Supprimer - Permission: collectes.delete -->
                                             @can('collectes.delete')
-                                            @if(($collecte->factures_count ?? 0) > 0)
+                                            @php
+                                            $isFacturee = ($collecte->factures_count ?? 0) > 0;
+                                            $isValidee = (bool) $collecte->signature_responsable_site || (bool) $collecte->isValid;
+                                            $deleteBlocked = $isFacturee || $isValidee;
+                                            $deleteReason = $isFacturee
+                                            ? 'Suppression impossible: collecte déjà facturée'
+                                            : 'Suppression impossible: collecte déjà validée';
+                                            @endphp
+                                            @if($deleteBlocked)
                                             <button type="button" class="btn btn-sm btn-secondary" disabled
-                                                title="Suppression impossible: collecte déjà facturée" data-bs-toggle="tooltip">
+                                                title="{{ $deleteReason }}" data-bs-toggle="tooltip">
                                                 <i class="bi bi-lock"></i>
                                             </button>
                                             @else

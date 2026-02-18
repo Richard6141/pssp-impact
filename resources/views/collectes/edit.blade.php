@@ -87,24 +87,9 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="signature_responsable_site"
-                                        id="signatureSite" value="1"
-                                        {{ old('signature_responsable_site', $collecte->signature_responsable_site) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="signatureSite">
-                                        Signature responsable du site
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="isValid" id="isValid"
-                                        value="1" {{ old('isValid', $collecte->isValid) ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="isValid">
-                                        Validation de la collecte
-                                    </label>
+                            <div class="col-md-12">
+                                <div class="alert alert-info mb-0" role="alert">
+                                    La signature de collecte est réservée au responsable du site via le module <strong>Validations</strong>.
                                 </div>
                             </div>
 

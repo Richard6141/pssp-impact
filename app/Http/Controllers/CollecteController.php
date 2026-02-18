@@ -114,8 +114,6 @@ class CollecteController extends Controller
             'poids',
             'type_dechet_id',
             'site_id',
-            'signature_responsable_site',
-            'isValid'
         ]);
 
         // GÃ©nÃ©rer un UUID pour la collecte
@@ -208,8 +206,6 @@ class CollecteController extends Controller
             'type_dechet_id',
             'agent_id',
             'site_id',
-            'signature_responsable_site',
-            'isValid'
         ]);
 
         $this->ensureSiteAllowed($collecteData['site_id']);
@@ -258,6 +254,12 @@ class CollecteController extends Controller
             return redirect()
                 ->route('collectes.index')
                 ->with('error', 'Suppression impossible: cette collecte est déjà liée à une facture.');
+        }
+
+        if ($collecte->signature_responsable_site || $collecte->isValid) {
+            return redirect()
+                ->route('collectes.index')
+                ->with('error', 'Suppression impossible: cette collecte a déjà été validée.');
         }
 
         // L'incident sera supprimé automatiquement grâce au cascade dans la foreign key

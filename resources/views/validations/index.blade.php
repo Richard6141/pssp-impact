@@ -23,7 +23,7 @@
                                         <th>#</th>
                                         <th>Collecte</th>
                                         <th>Site</th>
-                                        <th>Validé par</th>
+                                        <th>Valide par</th>
                                         <th>Type</th>
                                         <th>Date</th>
                                         <th>Commentaire</th>
@@ -57,19 +57,23 @@
                                             @endif
                                         </td>
                                         <td class="text-center">
-                                            @if(!$collecte->validation)
-                                            <!-- Modification du lien pour passer collecte_id en paramètre de requête -->
+                                            @php
+                                            $canSignHere = (string) optional($collecte->site)->responsable === (string) optional(auth()->user())->user_id;
+                                            @endphp
+                                            @if(!$collecte->validation && $canSignHere)
                                             <a href="{{ route('validations.create', ['collecte_id' => $collecte->collecte_id]) }}"
                                                 class="btn btn-sm btn-success">Valider</a>
-                                            @else
+                                            @elseif($collecte->validation)
                                             <a href="{{ route('validations.show', $collecte->validation->validation_id) }}"
                                                 class="btn btn-sm btn-info">Voir</a>
+                                            @else
+                                            <span class="badge bg-secondary">Non autorise</span>
                                             @endif
                                         </td>
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9">Aucune collecte trouvée.</td>
+                                        <td colspan="9">Aucune collecte trouvee.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

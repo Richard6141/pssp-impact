@@ -2,22 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Validation;
 use App\Models\Collecte;
+use App\Models\Validation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ValidationController extends Controller
 {
+    private function canSignCollecte(Collecte $collecte): bool
+    {
+        $user = auth()->user();
+
+        if (!$user || !$collecte->site) {
+            return false;
+        }
+
+        return (string) $collecte->site->responsable === (string) $user->user_id;
+    }
+
+    private function ensureCanSignCollecte(Collecte $collecte): void
+    {
+        if (!$this->canSignCollecte($collecte)) {
+            abort(403, "Vous n'etes pas autorise a signer cette collecte.");
+        }
+    }
+
     /**
      * Afficher la liste des collectes et leurs validations.
      */
     public function index()
     {
-        $collectes = Collecte::with(['site', 'validation.validator'])
+        $query = Collecte::with(['site', 'validation.validator'])
             ->latest()
-            ->paginate(10);
+            ->orderByDesc('date_collecte');
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('Responsable site')) {
+            $query->whereHas('site', function ($q) use ($user) {
+                $q->where('responsable', $user->user_id);
+            });
+        }
+
+        $collectes = $query->paginate(10);
 
         return view('validations.index', compact('collectes'));
     }
@@ -28,10 +55,11 @@ class ValidationController extends Controller
     public function create($collecte_id)
     {
         $collecte = Collecte::with('site')->findOrFail($collecte_id);
+        $this->ensureCanSignCollecte($collecte);
 
         if ($collecte->validation) {
             return redirect()->route('validations.index')
-                ->with('warning', 'Cette collecte a déjà été validée.');
+                ->with('warning', 'Cette collecte a deja ete validee.');
         }
 
         return view('validations.create', compact('collecte'));
@@ -44,20 +72,20 @@ class ValidationController extends Controller
     {
         $request->validate([
             'collecte_id' => 'required|uuid|exists:collectes,collecte_id',
-            //'type_validation' => 'required|string|max:50',
             'commentaire' => 'nullable|string',
-            'signature' => 'required|string', // base64 obligatoire
+            'signature' => 'required|string',
         ]);
 
-        // Vérifier si la collecte n'est pas déjà validée
-        $collecte = Collecte::findOrFail($request->collecte_id);
+        $collecte = Collecte::with('site')->findOrFail($request->collecte_id);
+        $this->ensureCanSignCollecte($collecte);
+
         if ($collecte->validation) {
             return redirect()->route('validations.index')
-                ->with('warning', 'Cette collecte a déjà été validée.');
+                ->with('warning', 'Cette collecte a deja ete validee.');
         }
 
         try {
-            // Sauvegarder la signature (base64 → image)
+            // Save signature (base64 -> image)
             $signatureData = str_replace('data:image/png;base64,', '', $request->signature);
             $signatureData = str_replace(' ', '+', $signatureData);
             $signaturePath = 'signatures/' . Str::uuid() . '.png';
@@ -68,25 +96,23 @@ class ValidationController extends Controller
 
             Storage::disk('public')->put($signaturePath, base64_decode($signatureData));
 
-            // Créer la validation
             Validation::create([
                 'validation_id' => Str::uuid(),
                 'collecte_id' => $request->collecte_id,
                 'validated_by' => auth()->user()->user_id,
-                'type_validation' => "Partielle",
+                'type_validation' => 'Partielle',
                 'date_validation' => now(),
                 'commentaire' => $request->commentaire,
                 'signature' => $signaturePath,
             ]);
 
-            // ✅ Mettre à jour la collecte (signature_responsable_site passe à true)
             $collecte->update([
                 'signature_responsable_site' => true,
                 'statut' => 'en_attente',
             ]);
 
             return redirect()->route('validations.index')
-                ->with('success', 'Collecte validée avec succès.');
+                ->with('success', 'Collecte validee avec succes.');
         } catch (\Exception $e) {
             if (isset($signaturePath) && Storage::disk('public')->exists($signaturePath)) {
                 Storage::disk('public')->delete($signaturePath);
@@ -98,13 +124,13 @@ class ValidationController extends Controller
         }
     }
 
-
     /**
-     * Afficher les détails d'une validation.
+     * Afficher les details d'une validation.
      */
     public function show(Validation $validation)
     {
         $validation->load(['collecte.site', 'validator']);
+
         return view('validations.show', compact('validation'));
     }
 
@@ -120,6 +146,6 @@ class ValidationController extends Controller
         $validation->delete();
 
         return redirect()->route('validations.index')
-            ->with('success', 'Validation supprimée avec succès.');
+            ->with('success', 'Validation supprimee avec succes.');
     }
 }
