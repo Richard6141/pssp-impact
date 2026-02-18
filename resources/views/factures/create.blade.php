@@ -31,7 +31,7 @@
                             <div class="col-md-6">
                                 <div class="form-floating">
                                     <input type="date" class="form-control" name="date_facture" id="dateFacture"
-                                        value="{{ old('date_facture', $facture->date_facture ?? '') }}" required>
+                                        value="{{ old('date_facture', isset($facture) && $facture->date_facture ? \Illuminate\Support\Carbon::parse($facture->date_facture)->format('Y-m-d') : '') }}" required>
                                     <label for="dateFacture">Date de facture</label>
                                 </div>
                                 @error('date_facture')
@@ -161,21 +161,27 @@
         new bootstrap.Modal(document.getElementById('imageModal')).show();
     }
 
+    const factureId = @json($facture->facture_id ?? null);
+    const selectedCollecteIds = @json(old('collecte_ids', isset($facture) ? $facture->collectes->pluck('collecte_id')->toArray() : []));
+
     // Charger collectes dynamiquement selon le site
     document.getElementById('siteSelect').addEventListener('change', function() {
         let siteId = this.value;
         let container = document.getElementById('collectesContainer');
 
-        // Afficher un message de chargement
         container.innerHTML =
             '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"></div><span class="text-muted">Chargement des collectes...</span></div>';
 
         if (siteId) {
-            // Utiliser la route correcte dÃ©finie dans web.php
-            fetch(`{{ url('factures/collectes-by-site') }}/${siteId}`)
+            let url = `{{ url('factures/collectes-by-site') }}/${siteId}`;
+            if (factureId) {
+                url += `?facture_id=${encodeURIComponent(factureId)}`;
+            }
+
+            fetch(url)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Erreur rÃ©seau');
+                        throw new Error('Erreur réseau');
                     }
                     return response.json();
                 })
@@ -185,14 +191,17 @@
                         collectes.forEach(collecte => {
                             let div = document.createElement('div');
                             div.classList.add('form-check', 'mb-1');
+
+                            const isChecked = selectedCollecteIds.includes(collecte.collecte_id);
                             div.innerHTML = `
-                                <input class="form-check-input" type="checkbox" 
-                                       name="collecte_ids[]" 
-                                       value="${collecte.collecte_id}" 
-                                       id="collecte_${collecte.collecte_id}">
+                                <input class="form-check-input" type="checkbox"
+                                       name="collecte_ids[]"
+                                       value="${collecte.collecte_id}"
+                                       id="collecte_${collecte.collecte_id}"
+                                       ${isChecked ? 'checked' : ''}>
                                 <label class="form-check-label" for="collecte_${collecte.collecte_id}">
-                                    <strong>${collecte.date_collecte}</strong> â€” 
-                                    ${collecte.type_dechet} â€” 
+                                    <strong>${collecte.date_collecte}</strong> -
+                                    ${collecte.type_dechet} -
                                     ${collecte.poids} Kg
                                 </label>
                             `;
@@ -210,11 +219,11 @@
                 });
         } else {
             container.innerHTML =
-                '<p class="text-muted">SÃ©lectionnez un site pour voir les collectes disponibles.</p>';
+                '<p class="text-muted">Sélectionnez un site pour voir les collectes disponibles.</p>';
         }
     });
 
-    // Charger les collectes au chargement de la page si un site est dÃ©jÃ  sÃ©lectionnÃ©
+    // Charger les collectes au chargement de la page si un site est déjà sélectionné
     document.addEventListener('DOMContentLoaded', function() {
         let siteSelect = document.getElementById('siteSelect');
         if (siteSelect.value) {
