@@ -147,7 +147,7 @@
     </section>
     @endif
 
-    @if(auth()->check() && auth()->user()->hasAnyRole(['Super Admin','Coordonnateur','Comptable','Agent marketing','Administrateur','Agent collecte']))
+    @if(auth()->check() && auth()->user()->hasRole(['Super Admin','Coordonnateur','Comptable','Agent marketing','Administrateur','Agent collecte']))
     <div class="pagetitle">
         <h1>Dashboard</h1>
         <nav>
