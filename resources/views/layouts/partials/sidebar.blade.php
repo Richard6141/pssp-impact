@@ -146,11 +146,13 @@
                     </a>
                 </li>
                 @can('paiements.record')
+                @if(!auth()->user()->hasRole('Responsable site'))
                 <li>
                     <a href="{{ route('paiements.create') }}">
                         <i class="bi bi-circle"></i><span>Nouveau Paiement</span>
                     </a>
                 </li>
+                @endif
                 @endcan
             </ul>
         </li><!-- End Paiements Nav -->

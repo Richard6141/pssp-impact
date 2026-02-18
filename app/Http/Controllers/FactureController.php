@@ -55,7 +55,7 @@ class FactureController extends Controller
      */
     public function index()
     {
-        $query = Facture::with(['site', 'comptable'])->latest();
+        $query = Facture::with(['site', 'comptable', 'paiements'])->latest();
         $this->applyVisibility($query);
         $factures = $query->paginate(10);
         return view('factures.index', compact('factures'));

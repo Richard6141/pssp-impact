@@ -38,6 +38,8 @@
 
                                         <th>Facture</th>
 
+                                        <th>Statut facture</th>
+
                                         <th>Site</th>
 
                                         <th>Montant</th>
@@ -75,6 +77,15 @@
                                         <td>{{ $index + 1 }}</td>
 
                                         <td>{{ $paiement->facture->numero_facture ?? 'N/A' }}</td>
+
+                                        @php($statutFacture = \Illuminate\Support\Str::of($paiement->facture->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString())
+                                        <td>
+                                            @if(in_array($statutFacture, ['payee', 'paye', 'paid']))
+                                            <span class="badge bg-success">Payee</span>
+                                            @else
+                                            <span class="badge bg-warning text-dark">En attente</span>
+                                            @endif
+                                        </td>
 
                                         <td>{{ $paiement->facture?->site?->site_name ?? '-' }}</td>
 

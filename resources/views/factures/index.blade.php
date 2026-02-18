@@ -47,9 +47,20 @@
                                     @foreach($factures as $index => $facture)
                                     @php
                                     $statutFacture = \Illuminate\Support\Str::of($facture->statut ?? '')
+                                        ->replace('?', 'e')
                                         ->ascii()
                                         ->lower()
                                         ->toString();
+                                    $hasValidatedPayment = $facture->paiements->contains(function ($paiement) {
+                                        $status = \Illuminate\Support\Str::of($paiement->statut ?? '')
+                                            ->replace('?', 'e')
+                                            ->ascii()
+                                            ->lower()
+                                            ->toString();
+
+                                        return $status === 'valide';
+                                    });
+                                    $isPaidFacture = in_array($statutFacture, ['payee', 'paye', 'paid']) || $hasValidatedPayment;
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
@@ -141,7 +152,7 @@
                                             @endif
 
                                             @can('paiements.record')
-                                            @if(!in_array($statutFacture, ['payee', 'paye', 'paid']))
+                                            @if(!$isPaidFacture)
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                 data-bs-target="#paiementModal"
                                                 data-facture="{{ $facture->facture_id }}"
