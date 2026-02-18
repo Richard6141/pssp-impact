@@ -65,9 +65,21 @@ class IndexController extends Controller
                 ->whereNotIn('statut', ['payee', 'payée'])
                 ->count();
 
-            $paiementsEnAttenteValidation = Paiement::whereHas('facture', function ($q) use ($siteIds) {
-                $q->whereIn('site_id', $siteIds);
-            })->whereIn('statut', ['en attente', 'modifie', 'modifié'])
+            // Côté responsable site, "paiements en attente" = factures à payer (même sans paiement déjà soumis)
+            $paiementsEnAttenteValidation = Facture::whereIn('site_id', $siteIds)
+                ->where(function ($q) {
+                    $q->whereNull('statut')
+                        ->orWhereIn('statut', [
+                            'en attente',
+                            'en_attente',
+                            'impayee',
+                            'impayée',
+                            'envoyee',
+                            'envoyée',
+                            'partiellement_payee',
+                            'partiellement payee',
+                        ]);
+                })
                 ->count();
 
             $collectesASigner = Collecte::whereIn('site_id', $siteIds)
