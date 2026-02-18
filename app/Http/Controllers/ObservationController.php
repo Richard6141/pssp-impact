@@ -19,19 +19,49 @@ class ObservationController extends Controller
         return auth()->user()->hasRole('Responsable site');
     }
 
+    private function getResponsableSiteIds(): array
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return [];
+        }
+
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
     private function applyObservationVisibility($query)
     {
         if ($this->isAgentCollecte()) {
             $query->where('user_id', auth()->user()->user_id);
+        } elseif ($this->isResponsableSite()) {
+            $query->whereIn('site_id', $this->getResponsableSiteIds());
         }
 
         return $query;
     }
 
-    private function ensureObservationAllowed(Observation $observation): void
+    private function ensureObservationAllowed(Observation $observation, bool $forWrite = false): void
     {
         if ($this->isAgentCollecte() && $observation->user_id !== auth()->user()->user_id) {
             abort(403);
+        }
+
+        if ($this->isResponsableSite()) {
+            if (!in_array($observation->site_id, $this->getResponsableSiteIds(), true)) {
+                abort(403);
+            }
+
+            if ($forWrite && $observation->user_id !== auth()->user()->user_id) {
+                abort(403, "Vous ne pouvez modifier que vos propres observations.");
+            }
         }
     }
 
@@ -46,7 +76,11 @@ class ObservationController extends Controller
 
     public function create()
     {
-        $sites = Site::all();
+        $sitesQuery = Site::query();
+        if ($this->isResponsableSite()) {
+            $sitesQuery->whereIn('site_id', $this->getResponsableSiteIds());
+        }
+        $sites = $sitesQuery->get();
         return view('observations.create', compact('sites'));
     }
 
@@ -57,6 +91,10 @@ class ObservationController extends Controller
             'contenu' => 'required|string',
             'date_obs' => 'required|date',
         ]);
+
+        if ($this->isResponsableSite() && !in_array($request->site_id, $this->getResponsableSiteIds(), true)) {
+            abort(403);
+        }
 
         Observation::create([
             'observation_id' => Str::uuid(),
@@ -77,14 +115,14 @@ class ObservationController extends Controller
 
     public function edit(Observation $observation)
     {
-        $this->ensureObservationAllowed($observation);
+        $this->ensureObservationAllowed($observation, true);
         $sites = Site::all();
         return view('observations.edit', compact('observation', 'sites'));
     }
 
     public function update(Request $request, Observation $observation)
     {
-        $this->ensureObservationAllowed($observation);
+        $this->ensureObservationAllowed($observation, true);
 
         $request->validate([
             'site_id' => 'required|uuid|exists:sites,site_id',

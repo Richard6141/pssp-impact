@@ -34,8 +34,11 @@
                                 <tbody>
                                     @foreach($observations as $index => $obs)
                                     @php
+                                        $isResponsableSite = auth()->user()->hasRole('Responsable site');
+                                        $canEditObservation = auth()->user()->can('observations.update')
+                                            && (!$isResponsableSite || (string) $obs->user_id === (string) auth()->id());
                                         $canDeleteObservation = auth()->user()->can('observations.delete')
-                                            && !auth()->user()->hasRole('Responsable site');
+                                            && !$isResponsableSite;
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
@@ -46,9 +49,11 @@
                                         <td class="text-center">
                                             <a href="{{ route('observations.show', $obs) }}" class="btn btn-sm btn-info"
                                                 title="Voir"><i class="bi bi-eye"></i></a>
+                                            @if($canEditObservation)
                                             <a href="{{ route('observations.edit', $obs) }}"
-                                                class="btn btn-sm btn-warning" title="Ã‰diter"><i
+                                                class="btn btn-sm btn-warning" title="Modifier"><i
                                                     class="bi bi-pencil"></i></a>
+                                            @endif
                                             @if($canDeleteObservation)
                                             <form action="{{ route('observations.destroy', $obs) }}" method="POST" class="d-inline">
                                                 @csrf
