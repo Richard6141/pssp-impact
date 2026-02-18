@@ -60,7 +60,9 @@
 
                                         return $status === 'valide';
                                     });
-                                    $isPaidFacture = in_array($statutFacture, ['payee', 'paye', 'paid']) || $hasValidatedPayment;
+                                    // Une facture est considérée payée uniquement s'il existe un paiement validé.
+                                    // Cela permet de repayer si les paiements précédents ont été rejetés.
+                                    $isPaidFacture = $hasValidatedPayment;
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>

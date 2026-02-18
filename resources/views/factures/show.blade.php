@@ -23,6 +23,17 @@
                     <div class="card-body">
                         <h5 class="card-title">Facture N° : {{ $facture->numero_facture ?? '#' . $facture->facture_id }}
                         </h5>
+                        @php
+                        $hasValidatedPayment = $facture->paiements->contains(function ($paiement) {
+                            $status = \Illuminate\Support\Str::of($paiement->statut ?? '')
+                                ->replace('?', 'e')
+                                ->ascii()
+                                ->lower()
+                                ->toString();
+
+                            return $status === 'valide';
+                        });
+                        @endphp
 
                         <div class="row">
                             <div class="col-md-6">
@@ -38,8 +49,8 @@
                                     <li class="list-group-item">
                                         <strong>Statut :</strong>
                                         <span
-                                            class="badge bg-{{ $facture->statut === 'payée' ? 'success' : ($facture->statut === 'en attente' ? 'warning' : 'secondary') }}">
-                                            {{ ucfirst($facture->statut) }}
+                                            class="badge bg-{{ $hasValidatedPayment ? 'success' : 'warning' }}">
+                                            {{ $hasValidatedPayment ? 'Payee' : 'En attente' }}
                                         </span>
                                     </li>
                                 </ul>
@@ -208,7 +219,7 @@
                             </a>
 
                             <div>
-                                @if($facture->statut !== 'payée')
+                                @if(!$hasValidatedPayment)
                                 <button type="button" class="btn btn-success" data-bs-toggle="modal"
                                     data-bs-target="#paiementModal">
                                     <i class="bi bi-cash-coin"></i> Enregistrer un paiement
@@ -226,7 +237,7 @@
 </main>
 
 <!-- Modal Paiement (si nécessaire) -->
-@if($facture->statut !== 'payée')
+@if(!$hasValidatedPayment)
 <div class="modal fade" id="paiementModal" tabindex="-1" aria-labelledby="paiementModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('paiements.store') }}" method="POST" enctype="multipart/form-data">
