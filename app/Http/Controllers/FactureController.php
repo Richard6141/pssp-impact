@@ -13,6 +13,41 @@ use Illuminate\Support\Str;
 
 class FactureController extends Controller
 {
+    private function eligibleCollectesQuery(string $siteId, ?string $factureId = null)
+    {
+        $query = Collecte::with(['typeDechet'])
+            ->where('site_id', $siteId)
+            ->where('signature_responsable_site', true)
+            ->where('isValid', true);
+
+        if ($factureId) {
+            $query->where(function ($q) use ($factureId) {
+                $q->whereDoesntHave('factures')
+                    ->orWhereHas('factures', function ($fq) use ($factureId) {
+                        $fq->where('factures.facture_id', $factureId);
+                    });
+            });
+        } else {
+            $query->whereDoesntHave('factures');
+        }
+
+        return $query;
+    }
+
+    private function validateEligibleCollecteIds(string $siteId, array $collecteIds, ?string $factureId = null): array
+    {
+        if (empty($collecteIds)) {
+            return [];
+        }
+
+        $allowedIds = $this->eligibleCollectesQuery($siteId, $factureId)
+            ->pluck('collecte_id')
+            ->map(fn($id) => (string) $id)
+            ->all();
+
+        return array_values(array_diff(array_map('strval', $collecteIds), $allowedIds));
+    }
+
     private function getVisibleSiteIds(): array
     {
         $user = auth()->user();
@@ -101,6 +136,21 @@ class FactureController extends Controller
             }
         }
 
+        $collecteIds = collect($request->input('collecte_ids', []))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $invalidCollecteIds = $this->validateEligibleCollecteIds((string) $request->site_id, $collecteIds);
+        if (!empty($invalidCollecteIds)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'collecte_ids' => 'Seules les collectes validees par le responsable du site et le coordonnateur peuvent etre facturees.',
+                ]);
+        }
+
         // Génération du numéro de facture (méthode la plus fiable)
         $anneeActuelle = date('Y');
 
@@ -137,8 +187,8 @@ class FactureController extends Controller
         }
 
         // Association des collectes
-        if ($request->has('collecte_ids')) {
-            $syncData = collect($request->collecte_ids)->mapWithKeys(function ($collecteId) {
+        if (!empty($collecteIds)) {
+            $syncData = collect($collecteIds)->mapWithKeys(function ($collecteId) {
                 return [$collecteId => ['factureCollecte_id' => (string) \Str::uuid()]];
             })->toArray();
 
@@ -188,6 +238,29 @@ class FactureController extends Controller
             'collecte_ids.*' => 'exists:collectes,collecte_id',
         ]);
 
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('Responsable site')) {
+            if (!in_array($request->site_id, $this->getVisibleSiteIds(), true)) {
+                abort(403);
+            }
+        }
+
+        $collecteIds = collect($request->input('collecte_ids', []))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $invalidCollecteIds = $this->validateEligibleCollecteIds((string) $request->site_id, $collecteIds, (string) $facture->facture_id);
+        if (!empty($invalidCollecteIds)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'collecte_ids' => 'Seules les collectes validees par le responsable du site et le coordonnateur peuvent etre facturees.',
+                ]);
+        }
+
         $data = $request->only(['date_facture', 'date_echeance', 'montant_facture', 'statut', 'site_id']);
         $data['comptable_id'] = auth()->id();
 
@@ -205,8 +278,8 @@ class FactureController extends Controller
         $facture->update($data);
 
         // Mise à jour des collectes associées avec UUID
-        if ($request->has('collecte_ids')) {
-            $syncData = collect($request->collecte_ids)->mapWithKeys(function ($collecteId) {
+        if (!empty($collecteIds)) {
+            $syncData = collect($collecteIds)->mapWithKeys(function ($collecteId) {
                 return [$collecteId => ['factureCollecte_id' => (string) \Str::uuid()]];
             })->toArray();
 
@@ -261,22 +334,8 @@ class FactureController extends Controller
                 abort(403);
             }
         }
-
-        // Pour la création : collectes non facturées
-        $query = Collecte::with(['typeDechet'])
-            ->where('site_id', $siteId)
-            ->whereDoesntHave('factures');
-
-        // Pour l'édition : inclure aussi les collectes de cette facture
-        if ($request->has('facture_id') && $request->facture_id) {
-            $factureId = $request->facture_id;
-            $query->orWhere(function ($q) use ($siteId, $factureId) {
-                $q->where('site_id', $siteId)
-                    ->whereHas('factures', function ($fq) use ($factureId) {
-                        $fq->where('factures.facture_id', $factureId);
-                    });
-            });
-        }
+        $factureId = $request->filled('facture_id') ? (string) $request->facture_id : null;
+        $query = $this->eligibleCollectesQuery((string) $siteId, $factureId);
 
         $collectes = $query->get()->map(function ($collecte) {
             return [
