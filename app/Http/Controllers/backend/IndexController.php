@@ -16,9 +16,117 @@ use App\Http\Controllers\Controller;
 
 class IndexController extends Controller
 {
+    private function getResponsableSiteIds(): array
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return [];
+        }
+
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
     public function index()
     {
         $now = Carbon::now();
+        $user = auth()->user();
+
+        if ($user && $user->hasRole('Responsable site')) {
+            $siteIds = $this->getResponsableSiteIds();
+
+            $collectesMois = Collecte::whereIn('site_id', $siteIds)
+                ->whereMonth('date_collecte', $now->month)
+                ->whereYear('date_collecte', $now->year)
+                ->count();
+
+            $poidsMois = Collecte::whereIn('site_id', $siteIds)
+                ->whereMonth('date_collecte', $now->month)
+                ->whereYear('date_collecte', $now->year)
+                ->sum('poids');
+
+            $facturesMois = Facture::whereIn('site_id', $siteIds)
+                ->whereMonth('date_facture', $now->month)
+                ->whereYear('date_facture', $now->year)
+                ->count();
+
+            $facturesPayees = Facture::whereIn('site_id', $siteIds)
+                ->whereIn('statut', ['payee', 'payée'])
+                ->count();
+
+            $facturesEnAttente = Facture::whereIn('site_id', $siteIds)
+                ->whereNotIn('statut', ['payee', 'payée'])
+                ->count();
+
+            $paiementsEnAttenteValidation = Paiement::whereHas('facture', function ($q) use ($siteIds) {
+                $q->whereIn('site_id', $siteIds);
+            })->whereIn('statut', ['en attente', 'modifie', 'modifié'])
+                ->count();
+
+            $collectesASigner = Collecte::whereIn('site_id', $siteIds)
+                ->where('signature_responsable_site', false)
+                ->count();
+
+            $evolutionCollectesResponsable = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+                $evolutionCollectesResponsable[] = [
+                    'label' => $month->translatedFormat('M Y'),
+                    'collectes' => Collecte::whereIn('site_id', $siteIds)
+                        ->whereMonth('date_collecte', $month->month)
+                        ->whereYear('date_collecte', $month->year)
+                        ->count(),
+                    'poids' => Collecte::whereIn('site_id', $siteIds)
+                        ->whereMonth('date_collecte', $month->month)
+                        ->whereYear('date_collecte', $month->year)
+                        ->sum('poids'),
+                ];
+            }
+
+            $repartitionFacturesResponsable = [
+                'payees' => $facturesPayees,
+                'en_attente' => $facturesEnAttente,
+            ];
+
+            $dernieresFacturesResponsable = Facture::with('site')
+                ->whereIn('site_id', $siteIds)
+                ->latest('date_facture')
+                ->take(6)
+                ->get();
+
+            $topTypesResponsable = DB::table('collectes')
+                ->join('type_dechets', 'collectes.type_dechet_id', '=', 'type_dechets.type_dechet_id')
+                ->select('type_dechets.libelle', DB::raw('COUNT(*) as total'))
+                ->whereIn('collectes.site_id', $siteIds)
+                ->whereMonth('collectes.date_collecte', $now->month)
+                ->whereYear('collectes.date_collecte', $now->year)
+                ->groupBy('type_dechets.libelle')
+                ->orderByDesc('total')
+                ->take(5)
+                ->get();
+
+            return view('backend.index', compact(
+                'siteIds',
+                'collectesMois',
+                'poidsMois',
+                'facturesMois',
+                'facturesPayees',
+                'facturesEnAttente',
+                'paiementsEnAttenteValidation',
+                'collectesASigner',
+                'evolutionCollectesResponsable',
+                'repartitionFacturesResponsable',
+                'dernieresFacturesResponsable',
+                'topTypesResponsable'
+            ));
+        }
 
         // ===== STATISTIQUES PRINCIPALES =====
 

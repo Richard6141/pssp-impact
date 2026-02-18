@@ -2,6 +2,145 @@
 
 @section('content')
 <main id="main" class="main">
+    @role('Responsable site')
+    <div class="pagetitle">
+        <h1>Tableau de bord Responsable Site</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
+                <li class="breadcrumb-item active">Vue Responsable</li>
+            </ol>
+        </nav>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row g-3">
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#103783,#1a59d1); color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Sites couverts</small>
+                        <h4 class="mb-0">{{ count($siteIds ?? []) }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#0a7c53,#18aa70); color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Collectes du mois</small>
+                        <h4 class="mb-0">{{ $collectesMois ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#88510a,#d27b10); color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Poids total (kg)</small>
+                        <h4 class="mb-0">{{ number_format($poidsMois ?? 0, 1, ',', ' ') }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#4b1f83,#8f4de2); color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Factures du mois</small>
+                        <h4 class="mb-0">{{ $facturesMois ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#88312b,#d9534f); color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Collectes à signer</small>
+                        <h4 class="mb-0">{{ $collectesASigner ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#4a4f58,#6c757d); color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Paiements en attente</small>
+                        <h4 class="mb-0">{{ $paiementsEnAttenteValidation ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Tendance Collectes & Poids (6 mois)</h5>
+                        <div id="responsableCollectesChart" style="min-height: 340px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Répartition des factures</h5>
+                        <div id="responsableFacturesChart" style="min-height: 340px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Dernières factures de vos sites</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>Facture</th>
+                                        <th>Site</th>
+                                        <th>Date</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse(($dernieresFacturesResponsable ?? []) as $facture)
+                                    @php($sf = \Illuminate\Support\Str::of($facture->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString())
+                                    <tr>
+                                        <td>{{ $facture->numero_facture }}</td>
+                                        <td>{{ $facture->site?->site_name ?? '-' }}</td>
+                                        <td>{{ optional($facture->date_facture)->format('d/m/Y') }}</td>
+                                        <td>{{ number_format($facture->montant_facture, 0, ',', ' ') }} FCFA</td>
+                                        <td>
+                                            <span class="badge {{ in_array($sf, ['payee', 'paye']) ? 'bg-success' : 'bg-warning text-dark' }}">
+                                                {{ in_array($sf, ['payee', 'paye']) ? 'Payee' : 'En attente' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr><td colspan="5" class="text-muted text-center">Aucune facture trouvée.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Top types de déchets (mois)</h5>
+                        <ul class="list-group list-group-flush">
+                            @forelse(($topTypesResponsable ?? []) as $type)
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>{{ $type->libelle }}</span>
+                                <span class="badge bg-primary rounded-pill">{{ $type->total }}</span>
+                            </li>
+                            @empty
+                            <li class="list-group-item text-muted">Aucune donnée de collecte.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    @endrole
+
     @role('Super Admin|Coordonnateur|Comptable|Agent marketing|Administrateur|Agent collecte')
     <div class="pagetitle">
         <h1>Dashboard</h1>
@@ -442,6 +581,73 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        // ===== DASHBOARD RESPONSABLE SITE =====
+        try {
+            const responsableCollectesTarget = document.getElementById('responsableCollectesChart');
+            const responsableFacturesTarget = document.getElementById('responsableFacturesChart');
+
+            if (responsableCollectesTarget && responsableFacturesTarget) {
+                const evolutionResponsable = @json($evolutionCollectesResponsable ?? []);
+                const repartitionResponsable = @json($repartitionFacturesResponsable ?? ['payees' => 0, 'en_attente' => 0]);
+
+                const collectesCanvas = document.createElement('canvas');
+                collectesCanvas.id = 'responsableCollectesCanvas';
+                responsableCollectesTarget.appendChild(collectesCanvas);
+
+                new Chart(collectesCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: evolutionResponsable.map(item => item.label),
+                        datasets: [{
+                            label: 'Collectes',
+                            data: evolutionResponsable.map(item => item.collectes),
+                            borderColor: '#1a59d1',
+                            backgroundColor: 'rgba(26, 89, 209, 0.12)',
+                            fill: true,
+                            tension: 0.35
+                        }, {
+                            label: 'Poids (kg)',
+                            data: evolutionResponsable.map(item => item.poids),
+                            borderColor: '#18aa70',
+                            backgroundColor: 'rgba(24, 170, 112, 0.12)',
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                const facturesCanvas = document.createElement('canvas');
+                facturesCanvas.id = 'responsableFacturesCanvas';
+                responsableFacturesTarget.appendChild(facturesCanvas);
+
+                new Chart(facturesCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Payees', 'En attente'],
+                        datasets: [{
+                            data: [repartitionResponsable.payees || 0, repartitionResponsable.en_attente || 0],
+                            backgroundColor: ['#18aa70', '#f0ad4e']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur dashboard responsable:', error);
+        }
+
+
 
         // ===== GRAPHIQUE D'ÉVOLUTION DES COLLECTES =====
         @can('rapports.collectes')
