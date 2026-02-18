@@ -13,6 +13,15 @@ use Illuminate\Support\Str;
 
 class PaiementController extends Controller
 {
+    private function normalizedStatus(?string $status): string
+    {
+        return (string) Str::of((string) $status)
+            ->replace('?', 'e')
+            ->ascii()
+            ->lower()
+            ->trim();
+    }
+
     private function buildReceiptNumber(Paiement $paiement): string
     {
         $year = optional($paiement->created_at)->format('Y') ?? now()->format('Y');
@@ -315,10 +324,10 @@ class PaiementController extends Controller
         }
 
         $paiement->update([
-            'statut' => 'valid?',
+            'statut' => 'valide',
             'recu_comptable' => $receiptPath,
         ]);
-        $paiement->facture?->update(['statut' => 'pay?e']);
+        $paiement->facture?->update(['statut' => 'payee']);
         return back()->with('success', 'Paiement valid? avec succ?s.');
     }
 

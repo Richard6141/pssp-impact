@@ -39,10 +39,11 @@
                                 {{ $paiement->reference ?? '-' }}
                             </li>
                             <li class="list-group-item"><strong>Statut :</strong>
-                                @if($paiement->statut === 'validé')
-                                <span class="badge bg-success">Validé</span>
-                                @elseif($paiement->statut === 'annulé')
-                                <span class="badge bg-danger">Annulé</span>
+                                @php($statutPaiement = \Illuminate\Support\Str::of($paiement->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString())
+                                @if($statutPaiement === 'valide')
+                                <span class="badge bg-success">Valid?</span>
+                                @elseif(in_array($statutPaiement, ['annule', 'rejete']))
+                                <span class="badge bg-danger">Annul?</span>
                                 @else
                                 <span class="badge bg-warning text-dark">En attente</span>
                                 @endif

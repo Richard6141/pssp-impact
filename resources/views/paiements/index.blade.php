@@ -194,7 +194,7 @@
 
                                         </td>
 
-                                        @php($statutPaiement = \Illuminate\Support\Str::of($paiement->statut ?? '')->ascii()->lower()->toString())
+                                        @php($statutPaiement = \Illuminate\Support\Str::of($paiement->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString())
 
                                         <td>
 
