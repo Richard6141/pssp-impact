@@ -2,7 +2,7 @@
 
 @section('content')
 <main id="main" class="main">
-    @role('Responsable site')
+    @if(auth()->check() && auth()->user()->hasRole('Responsable site'))
     <div class="pagetitle">
         <h1>Tableau de bord Responsable Site</h1>
         <nav>
@@ -98,7 +98,13 @@
                                 </thead>
                                 <tbody>
                                     @forelse(($dernieresFacturesResponsable ?? []) as $facture)
-                                    @php($sf = \Illuminate\Support\Str::of($facture->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString())
+                                    @php
+                                        $sf = \Illuminate\Support\Str::of($facture->statut ?? '')
+                                            ->replace('?', 'e')
+                                            ->ascii()
+                                            ->lower()
+                                            ->toString();
+                                    @endphp
                                     <tr>
                                         <td>{{ $facture->numero_facture }}</td>
                                         <td>{{ $facture->site?->site_name ?? '-' }}</td>
@@ -139,9 +145,9 @@
             </div>
         </div>
     </section>
-    @endrole
+    @endif
 
-    @role('Super Admin|Coordonnateur|Comptable|Agent marketing|Administrateur|Agent collecte')
+    @if(auth()->check() && auth()->user()->hasAnyRole(['Super Admin','Coordonnateur','Comptable','Agent marketing','Administrateur','Agent collecte']))
     <div class="pagetitle">
         <h1>Dashboard</h1>
         <nav>
@@ -574,7 +580,7 @@
             @endcan
 
         </div>
-        @endrole
+        @endif
     </section>
 </main>
 @section('scripts')
