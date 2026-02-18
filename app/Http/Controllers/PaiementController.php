@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Paiement;
 use App\Models\Facture;
 use App\Models\Site;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ComptabiliteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,39 @@ use Illuminate\Support\Str;
 
 class PaiementController extends Controller
 {
+    private function buildReceiptNumber(Paiement $paiement): string
+    {
+        $year = optional($paiement->created_at)->format('Y') ?? now()->format('Y');
+        $sequence = Paiement::query()
+            ->whereYear('created_at', $year)
+            ->where('created_at', '<=', $paiement->created_at ?? now())
+            ->count();
+
+        return 'CCP-' . str_pad((string) max(1, $sequence), 6, '0', STR_PAD_LEFT);
+    }
+
+    private function generateReceiptPdf(Paiement $paiement): string
+    {
+        $paiement->loadMissing(['facture.site']);
+
+        $receiptNumber = $this->buildReceiptNumber($paiement);
+        $pdf = Pdf::loadView('paiements.receipt', [
+            'paiement' => $paiement,
+            'receiptNumber' => $receiptNumber,
+            'generatedAt' => now(),
+        ])->setPaper('a4');
+
+        $filename = 'recus/recu-' . strtolower($receiptNumber) . '-' . $paiement->paiement_id . '.pdf';
+
+        if ($paiement->recu_comptable && Storage::disk('public')->exists($paiement->recu_comptable)) {
+            Storage::disk('public')->delete($paiement->recu_comptable);
+        }
+
+        Storage::disk('public')->put($filename, $pdf->output());
+
+        return $filename;
+    }
+
     private function getVisibleSiteIds(): array
     {
         $user = auth()->user();
@@ -267,7 +301,11 @@ class PaiementController extends Controller
         $paiement->load('facture.site');
         $this->ensurePaiementAllowed($paiement);
 
-        $paiement->update(['statut' => 'validé']);
+        $receiptPath = $this->generateReceiptPdf($paiement);
+        $paiement->update([
+            'statut' => 'validé',
+            'recu_comptable' => $receiptPath,
+        ]);
         $paiement->facture?->update(['statut' => 'payée']);
         return back()->with('success', 'Paiement validé avec succès.');
     }
@@ -292,12 +330,18 @@ class PaiementController extends Controller
         $paiement->load('facture.site');
         $this->ensurePaiementAllowed($paiement);
 
+        if ($paiement->statut === 'validé' && (!$paiement->recu_comptable || !Storage::disk('public')->exists($paiement->recu_comptable))) {
+            $newPath = $this->generateReceiptPdf($paiement);
+            $paiement->update(['recu_comptable' => $newPath]);
+            $paiement->refresh();
+        }
+
         if (!$paiement->recu_comptable || !Storage::disk('public')->exists($paiement->recu_comptable)) {
             return back()->with('error', 'Aucun recu disponible pour ce paiement.');
         }
 
         $extension = pathinfo($paiement->recu_comptable, PATHINFO_EXTENSION);
-        $filename = 'recu_' . ($paiement->numero_paiement ?? $paiement->paiement_id) . '.' . $extension;
+        $filename = 'Recu ' . $this->buildReceiptNumber($paiement) . '.' . $extension;
 
         return Storage::disk('public')->download($paiement->recu_comptable, $filename);
     }
