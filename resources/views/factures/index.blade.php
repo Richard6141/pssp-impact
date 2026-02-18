@@ -45,7 +45,12 @@
                                 </thead>
                                 <tbody>
                                     @foreach($factures as $index => $facture)
-                                    @php($statutFacture = \Illuminate\Support\Str::of($facture->statut ?? '')->ascii()->lower()->toString())
+                                    @php
+                                    $statutFacture = \Illuminate\Support\Str::of($facture->statut ?? '')
+                                        ->ascii()
+                                        ->lower()
+                                        ->toString();
+                                    @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $facture->numero_facture }}</td>
