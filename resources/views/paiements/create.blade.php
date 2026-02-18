@@ -27,7 +27,7 @@
                     @foreach($factures as $facture)
                     <option value="{{ $facture->facture_id }}"
                         {{ old('facture_id') == $facture->facture_id ? 'selected' : '' }}>
-                        {{ $facture->numero }} - {{ number_format($facture->montant_facture, 0, ',', ' ') }} F CFA
+                        {{ $facture->numero_facture }} - {{ number_format($facture->montant_facture, 0, ',', ' ') }} F CFA
                     </option>
                     @endforeach
                 </select>

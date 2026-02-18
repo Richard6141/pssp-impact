@@ -61,6 +61,17 @@
                                 @endif
                             </div>
 
+                            <div class="mb-3">
+                                <label for="recu_comptable" class="form-label">Recu comptable (photo ou PDF)</label>
+                                <input type="file" class="form-control" id="recu_comptable" name="recu_comptable"
+                                    accept="image/*,application/pdf">
+                                @if($paiement->recu_comptable)
+                                <small class="text-muted">Recu actuel :
+                                    <a href="{{ route('paiements.receipt.download', $paiement) }}">Telecharger</a>
+                                </small>
+                                @endif
+                            </div>
+
                             <button type="submit" class="btn btn-primary">Mettre à jour</button>
                             <a href="{{ route('paiements.index') }}" class="btn btn-secondary">Annuler</a>
                         </form>

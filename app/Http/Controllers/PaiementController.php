@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Paiement;
 use App\Models\Facture;
+use App\Models\Site;
 use App\Services\ComptabiliteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -11,12 +12,66 @@ use Illuminate\Support\Str;
 
 class PaiementController extends Controller
 {
+    private function getVisibleSiteIds(): array
+    {
+        $user = auth()->user();
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
+    private function applyVisibility($query)
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $query->whereHas('facture', function ($q) {
+                $q->whereIn('site_id', $this->getVisibleSiteIds());
+            });
+        }
+
+        return $query;
+    }
+
+    private function ensurePaiementAllowed(Paiement $paiement): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $allowedSites = $this->getVisibleSiteIds();
+            $siteId = optional($paiement->facture)->site_id;
+            if (!$siteId || !in_array($siteId, $allowedSites, true)) {
+                abort(403);
+            }
+        }
+    }
+
+    private function ensureFactureAllowed(Facture $facture): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $allowedSites = $this->getVisibleSiteIds();
+            if (!in_array($facture->site_id, $allowedSites, true)) {
+                abort(403);
+            }
+        }
+    }
+
     /**
      * Liste des paiements
      */
     public function index()
     {
-        $paiements = Paiement::with('facture')->latest()->paginate(10);
+        $query = Paiement::with(['facture.site'])->latest();
+        $this->applyVisibility($query);
+        $paiements = $query->paginate(10);
         return view('paiements.index', compact('paiements'));
     }
 
@@ -25,7 +80,13 @@ class PaiementController extends Controller
      */
     public function create(Request $request)
     {
-        $factures = Facture::all();
+        $query = Facture::query();
+        $user = auth()->user();
+        if ($user->hasRole('Responsable site')) {
+            $query->whereIn('site_id', $this->getVisibleSiteIds());
+        }
+
+        $factures = $query->get();
         return view('paiements.create', compact('factures'));
     }
 
@@ -40,6 +101,9 @@ class PaiementController extends Controller
             'mode_paiement' => 'required|string|max:50',
             'paiement_photo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
+
+        $facture = Facture::findOrFail($request->facture_id);
+        $this->ensureFactureAllowed($facture);
 
         $data = $request->only(['facture_id', 'montant', 'mode_paiement']);
         $data['paiement_id'] = Str::uuid();
@@ -66,12 +130,11 @@ class PaiementController extends Controller
         // 👉 Enregistrer le paiement
         $paiement = Paiement::create($data);
 
-        // 👉 Mettre à jour le statut de la facture
-        $facture = Facture::findOrFail($request->facture_id);
-
-        $facture->statut = 'payée';
-
-        $facture->save();
+        // Laisser la facture en attente tant que le paiement n'est pas validé
+        if ($facture->statut === 'payée') {
+            $facture->statut = 'en attente';
+            $facture->save();
+        }
 
         ComptabiliteService::recordPaiement($paiement);
 
@@ -85,6 +148,9 @@ class PaiementController extends Controller
      */
     public function show(Paiement $paiement)
     {
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
         return view('paiements.show', compact('paiement'));
     }
 
@@ -93,7 +159,16 @@ class PaiementController extends Controller
      */
     public function edit(Paiement $paiement)
     {
-        $factures = Facture::all();
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
+        $query = Facture::query();
+        $user = auth()->user();
+        if ($user->hasRole('Responsable site')) {
+            $query->whereIn('site_id', $this->getVisibleSiteIds());
+        }
+
+        $factures = $query->get();
         return view('paiements.edit', compact('paiement', 'factures'));
     }
 
@@ -102,6 +177,9 @@ class PaiementController extends Controller
      */
     public function update(Request $request, Paiement $paiement)
     {
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
         // Vérifier que le paiement n'est ni validé ni annulé
         if (in_array($paiement->statut, ['validé'])) {
             return redirect()->route('paiements.index')
@@ -113,9 +191,13 @@ class PaiementController extends Controller
             'montant' => 'required|numeric|min:0',
             'mode_paiement' => 'required|string|max:50',
             'paiement_photo' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'recu_comptable' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         $data = $request->only(['facture_id', 'montant', 'mode_paiement', 'reference', 'date_paiement']);
+
+        $facture = Facture::findOrFail($request->facture_id);
+        $this->ensureFactureAllowed($facture);
 
         // ✅ Mettre le statut à "modifié" lors de la modification
         $data['statut'] = 'modifié';
@@ -126,6 +208,13 @@ class PaiementController extends Controller
                 Storage::disk('public')->delete($paiement->paiement_photo);
             }
             $data['paiement_photo'] = $request->file('paiement_photo')->store('paiements', 'public');
+        }
+
+        if ($request->hasFile('recu_comptable')) {
+            if ($paiement->recu_comptable && Storage::disk('public')->exists($paiement->recu_comptable)) {
+                Storage::disk('public')->delete($paiement->recu_comptable);
+            }
+            $data['recu_comptable'] = $request->file('recu_comptable')->store('recus', 'public');
         }
 
         $paiement->update($data);
@@ -144,6 +233,9 @@ class PaiementController extends Controller
      */
     public function destroy(Paiement $paiement)
     {
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
         // Vérifier si le paiement est validé ou annulé
         if (in_array($paiement->statut, ['validé', 'annulé'])) {
             return redirect()->route('paiements.index')
@@ -153,6 +245,9 @@ class PaiementController extends Controller
         // Supprimer la preuve si elle existe
         if ($paiement->paiement_photo) {
             Storage::disk('public')->delete($paiement->paiement_photo);
+        }
+        if ($paiement->recu_comptable) {
+            Storage::disk('public')->delete($paiement->recu_comptable);
         }
 
         $paiement->delete();
@@ -169,7 +264,11 @@ class PaiementController extends Controller
      */
     public function valider(Paiement $paiement)
     {
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
         $paiement->update(['statut' => 'validé']);
+        $paiement->facture?->update(['statut' => 'payée']);
         return back()->with('success', 'Paiement validé avec succès.');
     }
 
@@ -178,7 +277,28 @@ class PaiementController extends Controller
      */
     public function annuler(Paiement $paiement)
     {
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
         $paiement->update(['statut' => 'rejeté']);
+        if ($paiement->facture && $paiement->facture->statut === 'payée') {
+            $paiement->facture->update(['statut' => 'en attente']);
+        }
         return back()->with('warning', 'Paiement annulé.');
+    }
+
+    public function downloadReceipt(Paiement $paiement)
+    {
+        $paiement->load('facture.site');
+        $this->ensurePaiementAllowed($paiement);
+
+        if (!$paiement->recu_comptable || !Storage::disk('public')->exists($paiement->recu_comptable)) {
+            return back()->with('error', 'Aucun recu disponible pour ce paiement.');
+        }
+
+        $extension = pathinfo($paiement->recu_comptable, PATHINFO_EXTENSION);
+        $filename = 'recu_' . ($paiement->numero_paiement ?? $paiement->paiement_id) . '.' . $extension;
+
+        return Storage::disk('public')->download($paiement->recu_comptable, $filename);
     }
 }

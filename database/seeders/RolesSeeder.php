@@ -53,6 +53,11 @@ class RolesSeeder extends Seeder
                 'collectes.view',
                 'collectes.validate_site',
 
+                // Factures et paiements de ses sites
+                'factures.view',
+                'paiements.view',
+                'paiements.record',
+
                 // Validations
                 'validations.view',
                 'validations.create',

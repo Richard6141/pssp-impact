@@ -23,6 +23,7 @@ class Paiement extends Model
         'date_paiement',
         'reference',
         'paiement_photo',
+        'recu_comptable',
         'statut',
     ];
 

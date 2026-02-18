@@ -13,12 +13,51 @@ use Illuminate\Support\Str;
 
 class FactureController extends Controller
 {
+    private function getVisibleSiteIds(): array
+    {
+        $user = auth()->user();
+        $siteIds = $user->sites()->pluck('sites.site_id')->all();
+        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
+        $siteIds = array_merge($siteIds, $responsableSiteIds);
+
+        if (!empty($user->site_id)) {
+            $siteIds[] = $user->site_id;
+        }
+
+        return array_values(array_unique(array_filter($siteIds)));
+    }
+
+    private function applyVisibility($query)
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $query->whereIn('site_id', $this->getVisibleSiteIds());
+        }
+
+        return $query;
+    }
+
+    private function ensureFactureAllowed(Facture $facture): void
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $allowedSites = $this->getVisibleSiteIds();
+            if (!in_array($facture->site_id, $allowedSites, true)) {
+                abort(403);
+            }
+        }
+    }
+
     /**
      * Liste des factures
      */
     public function index()
     {
-        $factures = Facture::with(['site', 'comptable'])->latest()->paginate(10);
+        $query = Facture::with(['site', 'comptable'])->latest();
+        $this->applyVisibility($query);
+        $factures = $query->paginate(10);
         return view('factures.index', compact('factures'));
     }
 
@@ -27,7 +66,14 @@ class FactureController extends Controller
      */
     public function create()
     {
-        $sites = Site::all();
+        $sitesQuery = Site::query();
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $sitesQuery->whereIn('site_id', $this->getVisibleSiteIds());
+        }
+
+        $sites = $sitesQuery->get();
         $comptable = Auth::user();
 
         return view('factures.create', compact('sites', 'comptable'));
@@ -47,6 +93,13 @@ class FactureController extends Controller
             'collecte_ids' => 'nullable|array',
             'collecte_ids.*' => 'exists:collectes,collecte_id',
         ]);
+
+        $user = auth()->user();
+        if ($user && $user->hasRole('Responsable site')) {
+            if (!in_array($request->site_id, $this->getVisibleSiteIds(), true)) {
+                abort(403);
+            }
+        }
 
         // Génération du numéro de facture (méthode la plus fiable)
         $anneeActuelle = date('Y');
@@ -102,7 +155,16 @@ class FactureController extends Controller
      */
     public function edit(Facture $facture)
     {
-        $sites = Site::all();
+        $this->ensureFactureAllowed($facture);
+
+        $sitesQuery = Site::query();
+        $user = auth()->user();
+
+        if ($user->hasRole('Responsable site')) {
+            $sitesQuery->whereIn('site_id', $this->getVisibleSiteIds());
+        }
+
+        $sites = $sitesQuery->get();
         $comptable = Auth::user();
 
         return view('factures.create', compact('facture', 'sites', 'comptable'));
@@ -113,6 +175,8 @@ class FactureController extends Controller
      */
     public function update(Request $request, Facture $facture)
     {
+        $this->ensureFactureAllowed($facture);
+
         $request->validate([
             'date_facture' => 'required|date',
             'date_echeance' => 'nullable|date',
@@ -162,6 +226,8 @@ class FactureController extends Controller
      */
     public function show(Facture $facture)
     {
+        $this->ensureFactureAllowed($facture);
+
         return view('factures.show', compact('facture'));
     }
 
@@ -170,6 +236,8 @@ class FactureController extends Controller
      */
     public function destroy(Facture $facture)
     {
+        $this->ensureFactureAllowed($facture);
+
         // Supprimer le fichier si existant
         if ($facture->photo_facture && Storage::disk('public')->exists($facture->photo_facture)) {
             Storage::disk('public')->delete($facture->photo_facture);
@@ -187,6 +255,13 @@ class FactureController extends Controller
      */
     public function getCollectesBySite(Request $request, $siteId)
     {
+        $user = auth()->user();
+        if ($user && $user->hasRole('Responsable site')) {
+            if (!in_array($siteId, $this->getVisibleSiteIds(), true)) {
+                abort(403);
+            }
+        }
+
         // Pour la création : collectes non facturées
         $query = Collecte::with(['typeDechet'])
             ->where('site_id', $siteId)

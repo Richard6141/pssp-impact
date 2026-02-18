@@ -24,7 +24,7 @@
 
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Facture :</strong>
-                                {{ $paiement->facture->numero ?? 'N/A' }}
+                                {{ $paiement->facture->numero_facture ?? 'N/A' }}
                             </li>
                             <li class="list-group-item"><strong>Montant :</strong>
                                 {{ number_format($paiement->montant, 0, ',', ' ') }} F CFA
@@ -45,6 +45,15 @@
                                 <span class="badge bg-danger">Annulé</span>
                                 @else
                                 <span class="badge bg-warning text-dark">En attente</span>
+                                @endif
+                            </li>
+                            <li class="list-group-item"><strong>Recu comptable :</strong>
+                                @if($paiement->recu_comptable)
+                                <a href="{{ route('paiements.receipt.download', $paiement) }}" class="btn btn-sm btn-outline-success">
+                                    Telecharger
+                                </a>
+                                @else
+                                -
                                 @endif
                             </li>
                             <li class="list-group-item"><strong>Preuve :</strong>

@@ -238,6 +238,10 @@ Route::middleware(['auth'])->prefix('paiements')->name('paiements.')->group(func
         ->middleware('can:paiements.view')
         ->name('show');
 
+    Route::get('/{paiement}/recu', [PaiementController::class, 'downloadReceipt'])
+        ->middleware('can:paiements.view')
+        ->name('receipt.download');
+
     Route::get('/{paiement}/edit', [PaiementController::class, 'edit'])
         ->middleware('can:paiements.update')
         ->name('edit');
