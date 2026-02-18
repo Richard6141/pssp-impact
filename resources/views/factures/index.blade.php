@@ -45,6 +45,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach($factures as $index => $facture)
+                                    @php($statutFacture = \Illuminate\Support\Str::of($facture->statut ?? '')->ascii()->lower()->toString())
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $facture->numero_facture }}</td>
@@ -108,7 +109,7 @@
                                                 class="btn btn-sm btn-info" title="Voir"><i class="bi bi-eye"></i></a>
                                             @endcan
 
-                                            @if($facture->statut == 'en attente')
+                                            @if(in_array($statutFacture, ['en attente', 'en_attente', 'impayee', 'envoyee']))
                                             <!-- Bouton Modifier - Permission: factures.update -->
                                             @can('factures.update')
                                             <a href="{{ route('factures.edit', $facture->facture_id) }}"
@@ -132,8 +133,10 @@
                                             </form>
                                             @endcan
 
-                                            <!-- Bouton Paiement - Permission: paiements.record -->
+                                            @endif
+
                                             @can('paiements.record')
+                                            @if(!in_array($statutFacture, ['payee', 'paye', 'paid']))
                                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
                                                 data-bs-target="#paiementModal"
                                                 data-facture="{{ $facture->facture_id }}"
@@ -141,8 +144,8 @@
                                                 data-numero="{{ $facture->numero_facture }}" title="Payer">
                                                 <i class="bi bi-cash-coin"></i>
                                             </button>
-                                            @endcan
                                             @endif
+                                            @endcan
                                         </td>
                                         @endcanany
                                     </tr>
