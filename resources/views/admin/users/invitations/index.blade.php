@@ -49,6 +49,7 @@
                                     <tr>
                                         <th>Email</th>
                                         <th>Rôle</th>
+                                        <th>Site</th>
                                         <th>Invité par</th>
                                         <th>Statut</th>
                                         <th>Envoyé le</th>
@@ -65,6 +66,16 @@
                                                 <span class="badge bg-info">Défini (ID: {{ $invitation->role_id }})</span>
                                             @else
                                                 <span class="badge bg-secondary">Aucun</span>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($invitation->site)
+                                                <div>{{ $invitation->site->site_name }}</div>
+                                                @if($invitation->assign_as_site_responsable)
+                                                    <small class="text-success">Responsable du site</small>
+                                                @endif
+                                            @else
+                                                <span class="text-muted">-</span>
                                             @endif
                                         </td>
                                         <td>
@@ -114,7 +125,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="7" class="text-center py-4 text-muted">Aucune invitation trouvée.</td>
+                                        <td colspan="8" class="text-center py-4 text-muted">Aucune invitation trouvée.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

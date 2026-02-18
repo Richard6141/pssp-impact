@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\UserInvitation;
+use App\Models\Site;
 use App\Services\UserInvitationService;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,7 +25,7 @@ class UserInvitationController extends Controller
      */
     public function index()
     {
-        $invitations = UserInvitation::with('inviter')->latest()->paginate(10);
+        $invitations = UserInvitation::with(['inviter', 'site'])->latest()->paginate(10);
         return view('admin.users.invitations.index', compact('invitations'));
     }
 
@@ -34,7 +35,9 @@ class UserInvitationController extends Controller
     public function create()
     {
         $roles = \Spatie\Permission\Models\Role::all();
-        return view('admin.users.invitations.create', compact('roles'));
+        $sites = Site::orderBy('site_name')->get(['site_id', 'site_name']);
+
+        return view('admin.users.invitations.create', compact('roles', 'sites'));
     }
 
     /**
@@ -42,16 +45,26 @@ class UserInvitationController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'email' => 'required|email|unique:users,email',
             'role_id' => 'required|exists:roles,id',
+            'site_id' => 'nullable|exists:sites,site_id',
+            'assign_as_site_responsable' => 'nullable|boolean',
         ]);
+
+        if ($request->boolean('assign_as_site_responsable') && empty($validated['site_id'])) {
+            return back()
+                ->withInput()
+                ->withErrors(['site_id' => 'Selectionnez un site avant de le definir au responsable invite.']);
+        }
 
         try {
             $this->invitationService->createInvitation(
                 $request->email,
                 $request->role_id,
-                Auth::user()
+                Auth::user(),
+                $request->site_id,
+                $request->boolean('assign_as_site_responsable')
             );
 
             return redirect()->route('admin.users.invitations.index')

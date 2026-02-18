@@ -24,7 +24,7 @@ class InvitationController extends Controller
      */
     public function show($token)
     {
-        $invitation = UserInvitation::where('token', $token)
+        $invitation = UserInvitation::with('site')->where('token', $token)
             ->active()
             ->first();
 

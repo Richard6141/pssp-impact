@@ -51,7 +51,7 @@
                 
                 <div class="text-center mb-4">
                     <h2 class="h3 fw-bold text-primary">PSSP IMPACT+</h2>
-                    <p class="text-muted">Plateforme de Gestion des Déchets Médicaux</p>
+                    <p class="text-muted">Plateforme de Gestion des DÃ©chets MÃ©dicaux</p>
                 </div>
 
                 <div class="premium-card">
@@ -72,8 +72,16 @@
 
                         <div class="alert alert-info mb-4">
                             <i class="bi bi-info-circle me-1"></i>
-                            Vous avez été invité(e) avec l'adresse <strong>{{ $invitation->email }}</strong>.
-                            Veuillez compléter vos informations ci-dessous.
+                            Vous avez Ã©tÃ© invitÃ©(e) avec l'adresse <strong>{{ $invitation->email }}</strong>.
+                            Veuillez complÃ©ter vos informations ci-dessous.
+                        
+                            @if($invitation->site)
+                            <hr class="my-2">
+                            <div><strong>Site assigne :</strong> {{ $invitation->site->site_name }}</div>
+                            @if($invitation->assign_as_site_responsable)
+                            <div><strong>Acces :</strong> Responsable du site</div>
+                            @endif
+                            @endif
                         </div>
 
                         <form method="POST" action="{{ route('invitation.accept.store', $invitation->token) }}">
@@ -81,7 +89,7 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Prénom</label>
+                                    <label class="form-label">PrÃ©nom</label>
                                     <input type="text" name="firstname" class="form-control" value="{{ old('firstname') }}" required autofocus>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -96,7 +104,7 @@
                                     <span class="input-group-text"><i class="bi bi-person"></i></span>
                                     <input type="text" name="username" class="form-control" value="{{ old('username') }}" required>
                                 </div>
-                                <div class="form-text">Ce nom sera utilisé pour vous connecter.</div>
+                                <div class="form-text">Ce nom sera utilisÃ© pour vous connecter.</div>
                             </div>
 
                             <div class="mb-3">
@@ -117,7 +125,7 @@
 
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
-                                    Créer mon compte
+                                    CrÃ©er mon compte
                                 </button>
                             </div>
 
@@ -126,7 +134,7 @@
                 </div>
 
                 <div class="text-center mt-3">
-                    <p class="text-muted small">&copy; {{ date('Y') }} PSSP IMPACT+. Tous droits réservés.</p>
+                    <p class="text-muted small">&copy; {{ date('Y') }} PSSP IMPACT+. Tous droits rÃ©servÃ©s.</p>
                 </div>
 
             </div>

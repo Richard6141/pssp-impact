@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use App\Models\UserInvitation;
+use Spatie\Permission\Models\Role;
 
 class UserInvitationMail extends Mailable implements ShouldQueue
 {
@@ -39,12 +40,19 @@ class UserInvitationMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        $roleName = 'Membre';
+        if ($this->invitation->role_id) {
+            $roleName = optional(Role::find($this->invitation->role_id))->name ?? 'Utilisateur';
+        }
+
         return new Content(
             view: 'emails.user-invitation',
             with: [
                 'token' => $this->invitation->token,
                 'email' => $this->invitation->email,
-                'role' => $this->invitation->role_id ? 'Utilisateur' : 'Membre', // Pour le moment on simplifie
+                'role' => $roleName,
+                'siteName' => optional($this->invitation->site)->site_name,
+                'isSiteResponsable' => (bool) $this->invitation->assign_as_site_responsable,
                 'inviterName' => $this->invitation->inviter ? $this->invitation->inviter->firstname : 'L\'administrateur',
             ],
         );

@@ -67,6 +67,39 @@
                             </div>
 
                             <div class="row mb-3">
+                                <label for="site_id" class="col-sm-3 col-form-label">Site</label>
+                                <div class="col-sm-9">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-building"></i></span>
+                                        <select class="form-select @error('site_id') is-invalid @enderror" id="site_id" name="site_id">
+                                            <option value="">Aucun site</option>
+                                            @foreach($sites as $site)
+                                                <option value="{{ $site->site_id }}" {{ old('site_id') == $site->site_id ? 'selected' : '' }}>
+                                                    {{ $site->site_name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('site_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="form-text">Optionnel : site associe automatiquement a la creation du compte.</div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-sm-9 offset-sm-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="assign_as_site_responsable" name="assign_as_site_responsable" value="1" {{ old('assign_as_site_responsable') ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="assign_as_site_responsable">
+                                            Definir l'invite comme responsable du site selectionne
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row mb-3">
                                 <div class="col-sm-9 offset-sm-3">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="notify_me" name="notify_me" value="1" checked>

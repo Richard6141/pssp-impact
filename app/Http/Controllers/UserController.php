@@ -99,8 +99,15 @@ class UserController extends Controller
             'site_id' => 'nullable|exists:sites,site_id',
             'sites' => 'nullable|array',
             'sites.*' => 'exists:sites,site_id',
+            'set_as_site_responsable' => 'nullable|boolean',
             'isActive' => 'nullable|boolean'
         ]);
+
+        if ($request->boolean('set_as_site_responsable') && !$request->filled('site_id')) {
+            return back()
+                ->withInput()
+                ->withErrors(['site_id' => 'Selectionnez un site principal avant de definir un responsable.']);
+        }
 
         $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
         $userData['password'] = Hash::make($request->password);
@@ -139,6 +146,10 @@ class UserController extends Controller
             'sites_ids' => $siteIds->toArray(),
             'assigned_count' => $assignedSitesCount,
         ]);
+
+        if ($request->boolean('set_as_site_responsable') && $request->filled('site_id')) {
+            Site::where('site_id', $request->site_id)->update(['responsable' => $user->user_id]);
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur cree avec succes. Sites affectes: ' . $assignedSitesCount);
@@ -218,8 +229,15 @@ class UserController extends Controller
             'site_id' => 'nullable|exists:sites,site_id',
             'sites' => 'nullable|array',
             'sites.*' => 'exists:sites,site_id',
+            'set_as_site_responsable' => 'nullable|boolean',
             'isActive' => 'nullable|boolean'
         ]);
+
+        if ($request->boolean('set_as_site_responsable') && !$request->filled('site_id')) {
+            return back()
+                ->withInput()
+                ->withErrors(['site_id' => 'Selectionnez un site principal avant de definir un responsable.']);
+        }
 
         $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
         $userData['isActive'] = $request->boolean('isActive');
@@ -266,6 +284,10 @@ class UserController extends Controller
             'sites_ids' => $siteIds->toArray(),
             'assigned_count' => $assignedSitesCount,
         ]);
+
+        if ($request->boolean('set_as_site_responsable') && $request->filled('site_id')) {
+            Site::where('site_id', $request->site_id)->update(['responsable' => $user->user_id]);
+        }
 
         return redirect()->route('users.index')
             ->with('success', 'Utilisateur mis a jour avec succes. Sites affectes: ' . $assignedSitesCount);

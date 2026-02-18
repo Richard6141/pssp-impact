@@ -21,32 +21,38 @@
             <div class="header">
                 <div class="logo">PSSP IMPACT+</div>
             </div>
-            
+
             <div class="content">
                 <p>Hello,</p>
-                
-                <p>Vous avez été invité(e) à rejoindre la plateforme **PSSP IMPACT+**.</p>
-                
+
+                <p>Vous avez ete invite(e) a rejoindre la plateforme <strong>PSSP IMPACT+</strong>.</p>
+
                 <p>
-                    <strong>Invité par :</strong> {{ $inviterName }}<br>
-                    <strong>Rôle assigné :</strong> {{ $role }}
+                    <strong>Invite par :</strong> {{ $inviterName }}<br>
+                    <strong>Role assigne :</strong> {{ $role }}
+                    @if(!empty($siteName))
+                    <br><strong>Site :</strong> {{ $siteName }}
+                    @if(!empty($isSiteResponsable))
+                    <br><strong>Acces :</strong> Responsable du site
+                    @endif
+                    @endif
                 </p>
-                
-                <p>Pour activer votre compte et définir votre mot de passe, veuillez cliquer sur le bouton ci-dessous :</p>
-                
+
+                <p>Pour activer votre compte et definir votre mot de passe, cliquez sur le bouton ci-dessous :</p>
+
                 <div class="button-container">
                     <a href="{{ route('invitation.accept', $token) }}" class="button">Accepter l'invitation</a>
                 </div>
-                
-                <p>Ce lien est valide pour 48 heures. Si vous n'avez pas créé de compte d'ici là, l'invitation expirera.</p>
-                
-                <p>Si vous ne vous attendiez pas à recevoir cette invitation, vous pouvez ignorer cet email.</p>
+
+                <p>Ce lien est valide pendant 48 heures. Si vous n'avez pas cree de compte d'ici la, l'invitation expirera.</p>
+
+                <p>Si vous ne vous attendiez pas a recevoir cette invitation, vous pouvez ignorer cet email.</p>
             </div>
-            
+
             <div class="footer">
-                <p>&copy; {{ date('Y') }} PSSP IMPACT+. Tous droits réservés.</p>
+                <p>&copy; {{ date('Y') }} PSSP IMPACT+. Tous droits reserves.</p>
                 <div class="small-text">
-                    Si le bouton ne fonctionne pas, copiez et collez le lien suivant dans votre navigateur :<br>
+                    Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :<br>
                     <a href="{{ route('invitation.accept', $token) }}" style="color: #2563eb;">{{ route('invitation.accept', $token) }}</a>
                 </div>
             </div>

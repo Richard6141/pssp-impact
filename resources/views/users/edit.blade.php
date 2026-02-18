@@ -44,7 +44,7 @@
                     @method('PUT')
 
                     <div class="col-md-6">
-                        <label class="form-label">Prénom</label>
+                        <label class="form-label">PrÃ©nom</label>
                         <input type="text" name="firstname" class="form-control"
                             value="{{ old('firstname', $user->firstname) }}" required>
                     </div>
@@ -73,7 +73,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Rôle</label>
+                        <label class="form-label">RÃ´le</label>
                         <select name="role" class="form-select" required>
                             @foreach($roles as $role)
                             <option value="{{ $role->name }}"
@@ -94,11 +94,15 @@
                             </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Site principal (rattachement hiérarchique)</div>
+                        <div class="form-text">Site principal (rattachement hiÃ©rarchique)</div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="set_as_site_responsable" id="set_as_site_responsable" value="1" {{ old('set_as_site_responsable') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="set_as_site_responsable">Definir cet utilisateur comme responsable du site principal</label>
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Sites autorisés (Accès)</label>
+                        <label class="form-label">Sites autorisÃ©s (AccÃ¨s)</label>
                         <select name="sites[]" class="form-select" multiple size="4">
                             @foreach($sites as $site)
                             <option value="{{ $site->site_id }}" {{ in_array($site->site_id, old('sites', $user->sites->pluck('site_id')->toArray())) ? 'selected' : '' }}>
@@ -106,11 +110,11 @@
                             </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs sites.</div>
+                        <div class="form-text">Maintenez Ctrl pour sÃ©lectionner plusieurs sites.</div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Téléphone</label>
+                        <label class="form-label">TÃ©lÃ©phone</label>
                         <input type="text" name="phone" class="form-control"
                             value="{{ old('phone', $user->phone) }}">
                     </div>
@@ -150,7 +154,7 @@
                             value="{{ old('longitude', $user->longitude) }}">
                     </div>
                     <div class="col-12">
-                        <label class="form-label">À propos</label>
+                        <label class="form-label">Ã€ propos</label>
                         <textarea name="about" class="form-control"
                             rows="3">{{ old('about', $user->about) }}</textarea>
                     </div>
@@ -174,7 +178,7 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Mettre à jour</button>
+                        <button type="submit" class="btn btn-primary">Mettre Ã  jour</button>
                         <a href="{{ route('users.index') }}" class="btn btn-secondary">Annuler</a>
                     </div>
                 </form>

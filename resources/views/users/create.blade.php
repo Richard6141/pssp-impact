@@ -9,7 +9,7 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
                 <li class="breadcrumb-item"><a href="{{ route('users.index') }}">Utilisateurs</a></li>
-                <li class="breadcrumb-item active">Créer</li>
+                <li class="breadcrumb-item active">CrÃ©er</li>
             </ol>
         </nav>
     </div>
@@ -17,7 +17,7 @@
     <section class="section">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Créer un utilisateur</h5>
+                <h5 class="card-title">CrÃ©er un utilisateur</h5>
 
                 @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
@@ -43,7 +43,7 @@
                     @csrf
 
                     <div class="col-md-6">
-                        <label class="form-label">Prénom</label>
+                        <label class="form-label">PrÃ©nom</label>
                         <input type="text" name="firstname" class="form-control" value="{{ old('firstname') }}"
                             required>
                     </div>
@@ -69,9 +69,9 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Rôle</label>
+                        <label class="form-label">RÃ´le</label>
                         <select name="role" class="form-select" required>
-                            <option value="">Sélectionner</option>
+                            <option value="">SÃ©lectionner</option>
                             @foreach($roles as $role)
                             <option value="{{ $role->name }}" @selected(old('role')===$role->name)>
                                 {{ $role->name }}
@@ -89,11 +89,15 @@
                             </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Site principal (rattachement hiérarchique)</div>
+                        <div class="form-text">Site principal (rattachement hiÃ©rarchique)</div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="set_as_site_responsable" id="set_as_site_responsable" value="1" {{ old('set_as_site_responsable') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="set_as_site_responsable">Definir cet utilisateur comme responsable du site principal</label>
+                        </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Sites autorisés (Accès)</label>
+                        <label class="form-label">Sites autorisÃ©s (AccÃ¨s)</label>
                         <select name="sites[]" class="form-select" multiple size="4">
                             @foreach($sites as $site)
                             <option value="{{ $site->site_id }}" {{ in_array($site->site_id, old('sites', [])) ? 'selected' : '' }}>
@@ -101,11 +105,11 @@
                             </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs sites.</div>
+                        <div class="form-text">Maintenez Ctrl pour sÃ©lectionner plusieurs sites.</div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Téléphone</label>
+                        <label class="form-label">TÃ©lÃ©phone</label>
                         <input type="text" name="phone" class="form-control" value="{{ old('phone') }}">
                     </div>
                     <div class="col-md-6">
@@ -139,7 +143,7 @@
                             value="{{ old('longitude') }}">
                     </div>
                     <div class="col-12">
-                        <label class="form-label">À propos</label>
+                        <label class="form-label">Ã€ propos</label>
                         <textarea name="about" class="form-control" rows="3">{{ old('about') }}</textarea>
                     </div>
                     <div class="col-md-6">
@@ -147,7 +151,7 @@
                         <input type="file" name="profile_image" class="form-control" accept="image/*"
                             id="profile_image_input">
                         <div class="mt-2 d-none" id="profile_image_preview">
-                            <img src="" alt="Aperçu" width="80" height="80" class="img-thumbnail rounded-circle">
+                            <img src="" alt="AperÃ§u" width="80" height="80" class="img-thumbnail rounded-circle">
                         </div>
                     </div>
                     <div class="col-md-6 d-flex align-items-end">
@@ -160,7 +164,7 @@
                     </div>
 
                     <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Créer</button>
+                        <button type="submit" class="btn btn-primary">CrÃ©er</button>
                         <a href="{{ route('users.index') }}" class="btn btn-secondary">Annuler</a>
                     </div>
                 </form>

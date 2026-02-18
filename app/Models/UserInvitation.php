@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Site;
 
 class UserInvitation extends Model
 {
@@ -10,6 +11,8 @@ class UserInvitation extends Model
         'email',
         'token',
         'role_id',
+        'site_id',
+        'assign_as_site_responsable',
         'inviter_id',
         'registered_at',
         'expires_at',
@@ -18,6 +21,7 @@ class UserInvitation extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'registered_at' => 'datetime',
+        'assign_as_site_responsable' => 'boolean',
     ];
 
     /**
@@ -26,6 +30,11 @@ class UserInvitation extends Model
     public function inviter()
     {
         return $this->belongsTo(User::class, 'inviter_id', 'user_id');
+    }
+
+    public function site()
+    {
+        return $this->belongsTo(Site::class, 'site_id', 'site_id');
     }
 
     /**
