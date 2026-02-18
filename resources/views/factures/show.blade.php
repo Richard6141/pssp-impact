@@ -33,6 +33,13 @@
 
                             return $status === 'valide';
                         });
+                        $latestPayment = $facture->paiements->sortByDesc('created_at')->first();
+                        $latestPaymentStatus = \Illuminate\Support\Str::of(optional($latestPayment)->statut ?? '')
+                            ->replace('?', 'e')
+                            ->ascii()
+                            ->lower()
+                            ->toString();
+                        $isPaidFacture = $latestPaymentStatus === 'valide' || ($hasValidatedPayment && $latestPaymentStatus === '');
                         @endphp
 
                         <div class="row">
@@ -49,8 +56,8 @@
                                     <li class="list-group-item">
                                         <strong>Statut :</strong>
                                         <span
-                                            class="badge bg-{{ $hasValidatedPayment ? 'success' : 'warning' }}">
-                                            {{ $hasValidatedPayment ? 'Payee' : 'En attente' }}
+                                            class="badge bg-{{ $isPaidFacture ? 'success' : 'warning' }}">
+                                            {{ $isPaidFacture ? 'Payee' : 'En attente' }}
                                         </span>
                                     </li>
                                 </ul>
@@ -219,7 +226,7 @@
                             </a>
 
                             <div>
-                                @if(!$hasValidatedPayment)
+                                @if(!$isPaidFacture)
                                 <button type="button" class="btn btn-success" data-bs-toggle="modal"
                                     data-bs-target="#paiementModal">
                                     <i class="bi bi-cash-coin"></i> Enregistrer un paiement
@@ -237,7 +244,7 @@
 </main>
 
 <!-- Modal Paiement (si nécessaire) -->
-@if(!$hasValidatedPayment)
+@if(!$isPaidFacture)
 <div class="modal fade" id="paiementModal" tabindex="-1" aria-labelledby="paiementModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('paiements.store') }}" method="POST" enctype="multipart/form-data">

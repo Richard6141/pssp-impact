@@ -60,9 +60,13 @@
 
                                         return $status === 'valide';
                                     });
-                                    // Une facture est considérée payée uniquement s'il existe un paiement validé.
-                                    // Cela permet de repayer si les paiements précédents ont été rejetés.
-                                    $isPaidFacture = $hasValidatedPayment;
+                                    $latestPayment = $facture->paiements->sortByDesc('created_at')->first();
+                                    $latestPaymentStatus = \Illuminate\Support\Str::of(optional($latestPayment)->statut ?? '')
+                                        ->replace('?', 'e')
+                                        ->ascii()
+                                        ->lower()
+                                        ->toString();
+                                    $isPaidFacture = $latestPaymentStatus === 'valide' || ($hasValidatedPayment && $latestPaymentStatus === '');
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
