@@ -296,18 +296,30 @@ class PaiementController extends Controller
     /**
      * Valider un paiement
      */
-    public function valider(Paiement $paiement)
+    public function valider(Request $request, Paiement $paiement)
     {
         $paiement->load('facture.site');
         $this->ensurePaiementAllowed($paiement);
 
-        $receiptPath = $this->generateReceiptPdf($paiement);
+        $request->validate([
+            'recu_comptable' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        if ($request->hasFile('recu_comptable')) {
+            if ($paiement->recu_comptable && Storage::disk('public')->exists($paiement->recu_comptable)) {
+                Storage::disk('public')->delete($paiement->recu_comptable);
+            }
+            $receiptPath = $request->file('recu_comptable')->store('recus', 'public');
+        } else {
+            $receiptPath = $this->generateReceiptPdf($paiement);
+        }
+
         $paiement->update([
-            'statut' => 'validé',
+            'statut' => 'valid?',
             'recu_comptable' => $receiptPath,
         ]);
-        $paiement->facture?->update(['statut' => 'payée']);
-        return back()->with('success', 'Paiement validé avec succès.');
+        $paiement->facture?->update(['statut' => 'pay?e']);
+        return back()->with('success', 'Paiement valid? avec succ?s.');
     }
 
     /**
