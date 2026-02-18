@@ -33,6 +33,10 @@
                                 </thead>
                                 <tbody>
                                     @foreach($observations as $index => $obs)
+                                    @php
+                                        $canDeleteObservation = auth()->user()->can('observations.delete')
+                                            && !auth()->user()->hasRole('Responsable site');
+                                    @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $obs->site?->site_name ?? 'â€”' }}</td>
@@ -45,18 +49,19 @@
                                             <a href="{{ route('observations.edit', $obs) }}"
                                                 class="btn btn-sm btn-warning" title="Ã‰diter"><i
                                                     class="bi bi-pencil"></i></a>
-                                            <form action="{{ route('observations.destroy', $obs) }}" method="POST"
-                                                class="d-inline">
+                                            @if($canDeleteObservation)
+                                            <form action="{{ route('observations.destroy', $obs) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
-                                                    data-item-name="Facture #{{ $obs}}"
+                                                    data-item-name="Observation #{{ $obs->observation_id }}"
                                                     data-confirm-title="Supprimer cette observation ?"
                                                     data-confirm-text="Voulez-vous vraiment supprimer cette observation ? Cette action est irrÃ©versible."
                                                     title="Supprimer" data-bs-toggle="tooltip">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </td>
                                     </tr>
                                     @endforeach

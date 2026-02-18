@@ -14,6 +14,11 @@ class ObservationController extends Controller
         return auth()->user()->hasRole('Agent collecte');
     }
 
+    private function isResponsableSite(): bool
+    {
+        return auth()->user()->hasRole('Responsable site');
+    }
+
     private function applyObservationVisibility($query)
     {
         if ($this->isAgentCollecte()) {
@@ -98,6 +103,12 @@ class ObservationController extends Controller
 
     public function destroy(Observation $observation)
     {
+        if ($this->isResponsableSite()) {
+            return redirect()
+                ->route('observations.index')
+                ->with('error', 'Suppression interdite: un responsable site ne peut pas supprimer une observation.');
+        }
+
         $this->ensureObservationAllowed($observation);
         $observation->delete();
 
