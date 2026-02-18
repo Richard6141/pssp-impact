@@ -65,6 +65,7 @@ class CollecteController extends Controller
     public function index()
     {
         $query = Collecte::with(['typeDechet', 'agent', 'site', 'validation'])
+            ->withCount('factures')
             ->orderBy('date_collecte', 'desc');
 
         $this->applyCollecteVisibility($query);
@@ -253,7 +254,13 @@ class CollecteController extends Controller
             Collecte::query()
         )->where('collecte_id', $id)->firstOrFail();
 
-        // L'incident sera supprim√© automatiquement gr√¢ce au cascade dans la foreign key
+        if ($collecte->factures()->exists()) {
+            return redirect()
+                ->route('collectes.index')
+                ->with('error', 'Suppression impossible: cette collecte est dÈj‡ liÈe ‡ une facture.');
+        }
+
+        // L'incident sera supprimÈ automatiquement gr‚ce au cascade dans la foreign key
         $collecte->delete();
 
         return redirect()->route('collectes.index')->with('success', 'Collecte supprim√©e avec succ√®s.');

@@ -101,6 +101,12 @@
 
                                             <!-- Bouton Supprimer - Permission: collectes.delete -->
                                             @can('collectes.delete')
+                                            @if(($collecte->factures_count ?? 0) > 0)
+                                            <button type="button" class="btn btn-sm btn-secondary" disabled
+                                                title="Suppression impossible: collecte déjà facturée" data-bs-toggle="tooltip">
+                                                <i class="bi bi-lock"></i>
+                                            </button>
+                                            @else
                                             <form action="{{ route('collectes.destroy', $collecte->collecte_id) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
@@ -114,6 +120,7 @@
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                             @endcan
 
                                             <!-- Bouton Valider - Permission: collectes.validate_final -->
