@@ -56,7 +56,7 @@ class UserInvitationService
         }
 
         try {
-            Mail::to($email)->queue(new UserInvitationMail($invitation));
+            Mail::to($email)->send(new UserInvitationMail($invitation));
         } catch (Exception $e) {
             \Log::error("Erreur lors de l'envoi de l'invitation a {$email}: {$e->getMessage()}");
             throw new Exception("L'invitation a ete creee mais l'email n'a pas pu etre envoye. Erreur: {$e->getMessage()}");
@@ -136,7 +136,7 @@ class UserInvitationService
             'expires_at' => now()->addHours(48),
         ]);
 
-        Mail::to($invitation->email)->queue(new UserInvitationMail($invitation));
+        Mail::to($invitation->email)->send(new UserInvitationMail($invitation));
 
         return $invitation;
     }

@@ -2,8 +2,6 @@
 
 namespace App\Mail;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -11,9 +9,9 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\UserInvitation;
 use Spatie\Permission\Models\Role;
 
-class UserInvitationMail extends Mailable implements ShouldQueue
+class UserInvitationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use SerializesModels;
 
     public $invitation;
 
