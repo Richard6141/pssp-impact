@@ -56,7 +56,7 @@ class UserController extends Controller
 
         $users = $query->paginate(20);
 
-        // DonnÃ©es pour les filtres
+        // Données pour les filtres
         $roles = Role::all();
         $sites = Site::select('site_id', 'site_name')->get();
 
@@ -64,7 +64,7 @@ class UserController extends Controller
     }
 
     /**
-     * Afficher le formulaire de crÃ©ation
+     * Afficher le formulaire de création
      */
     public function create()
     {
@@ -120,7 +120,7 @@ class UserController extends Controller
 
         $user = User::create($userData);
 
-        // Assigner le rÃ´le
+        // Assigner le rôle
         $user->assignRole($request->role);
 
         // Assigner les sites (Many-to-Many)
@@ -152,11 +152,11 @@ class UserController extends Controller
         }
 
         return redirect()->route('users.index')
-            ->with('success', 'Utilisateur cree avec succes. Sites affectes: ' . $assignedSitesCount);
+            ->with('success', 'Utilisateur créé avec succès. Sites affectés : ' . $assignedSitesCount);
     }
 
     /**
-     * Afficher les dÃ©tails d'un utilisateur
+     * Afficher les détails d'un utilisateur
      */
     public function show(User $user)
     {
@@ -181,7 +181,7 @@ class UserController extends Controller
             ];
         }
 
-        if ($user->hasRole(['Responsable site', 'Agent santÃ©'])) {
+        if ($user->hasRole(['Responsable site', 'Agent santé'])) {
             $stats['observations'] = [
                 'total' => $user->observations()->count(),
                 'ce_mois' => $user->observations()->whereMonth('created_at', now()->month)->count(),
@@ -192,7 +192,7 @@ class UserController extends Controller
     }
 
     /**
-     * Afficher le formulaire d'Ã©dition
+     * Afficher le formulaire d'édition
      */
     public function edit(User $user)
     {
@@ -205,7 +205,7 @@ class UserController extends Controller
     }
 
     /**
-     * Mettre Ã  jour un utilisateur
+     * Mettre à jour un utilisateur
      */
     public function update(Request $request, User $user)
     {
@@ -242,7 +242,7 @@ class UserController extends Controller
         $userData = $request->except(['password', 'password_confirmation', 'role', 'profile_image', 'sites']);
         $userData['isActive'] = $request->boolean('isActive');
 
-        // Mise Ã  jour du mot de passe si fourni
+        // Mise à jour du mot de passe si fourni
         if ($request->filled('password')) {
             $userData['password'] = Hash::make($request->password);
         }
@@ -258,10 +258,10 @@ class UserController extends Controller
 
         $user->update($userData);
 
-        // Mettre Ã  jour le rÃ´le
+        // Mettre à jour le rôle
         $user->syncRoles([$request->role]);
 
-        // Mettre Ã  jour les sites (Many-to-Many)
+        // Mettre à jour les sites (Many-to-Many)
         $siteIds = collect($request->input('sites', []))
             ->filter()
             ->values();
@@ -290,7 +290,7 @@ class UserController extends Controller
         }
 
         return redirect()->route('users.index')
-            ->with('success', 'Utilisateur mis a jour avec succes. Sites affectes: ' . $assignedSitesCount);
+            ->with('success', 'Utilisateur mis à jour avec succès. Sites affectés : ' . $assignedSitesCount);
     }
 
     /**
@@ -298,7 +298,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // VÃ©rifier si l'utilisateur peut Ãªtre supprimÃ©
+        // Vérifier si l'utilisateur peut être supprimé
         $hasRelations = [
             'collectes' => $user->collectes()->count(),
             'factures' => $user->factures()->count(),
@@ -310,7 +310,7 @@ class UserController extends Controller
 
         if (array_sum($hasRelations) > 0) {
             return redirect()->route('users.index')
-                ->with('error', 'Impossible de supprimer cet utilisateur car il a des donnÃ©es associÃ©es.');
+                ->with('error', 'Impossible de supprimer cet utilisateur car il a des données associées.');
         }
 
         // Supprimer l'image de profil
@@ -321,11 +321,11 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', 'Utilisateur supprimÃ© avec succÃ¨s.');
+            ->with('success', 'Utilisateur supprimé avec succès.');
     }
 
     /**
-     * Activer/DÃ©sactiver un utilisateur
+     * Activer/Désactiver un utilisateur
      */
     public function toggleStatus(User $user)
     {
@@ -333,11 +333,11 @@ class UserController extends Controller
 
         $user->update(['isActive' => !$user->isActive]);
 
-        $status = $user->isActive ? 'activÃ©' : 'dÃ©sactivÃ©';
+        $status = $user->isActive ? 'activé' : 'désactivé';
 
         return response()->json([
             'success' => true,
-            'message' => "Utilisateur {$status} avec succÃ¨s",
+            'message' => "Utilisateur {$status} avec succès",
             'status' => $user->isActive
         ]);
     }
@@ -366,7 +366,7 @@ class UserController extends Controller
     }
 
     /**
-     * Assigner un rÃ´le Ã  un utilisateur
+     * Assigner un rôle à un utilisateur
      */
     public function assignRole(Request $request, User $user)
     {
@@ -380,12 +380,12 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'RÃ´le assignÃ© avec succÃ¨s'
+            'message' => 'Rôle assigné avec succès'
         ]);
     }
 
     /**
-     * Retirer un rÃ´le d'un utilisateur
+     * Retirer un rôle d'un utilisateur
      */
     public function removeRole(Request $request, User $user)
     {
@@ -399,12 +399,12 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'RÃ´le retirÃ© avec succÃ¨s'
+            'message' => 'Rôle retiré avec succès'
         ]);
     }
 
     /**
-     * RÃ©initialiser le mot de passe
+     * Réinitialiser le mot de passe
      */
     public function resetPassword(Request $request, User $user)
     {
@@ -420,7 +420,7 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Mot de passe rÃ©initialisÃ© avec succÃ¨s'
+            'message' => 'Mot de passe réinitialisé avec succès'
         ]);
     }
 
@@ -443,24 +443,24 @@ class UserController extends Controller
         $callback = function () use ($users) {
             $file = fopen('php://output', 'w');
 
-            // En-tÃªtes CSV
+            // En-têtes CSV
             fputcsv($file, [
                 'ID',
-                'PrÃ©nom',
+                'Prénom',
                 'Nom',
                 'Username',
                 'Email',
-                'TÃ©lÃ©phone',
+                'Téléphone',
                 'Entreprise',
                 'Poste',
                 'Site',
-                'RÃ´le(s)',
+                'Rôle(s)',
                 'Statut',
-                'Date crÃ©ation',
-                'DerniÃ¨re connexion'
+                'Date création',
+                'Dernière connexion'
             ]);
 
-            // DonnÃ©es
+            // Données
             foreach ($users as $user) {
                 fputcsv($file, [
                     $user->user_id,
@@ -499,10 +499,10 @@ class UserController extends Controller
             'recent' => User::where('created_at', '>=', now()->subDays(30))->count(),
         ];
 
-        // RÃ©partition par rÃ´le
+        // Répartition par rôle
         $roleStats = Role::withCount('users')->get();
 
-        // Utilisateurs rÃ©cents (7 derniers jours)
+        // Utilisateurs récents (7 derniers jours)
         $recentUsers = User::with('roles')
             ->where('created_at', '>=', now()->subDays(7))
             ->orderBy('created_at', 'desc')
@@ -512,4 +512,3 @@ class UserController extends Controller
         return view('users.stats', compact('stats', 'roleStats', 'recentUsers'));
     }
 }
-

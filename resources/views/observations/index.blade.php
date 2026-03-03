@@ -42,7 +42,7 @@
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $obs->site?->site_name ?? 'â€”' }}</td>
+                                        <td>{{ $obs->site?->site_name ?? '—' }}</td>
                                         <td>{{ $obs->user?->firstname }} {{ $obs->user?->lastname }}</td>
                                         <td>{{ Str::limit($obs->contenu, 50) }}</td>
                                         <td>{{ \Carbon\Carbon::parse($obs->date_obs)->format('d/m/Y H:i') }}</td>
@@ -61,7 +61,7 @@
                                                 <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
                                                     data-item-name="Observation #{{ $obs->observation_id }}"
                                                     data-confirm-title="Supprimer cette observation ?"
-                                                    data-confirm-text="Voulez-vous vraiment supprimer cette observation ? Cette action est irrÃ©versible."
+                                                    data-confirm-text="Voulez-vous vraiment supprimer cette observation ? Cette action est irréversible."
                                                     title="Supprimer" data-bs-toggle="tooltip">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
