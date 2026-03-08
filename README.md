@@ -1,61 +1,131 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PSSP IMPACT — Système de Gestion des Déchets
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Application web de gestion opérationnelle et financière des collectes de déchets, développée pour les entreprises de services environnementaux. Elle couvre l'ensemble du cycle de vie d'une collecte : planification, validation terrain, facturation, comptabilité et reporting.
 
-## About Laravel
+## Stack technique
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Catégorie         | Technologie                                    |
+|-------------------|------------------------------------------------|
+| Backend           | PHP 8.2 · Laravel 12                           |
+| Frontend          | Blade · Vite · Tailwind CSS                    |
+| Base de données   | MySQL (SQLite en dev)                          |
+| Auth              | Sessions Laravel · 2FA TOTP (Google Authenticator) |
+| Permissions       | Spatie Laravel Permission (RBAC)               |
+| PDF               | barryvdh/laravel-dompdf                        |
+| Email             | SMTP (configurable)                            |
+| CI/CD             | GitHub Actions                                 |
+| Serveur de dev    | Laragon / Laravel Sail                         |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Fonctionnalités principales
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Authentification sécurisée** — connexion, 2FA par QR code, gestion des sessions multi-appareils, politique de mot de passe
+- **Gestion des rôles** — Super Admin, Admin, Responsable de site, Comptable (permissions granulaires par rôle)
+- **Collectes** — création, suivi, double validation terrain/bureau avant facturation
+- **Facturation** — génération de factures PDF, liaison collectes ↔ factures, suivi des paiements
+- **Comptabilité** — écritures comptables automatiques, export comptable
+- **Sites & types de déchets** — configuration par l'administrateur, géolocalisation des sites
+- **Incidents & observations** — signalement terrain, suivi par responsable
+- **Rapports** — tableaux de bord par rôle, exports
+- **Invitations utilisateurs** — inscription par token d'invitation, audit des accès
 
-## Learning Laravel
+## Architecture
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Admin/          # Gestion utilisateurs, invitations, sessions, audit
+│   │   ├── Auth/           # Authentification, 2FA
+│   │   ├── backend/        # API internes
+│   │   ├── CollecteController.php
+│   │   ├── ComptabiliteController.php
+│   │   ├── FactureController.php
+│   │   ├── PaiementController.php
+│   │   ├── RapportController.php
+│   │   └── ...
+│   └── Middleware/
+├── Models/                 # Eloquent : Collecte, Facture, Site, TypeDechet...
+├── Services/               # Logique métier découplée
+├── Mail/                   # Notifications email (invitations, alertes)
+└── Exports/                # Exports Excel/CSV
+database/
+├── migrations/             # 20+ migrations, historique complet du schéma
+└── seeders/                # Rôles, permissions, données de démonstration
+resources/views/            # Templates Blade par module
+routes/web.php              # Routes groupées par rôle
+.github/workflows/          # Pipeline CI/CD (deploy.yml)
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Prérequis
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP >= 8.2 avec extensions : `pdo`, `mbstring`, `openssl`, `tokenizer`, `xml`, `ctype`, `json`
+- Composer >= 2
+- Node.js >= 18 + npm
+- MySQL >= 8 (ou SQLite pour le développement)
 
-## Laravel Sponsors
+## Installation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/<votre-compte>/gestionDechets.git
+cd gestionDechets
 
-### Premium Partners
+# 2. Installer les dépendances PHP
+composer install
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 3. Installer les dépendances JS
+npm install
 
-## Contributing
+# 4. Configurer l'environnement
+cp .env.example .env
+php artisan key:generate
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 5. Configurer la base de données dans .env, puis migrer
+php artisan migrate --seed
 
-## Code of Conduct
+# 6. Lier le stockage public
+php artisan storage:link
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Démarrage
 
-## Security Vulnerabilities
+```bash
+# Démarrer tous les services (serveur, queue, logs, vite) en parallèle
+composer run dev
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Ou séparément :
 
-## License
+```bash
+php artisan serve          # Serveur PHP
+npm run dev                # Vite (assets)
+php artisan queue:listen   # Worker de queue (emails, jobs)
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+L'application est accessible sur `http://localhost:8000`.
+
+## Tests
+
+```bash
+composer test
+# ou
+php artisan test
+```
+
+## Variables d'environnement clés
+
+Voir `.env.example` pour la liste complète. Les variables essentielles :
+
+| Variable              | Description                                      |
+|-----------------------|--------------------------------------------------|
+| `APP_KEY`             | Clé de chiffrement (générée par `artisan key:generate`) |
+| `DB_CONNECTION`       | `mysql` ou `sqlite`                              |
+| `DB_DATABASE`         | Nom de la base de données                        |
+| `MAIL_MAILER`         | Driver email (`smtp`, `log` en dev)              |
+| `MAIL_HOST`           | Serveur SMTP                                     |
+| `MAIL_USERNAME`       | Identifiant SMTP                                 |
+| `MAIL_PASSWORD`       | Mot de passe SMTP                                |
+
+## Licence
+
+MIT
