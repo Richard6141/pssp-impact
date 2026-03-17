@@ -44,12 +44,7 @@ class CollecteController extends Controller
     private function ensureSiteAllowed(string $siteId): void
     {
         $user = auth()->user();
-        if ($user->hasRole('Agent collecte')) {
-            $allowed = $this->getVisibleSiteIds();
-            if (!in_array($siteId, $allowed, true)) {
-                abort(403);
-            }
-        } elseif ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site')) {
             $isAllowed = Site::where('site_id', $siteId)
                 ->where('responsable', $user->user_id)
                 ->exists();
@@ -84,9 +79,7 @@ class CollecteController extends Controller
         $types = TypeDechet::all();
         $sitesQuery = Site::query();
         $user = auth()->user();
-        if ($user->hasRole('Agent collecte')) {
-            $sitesQuery->whereIn('site_id', $this->getVisibleSiteIds());
-        } elseif ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site')) {
             $sitesQuery->where('responsable', $user->user_id);
         }
         $sites = $sitesQuery->get();
@@ -168,9 +161,7 @@ class CollecteController extends Controller
         $types = TypeDechet::all();
         $sitesQuery = Site::query();
         $user = auth()->user();
-        if ($user->hasRole('Agent collecte')) {
-            $sitesQuery->whereIn('site_id', $this->getVisibleSiteIds());
-        } elseif ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site')) {
             $sitesQuery->where('responsable', $user->user_id);
         }
         $sites = $sitesQuery->get();
@@ -253,16 +244,16 @@ class CollecteController extends Controller
         if ($collecte->factures()->exists()) {
             return redirect()
                 ->route('collectes.index')
-                ->with('error', 'Suppression impossible: cette collecte est dÈj‡ liÈe ‡ une facture.');
+                ->with('error', 'Suppression impossible: cette collecte est dÔøΩjÔøΩ liÔøΩe ÔøΩ une facture.');
         }
 
         if ($collecte->signature_responsable_site || $collecte->isValid) {
             return redirect()
                 ->route('collectes.index')
-                ->with('error', 'Suppression impossible: cette collecte a dÈj‡ ÈtÈ validÈe.');
+                ->with('error', 'Suppression impossible: cette collecte a dÔøΩjÔøΩ ÔøΩtÔøΩ validÔøΩe.');
         }
 
-        // L'incident sera supprimÈ automatiquement gr‚ce au cascade dans la foreign key
+        // L'incident sera supprimÔøΩ automatiquement grÔøΩce au cascade dans la foreign key
         $collecte->delete();
 
         return redirect()->route('collectes.index')->with('success', 'Collecte supprim√©e avec succ√®s.');

@@ -4,12 +4,12 @@
 <main id="main" class="main">
 
     <div class="pagetitle">
-        <h1>Types de déchets</h1>
+        <h1>Articles</h1>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('home') }}">Accueil</a></li>
                 <li class="breadcrumb-item">Gestion</li>
-                <li class="breadcrumb-item active">Types de déchets</li>
+                <li class="breadcrumb-item active">Articles</li>
             </ol>
         </nav>
     </div><!-- End Page Title -->
@@ -21,13 +21,13 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title d-flex justify-content-between align-items-center">
-                            Liste des types de déchets
+                            Liste des articles
 
                             <!-- Bouton rond bleu -->
                             @can('type_dechets.create')
                             <a href="{{ route('type_dechets.create') }}"
                                 class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-                                style="width:45px; height:45px;" title="Ajouter un type de déchet"
+                                style="width:45px; height:45px;" title="Ajouter un article"
                                 data-bs-toggle="tooltip">
                                 <i class="bi bi-plus-lg"></i>
                             </a>
@@ -72,8 +72,8 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" data-confirm-delete
                                                 data-item-name="{{ $type->libelle }}"
-                                                data-confirm-title="Supprimer ce type ?"
-                                                data-confirm-text="Voulez-vous vraiment supprimer le type '{{ $type->libelle }}' ? Cette action est irréversible."
+                                                data-confirm-title="Supprimer cet article ?"
+                                                data-confirm-text="Voulez-vous vraiment supprimer l'article '{{ $type->libelle }}' ? Cette action est irréversible."
                                                 title="Supprimer" data-bs-toggle="tooltip">
                                                 <i class="bi bi-trash"></i>
                                             </button>

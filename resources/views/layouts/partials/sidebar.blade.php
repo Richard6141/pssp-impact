@@ -39,27 +39,27 @@
         </li><!-- End Sites Nav -->
         @endcan
 
-        <!-- Types de Déchets -->
+        <!-- Articles -->
         @can('type_dechets.view')
         <li class="nav-item">
             <a class="nav-link collapsed" data-bs-target="#types-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-trash"></i><span>Types de Déchets</span><i class="bi bi-chevron-down ms-auto"></i>
+                <i class="bi bi-trash"></i><span>Articles</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="types-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li>
                     <a href="{{ route('type_dechets.index') }}">
-                        <i class="bi bi-circle"></i><span>Liste des Types</span>
+                        <i class="bi bi-circle"></i><span>Liste des Articles</span>
                     </a>
                 </li>
                 @can('type_dechets.create')
                 <li>
                     <a href="{{ route('type_dechets.create') }}">
-                        <i class="bi bi-circle"></i><span>Nouveau Type</span>
+                        <i class="bi bi-circle"></i><span>Nouvel Article</span>
                     </a>
                 </li>
                 @endcan
             </ul>
-        </li><!-- End Types de Déchets Nav -->
+        </li><!-- End Articles Nav -->
         @endcan
 
         <!-- Collectes -->

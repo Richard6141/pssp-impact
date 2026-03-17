@@ -4,11 +4,11 @@
 <main id="main" class="main">
 
     <div class="pagetitle">
-        <h1>Type de Collecte</h1>
+        <h1>Article</h1>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('type_dechets.index') }}">Types de Collectes</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('type_dechets.index') }}">Articles</a></li>
                 <li class="breadcrumb-item active">{{ isset($type) ? 'Modification' : 'Enregistrement' }}</li>
             </ol>
         </nav>
@@ -21,7 +21,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">
-                            {{ isset($type) ? 'Modifier le type de collecte' : 'Ajouter un type de collecte' }}
+                            {{ isset($type) ? 'Modifier l\'article' : 'Ajouter un article' }}
                         </h5>
 
                         <!-- Formulaire -->
