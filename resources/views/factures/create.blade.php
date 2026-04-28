@@ -153,6 +153,25 @@
 </div>
 @endsection
 
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#siteSelect').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Rechercher un site...',
+        allowClear: false,
+        width: '100%'
+    });
+});
+</script>
+@endpush
+
 @section('scripts')
 <script>
     // Ouvrir modal pour afficher image
@@ -181,7 +200,7 @@
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Erreur réseau');
+                        throw new Error('Erreur rï¿½seau');
                     }
                     return response.json();
                 })
@@ -219,11 +238,11 @@
                 });
         } else {
             container.innerHTML =
-                '<p class="text-muted">Sélectionnez un site pour voir les collectes disponibles.</p>';
+                '<p class="text-muted">Sï¿½lectionnez un site pour voir les collectes disponibles.</p>';
         }
     });
 
-    // Charger les collectes au chargement de la page si un site est déjà sélectionné
+    // Charger les collectes au chargement de la page si un site est dï¿½jï¿½ sï¿½lectionnï¿½
     document.addEventListener('DOMContentLoaded', function() {
         let siteSelect = document.getElementById('siteSelect');
         if (siteSelect.value) {
