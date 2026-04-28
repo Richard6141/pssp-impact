@@ -124,6 +124,29 @@ class Facture extends Model
         return number_format($this->montant_facture, 0, ',', ' ') . ' FCFA';
     }
 
+    public function getStatutNormaliseAttribute(): string
+    {
+        return \Illuminate\Support\Str::of($this->statut ?? '')
+            ->replace('?', 'e')
+            ->ascii()
+            ->lower()
+            ->toString();
+    }
+
+    public function getIsPaidAttribute(): bool
+    {
+        $paiements = $this->relationLoaded('paiements') ? $this->paiements : collect();
+
+        $hasValidated = $paiements->contains(
+            fn($p) => \Illuminate\Support\Str::of($p->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString() === 'valide'
+        );
+
+        $latest = $paiements->sortByDesc('created_at')->first();
+        $latestStatus = \Illuminate\Support\Str::of(optional($latest)->statut ?? '')->replace('?', 'e')->ascii()->lower()->toString();
+
+        return $latestStatus === 'valide' || ($hasValidated && $latestStatus === '');
+    }
+
     public function getStatutBadgeAttribute()
     {
         $badges = [

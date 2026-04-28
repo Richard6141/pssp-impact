@@ -46,27 +46,8 @@
                                 <tbody>
                                     @foreach($factures as $index => $facture)
                                     @php
-                                    $statutFacture = \Illuminate\Support\Str::of($facture->statut ?? '')
-                                        ->replace('?', 'e')
-                                        ->ascii()
-                                        ->lower()
-                                        ->toString();
-                                    $hasValidatedPayment = $facture->paiements->contains(function ($paiement) {
-                                        $status = \Illuminate\Support\Str::of($paiement->statut ?? '')
-                                            ->replace('?', 'e')
-                                            ->ascii()
-                                            ->lower()
-                                            ->toString();
-
-                                        return $status === 'valide';
-                                    });
-                                    $latestPayment = $facture->paiements->sortByDesc('created_at')->first();
-                                    $latestPaymentStatus = \Illuminate\Support\Str::of(optional($latestPayment)->statut ?? '')
-                                        ->replace('?', 'e')
-                                        ->ascii()
-                                        ->lower()
-                                        ->toString();
-                                    $isPaidFacture = $latestPaymentStatus === 'valide' || ($hasValidatedPayment && $latestPaymentStatus === '');
+                                    $statutFacture = $facture->statut_normalise;
+                                    $isPaidFacture = $facture->is_paid;
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
