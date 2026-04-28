@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Traits\HasVisibleSiteIds;
 
 class FactureController extends Controller
 {
+    use HasVisibleSiteIds;
     private function eligibleCollectesQuery(string $siteId, ?string $factureId = null)
     {
         $query = Collecte::with(['typeDechet'])
@@ -46,20 +48,6 @@ class FactureController extends Controller
             ->all();
 
         return array_values(array_diff(array_map('strval', $collecteIds), $allowedIds));
-    }
-
-    private function getVisibleSiteIds(): array
-    {
-        $user = auth()->user();
-        $siteIds = $user->sites()->pluck('sites.site_id')->all();
-        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
-        $siteIds = array_merge($siteIds, $responsableSiteIds);
-
-        if (!empty($user->site_id)) {
-            $siteIds[] = $user->site_id;
-        }
-
-        return array_values(array_unique(array_filter($siteIds)));
     }
 
     private function applyVisibility($query)

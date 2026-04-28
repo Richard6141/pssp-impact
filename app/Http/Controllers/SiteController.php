@@ -8,26 +8,14 @@ use App\Models\User;
 use Illuminate\Support\Str;
 use App\Services\SiteImportService;
 use Illuminate\Validation\Rule;
+use App\Traits\HasVisibleSiteIds;
 
 class SiteController extends Controller
 {
+    use HasVisibleSiteIds;
+
     public function __construct(private SiteImportService $siteImportService)
     {
-    }
-
-    private function getVisibleSiteIds()
-    {
-        $user = auth()->user();
-        $siteIds = $user->sites()->pluck('sites.site_id')->all();
-        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
-
-        $siteIds = array_merge($siteIds, $responsableSiteIds);
-
-        if (!empty($user->site_id)) {
-            $siteIds[] = $user->site_id;
-        }
-
-        return array_values(array_unique(array_filter($siteIds)));
     }
 
     private function applySiteVisibility($query)

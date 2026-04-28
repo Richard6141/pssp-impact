@@ -9,9 +9,11 @@ use App\Models\Site;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Traits\HasVisibleSiteIds;
 
 class CollecteController extends Controller
 {
+    use HasVisibleSiteIds;
     private function applyCollecteVisibility($query)
     {
         $user = auth()->user();
@@ -48,20 +50,7 @@ class CollecteController extends Controller
         return $query;
     }
 
-    private function getVisibleSiteIds()
-    {
-        $user = auth()->user();
-        $siteIds = $user->sites()->pluck('sites.site_id')->all();
-        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
 
-        $siteIds = array_merge($siteIds, $responsableSiteIds);
-
-        if (!empty($user->site_id)) {
-            $siteIds[] = $user->site_id;
-        }
-
-        return array_values(array_unique(array_filter($siteIds)));
-    }
 
     private function ensureSiteAllowed(string $siteId): void
     {

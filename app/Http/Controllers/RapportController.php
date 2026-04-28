@@ -16,24 +16,11 @@ use Illuminate\Support\Facades\DB;
 use PDF; // ou use Barryvdh\DomPDF\Facade\Pdf;
 use Excel; // ou use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\FinancierExport;
+use App\Traits\HasVisibleSiteIds;
 
 class RapportController extends Controller
 {
-    private function getVisibleSiteIds()
-    {
-        $user = auth()->user();
-        $siteIds = $user->sites()->pluck('sites.site_id')->all();
-        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
-
-        $siteIds = array_merge($siteIds, $responsableSiteIds);
-
-        if (!empty($user->site_id)) {
-            $siteIds[] = $user->site_id;
-        }
-
-        return array_values(array_unique(array_filter($siteIds)));
-    }
-
+    use HasVisibleSiteIds;
     private function applyCollecteVisibility($query)
     {
         $user = auth()->user();
@@ -361,7 +348,7 @@ class RapportController extends Controller
      */
     public function exportExcel(Request $request, $type)
     {
-        // À implémenter avec Laravel Excel
+        // ï¿½ implï¿½menter avec Laravel Excel
         // return Excel::download(new CollectesExport($request), 'collectes.xlsx');
     }
 

@@ -10,9 +10,11 @@ use App\Services\ComptabiliteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Traits\HasVisibleSiteIds;
 
 class PaiementController extends Controller
 {
+    use HasVisibleSiteIds;
     private function normalizedStatus(?string $status): string
     {
         return (string) Str::of((string) $status)
@@ -53,20 +55,6 @@ class PaiementController extends Controller
         Storage::disk('public')->put($filename, $pdf->output());
 
         return $filename;
-    }
-
-    private function getVisibleSiteIds(): array
-    {
-        $user = auth()->user();
-        $siteIds = $user->sites()->pluck('sites.site_id')->all();
-        $responsableSiteIds = Site::where('responsable', $user->user_id)->pluck('site_id')->all();
-        $siteIds = array_merge($siteIds, $responsableSiteIds);
-
-        if (!empty($user->site_id)) {
-            $siteIds[] = $user->site_id;
-        }
-
-        return array_values(array_unique(array_filter($siteIds)));
     }
 
     private function applyVisibility($query)
