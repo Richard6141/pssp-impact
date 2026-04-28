@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Mail\PasswordResetMail;
 
 class PasswordResetController extends Controller
 {
@@ -42,11 +43,7 @@ class PasswordResetController extends Controller
 
         $resetUrl = route('password.reset', ['token' => $token, 'email' => $request->email]);
 
-        // Envoi email (ici simplifié, tu peux remplacer par Mailable)
-        Mail::raw("Cliquez sur ce lien pour réinitialiser votre mot de passe : $resetUrl", function ($message) use ($request) {
-            $message->to($request->email)
-                ->subject("Réinitialisation du mot de passe");
-        });
+        Mail::to($request->email)->send(new PasswordResetMail($resetUrl, $request->email));
 
         return back()->with('status', "Un lien de réinitialisation a été envoyé à votre adresse email.");
     }
