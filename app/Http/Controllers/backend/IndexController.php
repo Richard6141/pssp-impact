@@ -12,6 +12,7 @@ use App\Models\Validation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\Controller;
 
 class IndexController extends Controller
@@ -86,19 +87,23 @@ class IndexController extends Controller
                 ->where('signature_responsable_site', false)
                 ->count();
 
+            $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
+            $rawEvol6 = Collecte::whereIn('site_id', $siteIds)
+                ->where('date_collecte', '>=', $sixMonthsAgo)
+                ->selectRaw('YEAR(date_collecte) as annee, MONTH(date_collecte) as mois, COUNT(*) as total, SUM(poids) as poids_total')
+                ->groupByRaw('YEAR(date_collecte), MONTH(date_collecte)')
+                ->get()
+                ->keyBy(fn($r) => $r->annee . '-' . str_pad($r->mois, 2, '0', STR_PAD_LEFT));
+
             $evolutionCollectesResponsable = [];
             for ($i = 5; $i >= 0; $i--) {
                 $month = Carbon::now()->subMonths($i);
+                $key = $month->format('Y-m');
+                $row = $rawEvol6->get($key);
                 $evolutionCollectesResponsable[] = [
-                    'label' => $month->translatedFormat('M Y'),
-                    'collectes' => Collecte::whereIn('site_id', $siteIds)
-                        ->whereMonth('date_collecte', $month->month)
-                        ->whereYear('date_collecte', $month->year)
-                        ->count(),
-                    'poids' => Collecte::whereIn('site_id', $siteIds)
-                        ->whereMonth('date_collecte', $month->month)
-                        ->whereYear('date_collecte', $month->year)
-                        ->sum('poids'),
+                    'label'     => $month->translatedFormat('M Y'),
+                    'collectes' => $row ? (int) $row->total : 0,
+                    'poids'     => $row ? (float) $row->poids_total : 0.0,
                 ];
             }
 
@@ -140,62 +145,67 @@ class IndexController extends Controller
             ));
         }
 
-        // ===== STATISTIQUES PRINCIPALES =====
+        // ===== STATISTIQUES PRINCIPALES (cachées 5 minutes) =====
+        $statsKey = 'dashboard_stats_' . floor(now()->timestamp / 300);
+        $stats = Cache::remember($statsKey, 300, function () {
+            $n = Carbon::now();
+            $prev = $n->copy()->subMonth();
 
-        // Collectes avec comparaison mensuelle
-        $collectesTotal = Collecte::whereMonth('date_collecte', $now->month)
-            ->whereYear('date_collecte', $now->year)
-            ->count();
+            $collectesTotal        = Collecte::whereMonth('date_collecte', $n->month)->whereYear('date_collecte', $n->year)->count();
+            $collectesMoisPrecedent = Collecte::whereMonth('date_collecte', $prev->month)->whereYear('date_collecte', $prev->year)->count();
+            $facturesTotal         = Facture::whereMonth('created_at', $n->month)->whereYear('created_at', $n->year)->count();
+            $facturesMoisPrecedent = Facture::whereMonth('created_at', $prev->month)->whereYear('created_at', $prev->year)->count();
+            $montantTotal          = Facture::whereMonth('created_at', $n->month)->whereYear('created_at', $n->year)->sum('montant_facture');
+            $montantMoisPrecedent  = Facture::whereMonth('created_at', $prev->month)->whereYear('created_at', $prev->year)->sum('montant_facture');
 
-        $collectesMoisPrecedent = Collecte::whereMonth('date_collecte', $now->subMonth()->month)
-            ->whereYear('date_collecte', $now->subMonth()->year)
-            ->count();
+            return [
+                'collectesTotal'         => $collectesTotal,
+                'collectesMoisPrecedent' => $collectesMoisPrecedent,
+                'facturesTotal'          => $facturesTotal,
+                'facturesMoisPrecedent'  => $facturesMoisPrecedent,
+                'montantTotal'           => $montantTotal,
+                'montantMoisPrecedent'   => $montantMoisPrecedent,
+                'sitesActifs'            => Site::has('collectes')->count(),
+                'nouveauxSites'          => Site::whereMonth('created_at', $n->month)->count(),
+            ];
+        });
+
+        $collectesTotal         = $stats['collectesTotal'];
+        $collectesMoisPrecedent = $stats['collectesMoisPrecedent'];
+        $facturesTotal          = $stats['facturesTotal'];
+        $facturesMoisPrecedent  = $stats['facturesMoisPrecedent'];
+        $montantTotal           = $stats['montantTotal'];
+        $montantMoisPrecedent   = $stats['montantMoisPrecedent'];
+        $sitesActifs            = $stats['sitesActifs'];
+        $nouveauxSites          = $stats['nouveauxSites'];
 
         $croissanceCollectes = $collectesMoisPrecedent > 0
-            ? round((($collectesTotal - $collectesMoisPrecedent) / $collectesMoisPrecedent) * 100, 1)
-            : 0;
-
-        // Factures avec évolution
-        $facturesTotal = Facture::whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->count();
-
-        $facturesMoisPrecedent = Facture::whereMonth('created_at', $now->subMonth()->month)
-            ->whereYear('created_at', $now->subMonth()->year)
-            ->count();
-
+            ? round((($collectesTotal - $collectesMoisPrecedent) / $collectesMoisPrecedent) * 100, 1) : 0;
         $croissanceFactures = $facturesMoisPrecedent > 0
-            ? round((($facturesTotal - $facturesMoisPrecedent) / $facturesMoisPrecedent) * 100, 1)
-            : 0;
-
-        // Revenus avec comparaison
-        $montantTotal = Facture::whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
-            ->sum('montant_facture');
-
-        $montantMoisPrecedent = Facture::whereMonth('created_at', $now->subMonth()->month)
-            ->whereYear('created_at', $now->subMonth()->year)
-            ->sum('montant_facture');
-
+            ? round((($facturesTotal - $facturesMoisPrecedent) / $facturesMoisPrecedent) * 100, 1) : 0;
         $croissanceRevenus = $montantMoisPrecedent > 0
-            ? round((($montantTotal - $montantMoisPrecedent) / $montantMoisPrecedent) * 100, 1)
-            : 0;
-
-        // Sites actifs et nouveaux
-        $sitesActifs = Site::has('collectes')->count();
-        $nouveauxSites = Site::whereMonth('created_at', $now->month)->count();
+            ? round((($montantTotal - $montantMoisPrecedent) / $montantMoisPrecedent) * 100, 1) : 0;
 
         // ===== DONNÉES POUR GRAPHIQUES =====
 
-        // Évolution des collectes (7 derniers jours)
+        // Évolution des collectes (7 derniers jours) — 1 requête GROUP BY
+        $sevenDaysAgo = Carbon::now()->subDays(6)->startOfDay();
+        $rawEvol7 = Collecte::where('date_collecte', '>=', $sevenDaysAgo)
+            ->selectRaw('DATE(date_collecte) as date_jour, COUNT(*) as total, SUM(poids) as poids_total')
+            ->groupByRaw('DATE(date_collecte)')
+            ->get()
+            ->keyBy('date_jour');
+
         $evolutionCollectes = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
+            $key = $date->format('Y-m-d');
+            $row = $rawEvol7->get($key);
             $evolutionCollectes[] = [
-                'date' => $date->format('Y-m-d'),
-                'label' => $date->format('D'),
-                'collectes' => Collecte::whereDate('date_collecte', $date)->count(),
-                'poids' => Collecte::whereDate('date_collecte', $date)->sum('poids')
+                'date'      => $key,
+                'label'     => $date->format('D'),
+                'collectes' => $row ? (int) $row->total : 0,
+                'poids'     => $row ? (float) $row->poids_total : 0.0,
             ];
         }
 
@@ -212,18 +222,29 @@ class IndexController extends Controller
             ->groupBy('type_dechets.type_dechet_id', 'type_dechets.libelle')
             ->get();
 
-        // Évolution mensuelle (12 derniers mois)
+        // Évolution mensuelle (12 derniers mois) — 2 requêtes GROUP BY
+        $twelveMonthsAgo = Carbon::now()->subMonths(11)->startOfMonth();
+
+        $rawCollectes12 = Collecte::where('date_collecte', '>=', $twelveMonthsAgo)
+            ->selectRaw('YEAR(date_collecte) as annee, MONTH(date_collecte) as mois, COUNT(*) as total')
+            ->groupByRaw('YEAR(date_collecte), MONTH(date_collecte)')
+            ->get()
+            ->keyBy(fn($r) => $r->annee . '-' . str_pad($r->mois, 2, '0', STR_PAD_LEFT));
+
+        $rawFactures12 = Facture::where('created_at', '>=', $twelveMonthsAgo)
+            ->selectRaw('YEAR(created_at) as annee, MONTH(created_at) as mois, SUM(montant_facture) as total_montant')
+            ->groupByRaw('YEAR(created_at), MONTH(created_at)')
+            ->get()
+            ->keyBy(fn($r) => $r->annee . '-' . str_pad($r->mois, 2, '0', STR_PAD_LEFT));
+
         $evolutionMensuelle = [];
         for ($i = 11; $i >= 0; $i--) {
             $mois = Carbon::now()->subMonths($i);
+            $key = $mois->format('Y-m');
             $evolutionMensuelle[] = [
-                'mois' => $mois->format('M Y'),
-                'collectes' => Collecte::whereMonth('date_collecte', $mois->month)
-                    ->whereYear('date_collecte', $mois->year)
-                    ->count(),
-                'revenus' => Facture::whereMonth('created_at', $mois->month)
-                    ->whereYear('created_at', $mois->year)
-                    ->sum('montant_facture')
+                'mois'      => $mois->format('M Y'),
+                'collectes' => (int) ($rawCollectes12->get($key)?->total ?? 0),
+                'revenus'   => (float) ($rawFactures12->get($key)?->total_montant ?? 0),
             ];
         }
 
@@ -404,59 +425,65 @@ class IndexController extends Controller
 
     private function getWeeklyData()
     {
-        $labels = [];
-        $collectesData = [];
-        $poidsData = [];
+        $sevenDaysAgo = Carbon::now()->subDays(6)->startOfDay();
+        $rows = Collecte::where('date_collecte', '>=', $sevenDaysAgo)
+            ->selectRaw('DATE(date_collecte) as date_jour, COUNT(*) as total, SUM(poids) as poids_total')
+            ->groupByRaw('DATE(date_collecte)')
+            ->get()
+            ->keyBy('date_jour');
 
+        $labels = $collectesData = $poidsData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $labels[] = $date->format('D');
-            $collectesData[] = Collecte::whereDate('date_collecte', $date)->count();
-            $poidsData[] = Collecte::whereDate('date_collecte', $date)->sum('poids');
+            $key = $date->format('Y-m-d');
+            $row = $rows->get($key);
+            $labels[]       = $date->format('D');
+            $collectesData[] = $row ? (int) $row->total : 0;
+            $poidsData[]    = $row ? (float) $row->poids_total : 0.0;
         }
 
-        return [
-            'labels' => $labels,
-            'collectes' => $collectesData,
-            'poids' => $poidsData
-        ];
+        return ['labels' => $labels, 'collectes' => $collectesData, 'poids' => $poidsData];
     }
 
     private function getMonthlyData()
     {
-        $labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
-        $collectesData = [];
+        $startOfMonth = Carbon::now()->startOfMonth();
+        $endOfMonth   = Carbon::now()->endOfMonth();
 
-        for ($i = 1; $i <= 4; $i++) {
-            $startWeek = Carbon::now()->startOfMonth()->addWeeks($i - 1);
-            $endWeek = $startWeek->copy()->addDays(6);
+        $rows = Collecte::whereBetween('date_collecte', [$startOfMonth, $endOfMonth])
+            ->selectRaw('CEIL(DAY(date_collecte) / 7) as semaine, COUNT(*) as total')
+            ->groupByRaw('CEIL(DAY(date_collecte) / 7)')
+            ->orderBy('semaine')
+            ->pluck('total', 'semaine');
 
-            $collectesData[] = Collecte::whereBetween('date_collecte', [$startWeek, $endWeek])->count();
-        }
-
-        return [
-            'labels' => $labels,
-            'collectes' => $collectesData
+        $collectesData = [
+            (int) ($rows->get(1) ?? 0),
+            (int) ($rows->get(2) ?? 0),
+            (int) ($rows->get(3) ?? 0),
+            (int) ($rows->get(4, $rows->get(5, 0)) ?? 0),
         ];
+
+        return ['labels' => ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'], 'collectes' => $collectesData];
     }
 
     private function getQuarterlyData()
     {
-        $labels = [];
-        $collectesData = [];
+        $threeMonthsAgo = Carbon::now()->subMonths(2)->startOfMonth();
+        $rows = Collecte::where('date_collecte', '>=', $threeMonthsAgo)
+            ->selectRaw('YEAR(date_collecte) as annee, MONTH(date_collecte) as mois, COUNT(*) as total')
+            ->groupByRaw('YEAR(date_collecte), MONTH(date_collecte)')
+            ->get()
+            ->keyBy(fn($r) => $r->annee . '-' . str_pad($r->mois, 2, '0', STR_PAD_LEFT));
 
+        $labels = $collectesData = [];
         for ($i = 2; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
-            $labels[] = $month->format('M');
-            $collectesData[] = Collecte::whereMonth('date_collecte', $month->month)
-                ->whereYear('date_collecte', $month->year)
-                ->count();
+            $key = $month->format('Y-m');
+            $labels[]        = $month->format('M');
+            $collectesData[] = (int) ($rows->get($key)?->total ?? 0);
         }
 
-        return [
-            'labels' => $labels,
-            'collectes' => $collectesData
-        ];
+        return ['labels' => $labels, 'collectes' => $collectesData];
     }
 
     public function refreshData()
