@@ -145,6 +145,90 @@ class IndexController extends Controller
             ));
         }
 
+        if ($user && $user->hasRole('Comptable Site')) {
+            $siteIds = $this->getResponsableSiteIds();
+
+            $cs_facturesMois = Facture::whereIn('site_id', $siteIds)
+                ->whereMonth('date_facture', $now->month)
+                ->whereYear('date_facture', $now->year)
+                ->count();
+
+            $cs_montantMois = Facture::whereIn('site_id', $siteIds)
+                ->whereMonth('date_facture', $now->month)
+                ->whereYear('date_facture', $now->year)
+                ->sum('montant_facture');
+
+            $cs_facturesPayees = Facture::whereIn('site_id', $siteIds)
+                ->whereIn('statut', ['payee', 'payée'])
+                ->count();
+
+            $cs_facturesEnAttente = Facture::whereIn('site_id', $siteIds)
+                ->whereNotIn('statut', ['payee', 'payée'])
+                ->count();
+
+            $cs_paiementsEnAttente = Paiement::whereHas('facture', function ($q) use ($siteIds) {
+                $q->whereIn('site_id', $siteIds);
+            })->whereNotIn('statut', ['valide', 'validé', 'validate'])->count();
+
+            $cs_collectesMois = Collecte::whereIn('site_id', $siteIds)
+                ->whereMonth('date_collecte', $now->month)
+                ->whereYear('date_collecte', $now->year)
+                ->count();
+
+            $sixMonthsAgo = Carbon::now()->subMonths(5)->startOfMonth();
+            $cs_rawFactures6 = Facture::whereIn('site_id', $siteIds)
+                ->where('date_facture', '>=', $sixMonthsAgo)
+                ->selectRaw('YEAR(date_facture) as annee, MONTH(date_facture) as mois, SUM(montant_facture) as total_montant, COUNT(*) as total')
+                ->groupByRaw('YEAR(date_facture), MONTH(date_facture)')
+                ->get()
+                ->keyBy(fn($r) => $r->annee . '-' . str_pad($r->mois, 2, '0', STR_PAD_LEFT));
+
+            $cs_evolutionRevenus = [];
+            for ($i = 5; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+                $key = $month->format('Y-m');
+                $row = $cs_rawFactures6->get($key);
+                $cs_evolutionRevenus[] = [
+                    'label'   => $month->translatedFormat('M Y'),
+                    'montant' => $row ? (float) $row->total_montant : 0.0,
+                    'count'   => $row ? (int) $row->total : 0,
+                ];
+            }
+
+            $cs_repartitionStatuts = [
+                'payees'     => $cs_facturesPayees,
+                'en_attente' => $cs_facturesEnAttente,
+            ];
+
+            $cs_dernieresFactures = Facture::with(['site'])
+                ->whereIn('site_id', $siteIds)
+                ->latest('date_facture')
+                ->take(6)
+                ->get();
+
+            $cs_derniersPaiements = Paiement::with(['facture.site'])
+                ->whereHas('facture', function ($q) use ($siteIds) {
+                    $q->whereIn('site_id', $siteIds);
+                })
+                ->latest()
+                ->take(5)
+                ->get();
+
+            return view('backend.index', compact(
+                'siteIds',
+                'cs_facturesMois',
+                'cs_montantMois',
+                'cs_facturesPayees',
+                'cs_facturesEnAttente',
+                'cs_paiementsEnAttente',
+                'cs_collectesMois',
+                'cs_evolutionRevenus',
+                'cs_repartitionStatuts',
+                'cs_dernieresFactures',
+                'cs_derniersPaiements'
+            ));
+        }
+
         // ===== STATISTIQUES PRINCIPALES (cachées 5 minutes) =====
         $statsKey = 'dashboard_stats_' . floor(now()->timestamp / 300);
         $stats = Cache::remember($statsKey, 300, function () {
