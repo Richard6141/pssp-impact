@@ -896,7 +896,7 @@
         // ===== GRAPHIQUE D'ÉVOLUTION DES COLLECTES =====
         @can('rapports.collectes')
         try {
-            const evolutionData = @json($evolutionCollectes);
+            const evolutionData = @json($evolutionCollectes ?? []);
             const ctxCollectes = document.getElementById('collectesChart');
 
             if (ctxCollectes) {
@@ -966,7 +966,7 @@
         // ===== GRAPHIQUE RÉPARTITION PAR TYPE =====
         @can('rapports.collectes')
         try {
-            const typesData = @json($typesDechets);
+            const typesData = @json($typesDechets ?? []);
             const ctxTypes = document.getElementById('typesChart');
 
             if (ctxTypes && typesData.length > 0) {
@@ -1010,7 +1010,7 @@
         // ===== GRAPHIQUE ÉVOLUTION MENSUELLE =====
         @can('rapports.financier')
         try {
-            const evolutionMenData = @json($evolutionMensuelle);
+            const evolutionMenData = @json($evolutionMensuelle ?? []);
             const ctxEvolution = document.getElementById('evolutionChart');
 
             if (ctxEvolution && evolutionMenData.length > 0) {
