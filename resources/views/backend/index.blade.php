@@ -147,6 +147,189 @@
     </section>
     @endif
 
+    @if(auth()->check() && auth()->user()->hasRole('Comptable Site'))
+    <div class="pagetitle">
+        <h1>Tableau de bord Comptable</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
+                <li class="breadcrumb-item active">Vue Comptable Établissement</li>
+            </ol>
+        </nav>
+    </div>
+
+    <section class="section dashboard">
+        <div class="row g-3">
+
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#103783,#1a59d1);color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Factures du mois</small>
+                        <h4 class="mb-0">{{ $cs_facturesMois ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#0a7c53,#18aa70);color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Montant facturé</small>
+                        <h4 class="mb-0" style="font-size:1rem;">{{ number_format($cs_montantMois ?? 0, 0, ',', ' ') }} FCFA</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#19692c,#28a745);color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Factures payées</small>
+                        <h4 class="mb-0">{{ $cs_facturesPayees ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#88510a,#d27b10);color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Factures en attente</small>
+                        <h4 class="mb-0">{{ $cs_facturesEnAttente ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#4a4f58,#6c757d);color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Paiements soumis</small>
+                        <h4 class="mb-0">{{ $cs_paiementsEnAttente ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xxl-2 col-md-4 col-6">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#4b1f83,#8f4de2);color:#fff;">
+                    <div class="card-body py-3">
+                        <small>Collectes du mois</small>
+                        <h4 class="mb-0">{{ $cs_collectesMois ?? 0 }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Revenus facturés — 6 derniers mois</h5>
+                        <div id="csRevenusChart" style="min-height:300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Répartition des factures</h5>
+                        <div id="csStatutsChart" style="min-height:300px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Dernières factures de mon établissement</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle text-nowrap">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Numéro</th>
+                                        <th>Date</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse(($cs_dernieresFactures ?? []) as $facture)
+                                    @php
+                                        $sf = $facture->statut_normalise;
+                                        $isPaid = in_array($sf, ['payee', 'paye']);
+                                    @endphp
+                                    <tr>
+                                        <td><small>{{ $facture->numero_facture }}</small></td>
+                                        <td>{{ optional($facture->date_facture)->format('d/m/Y') }}</td>
+                                        <td>{{ number_format($facture->montant_facture, 0, ',', ' ') }} FCFA</td>
+                                        <td>
+                                            <span class="badge {{ $isPaid ? 'bg-success' : 'bg-warning text-dark' }}">
+                                                {{ $isPaid ? 'Payée' : 'En attente' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if(!$isPaid)
+                                            @can('paiements.record')
+                                            <a href="{{ route('paiements.create', ['facture_id' => $facture->facture_id]) }}"
+                                               class="btn btn-sm btn-outline-primary py-0">
+                                                Soumettre paiement
+                                            </a>
+                                            @endcan
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr><td colspan="5" class="text-muted text-center">Aucune facture.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{{ route('factures.index') }}" class="btn btn-sm btn-link p-0 mt-2">Voir toutes les factures →</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">Derniers paiements soumis</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Montant</th>
+                                        <th>Mode</th>
+                                        <th>Date</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse(($cs_derniersPaiements ?? []) as $paiement)
+                                    @php
+                                        $sp = \Illuminate\Support\Str::of($paiement->statut ?? '')->replace('?','e')->ascii()->lower()->toString();
+                                        $badgeClass = match(true) {
+                                            in_array($sp, ['valide','validé','validate']) => 'bg-success',
+                                            in_array($sp, ['annule','annulé']) => 'bg-danger',
+                                            default => 'bg-warning text-dark',
+                                        };
+                                    @endphp
+                                    <tr>
+                                        <td>{{ number_format($paiement->montant, 0, ',', ' ') }} FCFA</td>
+                                        <td><small>{{ $paiement->mode_paiement ?? '-' }}</small></td>
+                                        <td><small>{{ optional($paiement->created_at)->format('d/m/Y') }}</small></td>
+                                        <td><span class="badge {{ $badgeClass }}">{{ ucfirst($paiement->statut ?? 'En attente') }}</span></td>
+                                    </tr>
+                                    @empty
+                                    <tr><td colspan="4" class="text-muted text-center">Aucun paiement soumis.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{{ route('paiements.index') }}" class="btn btn-sm btn-link p-0 mt-2">Voir tous les paiements →</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    @endif
+
     @if(auth()->check() && auth()->user()->hasRole(['Super Admin','Coordonnateur','Comptable','Agent marketing','Administrateur','Agent collecte']))
     <div class="pagetitle">
         <h1>Dashboard</h1>
@@ -653,7 +836,62 @@
             console.error('Erreur dashboard responsable:', error);
         }
 
+        // ===== DASHBOARD COMPTABLE SITE =====
+        try {
+            const csRevenusTarget = document.getElementById('csRevenusChart');
+            const csStatutsTarget = document.getElementById('csStatutsChart');
 
+            if (csRevenusTarget) {
+                const csEvolution = @json($cs_evolutionRevenus ?? []);
+                const csCanvas = document.createElement('canvas');
+                csRevenusTarget.appendChild(csCanvas);
+
+                new Chart(csCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: csEvolution.map(item => item.label),
+                        datasets: [{
+                            label: 'Montant facturé (FCFA)',
+                            data: csEvolution.map(item => item.montant),
+                            backgroundColor: 'rgba(26, 89, 209, 0.75)',
+                            borderColor: '#1a59d1',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'top' } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            if (csStatutsTarget) {
+                const csStatuts = @json($cs_repartitionStatuts ?? ['payees' => 0, 'en_attente' => 0]);
+                const csStatutsCanvas = document.createElement('canvas');
+                csStatutsTarget.appendChild(csStatutsCanvas);
+
+                new Chart(csStatutsCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Payées', 'En attente'],
+                        datasets: [{
+                            data: [csStatuts.payees || 0, csStatuts.en_attente || 0],
+                            backgroundColor: ['#28a745', '#f0ad4e']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Erreur dashboard comptable site:', error);
+        }
 
         // ===== GRAPHIQUE D'ÉVOLUTION DES COLLECTES =====
         @can('rapports.collectes')
