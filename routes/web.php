@@ -217,9 +217,6 @@ Route::middleware(['auth'])->prefix('factures')->name('factures.')->group(functi
         ->name('collectes-by-site');
 });
 
-// Route de debug (à supprimer en production)
-Route::get('/debug-factures', [FactureController::class, 'debug'])->middleware('auth');
-
 // === GESTION DES PAIEMENTS ===
 Route::middleware(['auth'])->prefix('paiements')->name('paiements.')->group(function () {
     Route::get('/', [PaiementController::class, 'index'])
@@ -328,12 +325,12 @@ Route::middleware(['auth'])->prefix('validations')->name('validations.')->group(
 // === GESTION DES CONFIGURATIONS ===
 Route::middleware(['auth'])->group(function () {
     Route::get('/configurations', [ConfigurationController::class, 'index'])
-        //->middleware('can:configurations.view')
+        ->middleware('can:configurations.view')
         ->name('configuration');
 
     // Routes pour les rôles
     Route::post('/roles', [ConfigurationController::class, 'storeRole'])
-        //->middleware('can:roles.create')
+        ->middleware('can:roles.create')
         ->name('roles.store');
 
     Route::delete('/roles/{id}/delete', [ConfigurationController::class, 'destroyRole'])
@@ -342,29 +339,29 @@ Route::middleware(['auth'])->group(function () {
 
     // Routes pour les permissions
     Route::post('/permissions', [ConfigurationController::class, 'storePermission'])
-        //->middleware('can:permissions.assign')
+        ->middleware('can:permissions.assign')
         ->name('permissions.store');
 
     Route::delete('/permissions/{id}/delete', [ConfigurationController::class, 'destroyPermission'])
-        //->middleware('can:permissions.revoke')
+        ->middleware('can:permissions.revoke')
         ->name('permissions.destroy');
 
     // Routes pour l'assignation des rôles
     Route::post('/assign-role', [ConfigurationController::class, 'assignRole'])
-        //->middleware('can:users.assign_roles')
+        ->middleware('can:users.assign_roles')
         ->name('assign-role');
 
     Route::get('/users/{user}/roles', [ConfigurationController::class, 'getUserRoles'])
-        //->middleware('can:users.view')
+        ->middleware('can:users.view')
         ->name('users.roles');
 
     // Routes utilitaires pour initialiser le système (Super Admin seulement)
     Route::post('/create-default-permissions', [ConfigurationController::class, 'createDefaultPermissions'])
-        //->middleware('role:Super Admin')
+        ->middleware('role:Super Admin')
         ->name('create-default-permissions');
 
     Route::post('/create-default-roles', [ConfigurationController::class, 'createDefaultRoles'])
-        //->middleware('role:Super Admin')
+        ->middleware('role:Super Admin')
         ->name('create-default-roles');
 });
 
@@ -452,11 +449,11 @@ Route::middleware(['auth'])->prefix('system')->name('system.')->group(function (
 
     // Informations système
     Route::get('/info', [SystemController::class, 'info'])
-        //->middleware('can:system.info')
+        ->middleware('can:system.info')
         ->name('info');
 
     Route::get('/database', [SystemController::class, 'database'])
-        //->middleware('can:system.database')
+        ->middleware('can:system.database')
         ->name('database');
 
     // À ajouter dans vos routes

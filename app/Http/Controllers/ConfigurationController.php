@@ -15,6 +15,8 @@ class ConfigurationController extends Controller
 
     public function index()
     {
+        $this->authorize('configurations.view');
+
         $sites = Site::all();
         $typesDechets = TypeDechet::all();
 
@@ -54,6 +56,8 @@ class ConfigurationController extends Controller
      */
     public function storeRole(Request $request)
     {
+        $this->authorize('roles.create');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:roles,name',
             'permissions' => 'array',
@@ -81,10 +85,12 @@ class ConfigurationController extends Controller
      */
     public function destroyRole($id)
     {
+        $this->authorize('roles.delete');
+
         $role = Role::findOrFail($id);
 
-        if ($role->name === 'admin') {
-            return redirect()->route('configuration')->with('error', 'Le rôle admin ne peut pas être supprimé!');
+        if (in_array($role->name, ['Super Admin', 'admin'])) {
+            return redirect()->route('configuration')->with('error', 'Ce rôle système ne peut pas être supprimé!');
         }
 
         $role->delete();
@@ -98,6 +104,8 @@ class ConfigurationController extends Controller
      */
     public function storePermission(Request $request)
     {
+        $this->authorize('permissions.assign');
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:permissions,name',
         ]);
@@ -112,6 +120,8 @@ class ConfigurationController extends Controller
      */
     public function destroyPermission($id)
     {
+        $this->authorize('permissions.revoke');
+
         $permission = Permission::findOrFail($id);
         $permission->delete();
         return redirect()->route('configuration')->with('success', 'Permission supprimée avec succès!');
@@ -124,6 +134,8 @@ class ConfigurationController extends Controller
      */
     public function assignRole(Request $request)
     {
+        $this->authorize('users.assign_roles');
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,user_id',
             'action' => 'required|in:assign,revoke',
@@ -132,6 +144,13 @@ class ConfigurationController extends Controller
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,name'
         ]);
+
+        // Seul un Super Admin peut attribuer le rôle Super Admin
+        if (isset($validated['roles']) && in_array('Super Admin', $validated['roles'])) {
+            if (!auth()->user()->hasRole('Super Admin')) {
+                abort(403, 'Seul un Super Admin peut attribuer ce rôle.');
+            }
+        }
 
         $user = User::findOrFail($validated['user_id']);
         $action = $validated['action'];
@@ -185,6 +204,8 @@ class ConfigurationController extends Controller
      */
     public function getUserRoles(User $user)
     {
+        $this->authorize('users.view');
+
         return response()->json([
             'roles' => $user->roles->pluck('name'),
             'permissions' => $user->getDirectPermissions()->pluck('name')
@@ -198,6 +219,10 @@ class ConfigurationController extends Controller
      */
     public function createDefaultPermissions()
     {
+        if (!auth()->user()->hasRole('Super Admin')) {
+            abort(403, 'Action réservée au Super Admin.');
+        }
+
         $permissions = [
             // Gestion des utilisateurs
             'view-users',
@@ -256,6 +281,10 @@ class ConfigurationController extends Controller
      */
     public function createDefaultRoles()
     {
+        if (!auth()->user()->hasRole('Super Admin')) {
+            abort(403, 'Action réservée au Super Admin.');
+        }
+
         $roles = [
             'admin' => [
                 'view-users',

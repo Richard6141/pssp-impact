@@ -112,4 +112,16 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Super Admin Emails
+    |--------------------------------------------------------------------------
+    | Emails qui reçoivent automatiquement le rôle Super Admin à l'inscription.
+    | Configurer via la variable d'environnement SUPER_ADMIN_EMAILS
+    | (liste séparée par des virgules).
+    */
+    'super_admin_emails' => array_filter(
+        array_map('trim', explode(',', env('SUPER_ADMIN_EMAILS', '')))
+    ),
+
 ];
