@@ -61,7 +61,7 @@ class PaiementController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site') || $user->hasPermissionTo('data.own_site_only')) {
             $query->whereHas('facture', function ($q) {
                 $q->whereIn('site_id', $this->getVisibleSiteIds());
             });
@@ -74,7 +74,7 @@ class PaiementController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site') || $user->hasPermissionTo('data.own_site_only')) {
             $allowedSites = $this->getVisibleSiteIds();
             $siteId = optional($paiement->facture)->site_id;
             if (!$siteId || !in_array($siteId, $allowedSites, true)) {
@@ -87,7 +87,7 @@ class PaiementController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site') || $user->hasPermissionTo('data.own_site_only')) {
             $allowedSites = $this->getVisibleSiteIds();
             if (!in_array($facture->site_id, $allowedSites, true)) {
                 abort(403);

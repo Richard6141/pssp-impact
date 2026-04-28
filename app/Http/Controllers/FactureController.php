@@ -54,7 +54,7 @@ class FactureController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site') || $user->hasPermissionTo('data.own_site_only')) {
             $query->whereIn('site_id', $this->getVisibleSiteIds());
         }
 
@@ -65,7 +65,7 @@ class FactureController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Responsable site')) {
+        if ($user->hasRole('Responsable site') || $user->hasPermissionTo('data.own_site_only')) {
             $allowedSites = $this->getVisibleSiteIds();
             if (!in_array($facture->site_id, $allowedSites, true)) {
                 abort(403);
