@@ -109,14 +109,7 @@ class RolesSeeder extends Seeder
                 // Collectes (consultation pour comprendre l'origine des factures)
                 'collectes.view',
 
-                // Sites
-                'sites.view',
-
-                // Rapports financiers de son établissement
-                'rapports.view',
-                'rapports.financier',
-
-                // Export PDF (reçus, rapports)
+                // Export PDF (reçus)
                 'export.pdf',
 
                 // Accès limité à son établissement uniquement
