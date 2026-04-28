@@ -867,4 +867,8 @@
     });
 </script>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('backend/assets/vendor/chart.js/chart.umd.js') }}"></script>
+@endpush
 @endsection
