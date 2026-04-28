@@ -31,6 +31,8 @@
 
     <!-- Template Main CSS File -->
     <link href="{{asset('backend/assets/css/style.css')}}" rel="stylesheet">
+
+    @stack('styles')
     
     <!-- PSSP IMPACT+ v2.0 Premium Design System -->
     <link href="{{asset('backend/assets/css/premium-design.css')}}" rel="stylesheet">

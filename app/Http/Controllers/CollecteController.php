@@ -15,14 +15,36 @@ class CollecteController extends Controller
     private function applyCollecteVisibility($query)
     {
         $user = auth()->user();
+
+        // Agent collecte : uniquement ses propres collectes
         if ($user->hasRole('Agent collecte')) {
             $query->where('agent_id', $user->user_id);
-        } elseif ($user->hasRole('Responsable site')) {
+            return $query;
+        }
+
+        // Responsable site : collectes des sites dont il est responsable
+        if ($user->hasRole('Responsable site')) {
             $query->whereHas('site', function ($q) use ($user) {
                 $q->where('responsable', $user->user_id);
             });
+            return $query;
         }
 
+        // Tout rôle avec data.own_site_only : uniquement les sites rattachés à l'utilisateur
+        if ($user->hasPermissionTo('data.own_site_only')) {
+            $siteIds = $user->sites()->pluck('sites.site_id')->toArray();
+            if ($user->site_id) {
+                $siteIds[] = $user->site_id;
+            }
+            $siteIds = array_unique(array_filter($siteIds));
+
+            if (!empty($siteIds)) {
+                $query->whereIn('site_id', $siteIds);
+            }
+            return $query;
+        }
+
+        // data.all_sites, Coordonnateur, Administrateur, Super Admin → voient tout
         return $query;
     }
 

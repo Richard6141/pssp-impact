@@ -85,7 +85,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Site</label>
-                        <select name="site_id" class="form-select">
+                        <select name="site_id" id="site_id_select" class="form-select select2-site">
                             <option value="">Aucun</option>
                             @foreach($sites as $site)
                             <option value="{{ $site->site_id }}"
@@ -103,14 +103,14 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Sites autorisés (Accès)</label>
-                        <select name="sites[]" class="form-select" multiple size="4">
+                        <select name="sites[]" id="sites_multiple_select" class="form-select select2-sites-multi" multiple>
                             @foreach($sites as $site)
                             <option value="{{ $site->site_id }}" {{ in_array($site->site_id, old('sites', $user->sites->pluck('site_id')->toArray())) ? 'selected' : '' }}>
                                 {{ $site->site_name }}
                             </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs sites.</div>
+                        <div class="form-text">Sélectionnez un ou plusieurs sites.</div>
                     </div>
 
                     <div class="col-md-6">
@@ -187,4 +187,28 @@
     </section>
 
 </main>
+
+@push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#site_id_select').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Rechercher un site...',
+            allowClear: true,
+            width: '100%'
+        });
+        $('#sites_multiple_select').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Rechercher des sites...',
+            width: '100%'
+        });
+    });
+</script>
+@endpush
 @endsection
