@@ -96,6 +96,33 @@ class RolesSeeder extends Seeder
                 'data.own_site_only',
             ],
 
+            // === COMPTABLE SITE (comptable d'établissement) ===
+            'Comptable Site' => [
+                // Consultation des factures de son établissement
+                'factures.view',
+                'factures.send',
+
+                // Paiements : soumettre et consulter
+                'paiements.view',
+                'paiements.record',
+
+                // Collectes (consultation pour comprendre l'origine des factures)
+                'collectes.view',
+
+                // Sites
+                'sites.view',
+
+                // Rapports financiers de son établissement
+                'rapports.view',
+                'rapports.financier',
+
+                // Export PDF (reçus, rapports)
+                'export.pdf',
+
+                // Accès limité à son établissement uniquement
+                'data.own_site_only',
+            ],
+
             // === COORDONNATEUR (mêmes permissions qu'Admin sauf système) ===
             'Coordonnateur' => 'all_except_system',
 
