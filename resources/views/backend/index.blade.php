@@ -347,11 +347,13 @@
     <section class="section dashboard">
         <div class="row">
 
-            <!-- ===== CARTES DE STATISTIQUES ===== -->
+            <!-- ===== CARTES DE STATISTIQUES (grille 6 colonnes) ===== -->
+            <div class="col-12">
+                <div class="kpi-grid">
 
             <!-- Collectes - Permission: collectes.view -->
             @can('collectes.view')
-            <div class="col-xxl-2 col-md-4 col-6">
+            <div class="kpi-cell">
                 <div class="card info-card collectes-card">
                     <div class="filter">
                         <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -386,7 +388,7 @@
 
             <!-- Factures - Permission: factures.view -->
             @can('factures.view')
-            <div class="col-xxl-2 col-md-4 col-6">
+            <div class="kpi-cell">
                 <div class="card info-card factures-card">
                     <div class="filter">
                         <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -421,7 +423,7 @@
 
             <!-- Revenus - Permission: rapports.financier -->
             @can('rapports.financier')
-            <div class="col-xxl-2 col-md-4 col-6">
+            <div class="kpi-cell">
                 <div class="card info-card revenue-card">
                     <div class="card-body">
                         <h5 class="card-title">Revenus <span>| Ce mois</span></h5>
@@ -445,7 +447,7 @@
 
             <!-- Sites Actifs - Permission: sites.view -->
             @can('sites.view')
-            <div class="col-xxl-2 col-md-4 col-6">
+            <div class="kpi-cell">
                 <div class="card info-card customers-card">
                     <div class="card-body">
                         <h5 class="card-title">Sites Actifs <span>| Total</span></h5>
@@ -468,7 +470,7 @@
 
             <!-- Taux de validation - Permission: validations.view -->
             @can('validations.view')
-            <div class="col-xxl-2 col-md-4 col-6">
+            <div class="kpi-cell">
                 <div class="card info-card validation-card">
                     <div class="card-body">
                         <h5 class="card-title">Taux de Validation</h5>
@@ -488,7 +490,7 @@
 
             <!-- Factures impayées - Permission: factures.view -->
             @can('factures.view')
-            <div class="col-xxl-2 col-md-4 col-6">
+            <div class="kpi-cell">
                 <div class="card info-card impayees-card">
                     <div class="card-body">
                         <h5 class="card-title">Factures Impayées</h5>
@@ -505,6 +507,9 @@
                 </div>
             </div>
             @endcan
+
+                </div><!-- /.kpi-grid -->
+            </div><!-- /.col-12 -->
 
             <!-- Actions Rapides : barre compacte -->
             @canany(['collectes.create', 'factures.create', 'sites.view', 'rapports.view'])
