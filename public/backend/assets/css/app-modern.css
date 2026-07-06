@@ -1,0 +1,253 @@
+/* ==================================================================
+   PSSP IMPACT+ v3.0 — Couche de modernisation (chargée en dernier)
+   Identité : vert institutionnel « précision clinique », cohérente
+   avec les nouvelles pages d'authentification.
+   ================================================================== */
+
+:root {
+  --primary: #1e7d47;
+  --primary-dark: #14522f;
+  --primary-light: #27995a;
+  --secondary: #2cb8a6;
+  --accent: #a3e635;
+
+  --pi-ink: #16211b;
+  --pi-ink-soft: #4c5e54;
+  --pi-paper: #f4f7f2;
+  --pi-line: #e3eae4;
+
+  --gradient-primary: linear-gradient(135deg, #1e7d47 0%, #14522f 100%);
+}
+
+/* ------------------------------------------------ Base ---------- */
+
+body {
+  background: var(--pi-paper);
+  color: var(--pi-ink);
+}
+
+a { color: var(--primary); }
+a:hover { color: var(--primary-dark); }
+
+/* ------------------------------------------------ En-têtes ------ */
+
+.pagetitle h1 {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.breadcrumb .active { color: var(--primary); }
+
+/* ------------------------------------------------ Sidebar ------- */
+
+.sidebar .nav-link {
+  color: var(--pi-ink-soft);
+  border-radius: 10px;
+  transition: background .15s, color .15s;
+}
+
+.sidebar .nav-link i { color: inherit; }
+
+.sidebar .nav-link:hover,
+.sidebar .nav-link.active {
+  color: var(--primary-dark);
+  background: #e7f3ea;
+}
+
+.sidebar .nav-link.collapsed {
+  color: var(--pi-ink-soft);
+  background: transparent;
+}
+
+.sidebar .nav-link.collapsed:hover {
+  color: var(--primary-dark);
+  background: #eef5ef;
+}
+
+.sidebar .nav-content a.active,
+.sidebar .nav-content a:hover {
+  color: var(--primary-dark);
+}
+
+.sidebar .nav-content a.active i {
+  background-color: var(--primary);
+}
+
+/* ------------------------------------------------ Cartes -------- */
+
+.card {
+  border: 1px solid var(--pi-line);
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(22, 33, 27, .05), 0 8px 24px rgba(22, 33, 27, .04);
+}
+
+.card-title {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+/* ------------------------------------------------ Boutons ------- */
+
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn {
+  border-radius: 9px;
+  transition: transform .12s, box-shadow .12s;
+}
+
+.btn:not(.btn-sm):not(.btn-close):hover {
+  transform: translateY(-1px);
+}
+
+/* ------------------------------------------------ Formulaires --- */
+
+.form-control,
+.form-select {
+  border-radius: 9px;
+  border-color: #d6e0d8;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 .2rem rgba(30, 125, 71, .12);
+}
+
+.form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ------------------------------------------------ Tableaux ------ */
+
+.table {
+  --bs-table-hover-bg: #f0f7f1;
+  vertical-align: middle;
+}
+
+.table > thead {
+  background: #eef4ef;
+}
+
+.table > thead th {
+  color: var(--primary-dark);
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  border-bottom: 2px solid #d3e2d6;
+  white-space: nowrap;
+}
+
+.table > tbody td {
+  color: var(--pi-ink);
+}
+
+.table > tbody tr {
+  transition: background .12s;
+}
+
+.table > tbody tr:hover {
+  background: #f0f7f1;
+}
+
+/* ------------------------------------------------ Pagination ---- */
+
+.page-link { color: var(--primary); border-radius: 8px; margin: 0 2px; }
+
+.page-item.active .page-link {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ------------------------------------------------ Badges -------- */
+
+.badge.bg-primary { background-color: var(--primary) !important; }
+
+/* ------------------------------------------------ Tables dynamiques */
+
+.dt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dt-search {
+  position: relative;
+  flex: 0 1 320px;
+}
+
+.dt-search i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8ba394;
+  pointer-events: none;
+}
+
+.dt-search input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  font-size: .9rem;
+  border: 1.5px solid #d6e0d8;
+  border-radius: 9px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.dt-search input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 .2rem rgba(30, 125, 71, .12);
+}
+
+.dt-count {
+  font-size: .82rem;
+  color: var(--pi-ink-soft);
+}
+
+th.dt-sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.dt-sortable:hover { color: var(--primary); }
+
+th.dt-sortable::after {
+  content: "\2195";
+  opacity: .35;
+  margin-left: 6px;
+  font-size: .75em;
+}
+
+th.dt-sortable.asc::after { content: "\2191"; opacity: 1; }
+th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
+
+.dt-empty-message td {
+  text-align: center;
+  color: var(--pi-ink-soft);
+  padding: 22px 0;
+}

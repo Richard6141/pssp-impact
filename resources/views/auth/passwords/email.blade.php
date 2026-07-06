@@ -1,36 +1,46 @@
-<!DOCTYPE html>
-<html lang="fr">
+@extends('layouts.auth')
 
-<head>
-    <meta charset="UTF-8">
-    <title>Mot de passe oublié</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+@section('title', 'Mot de passe oublié')
 
-<body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
+@section('content')
+    <h2 class="auth-title">Mot de passe oublié&nbsp;?</h2>
+    <p class="auth-sub">Indiquez l'adresse e-mail de votre compte&nbsp;: nous vous enverrons un lien
+        sécurisé pour définir un nouveau mot de passe.</p>
 
-    <div class="card shadow p-4" style="width: 400px;">
-        <h4 class="text-center mb-3">Mot de passe oublié</h4>
-        <p class="text-muted text-center">Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
-
-        @if (session('status'))
-        <div class="alert alert-success">{{ session('status') }}</div>
-        @endif
-
-        <form method="POST" action="{{ route('password.email') }}">
-            @csrf
-            <div class="mb-3">
-                <label for="email" class="form-label">Adresse Email</label>
-                <input type="email" name="email" id="email" class="form-control" required autofocus>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Envoyer le lien</button>
-        </form>
-
-        <div class="text-center mt-3">
-            <a href="{{ route('login') }}">Retour à la connexion</a>
+    @if (session('status'))
+        <div class="pi-alert success">
+            <i class="bi bi-envelope-check-fill"></i>
+            <div>{{ session('status') }}</div>
         </div>
-    </div>
+    @endif
 
-</body>
+    @if ($errors->any())
+        <div class="pi-alert error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>{{ $errors->first() }}</div>
+        </div>
+    @endif
 
-</html>
+    <form method="POST" action="{{ route('password.email') }}" data-loading>
+        @csrf
+
+        <div class="pi-field">
+            <label for="email">Adresse e-mail</label>
+            <div class="pi-input-group">
+                <i class="bi bi-envelope"></i>
+                <input type="email" name="email" id="email" class="pi-input @error('email') is-invalid @enderror"
+                    placeholder="nom@domaine.com" value="{{ old('email') }}" required autofocus
+                    autocomplete="email">
+            </div>
+            <div class="pi-hint">Le lien est valide 60 minutes. Pensez à vérifier votre dossier spam.</div>
+        </div>
+
+        <button type="submit" class="pi-btn">
+            <span class="spinner"></span>Envoyer le lien de réinitialisation
+        </button>
+    </form>
+
+    <p class="auth-alt">
+        <a href="{{ route('login') }}" class="pi-link"><i class="bi bi-arrow-left"></i> Retour à la connexion</a>
+    </p>
+@endsection

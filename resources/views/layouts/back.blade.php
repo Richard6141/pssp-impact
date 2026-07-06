@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>Dashboard - PSSP IMPACT+</title>
+    <title>@yield('title', 'Tableau de bord') - PSSP IMPACT+</title>
     <meta content="" name="description">
     <meta content="" name="keywords">
     <meta name="csrf-token" content="{{ csrf_token() }}"> <!-- ← AJOUTEZ CETTE LIGNE -->
@@ -38,6 +38,9 @@
     <!-- Désactiver les dégradés (couleurs plates uniquement) -->
     <link href="{{asset('backend/assets/css/no-gradients.css')}}" rel="stylesheet">
 
+    <!-- PSSP IMPACT+ v3.0 — Couche de modernisation (identité verte) -->
+    <link href="{{asset('backend/assets/css/app-modern.css')}}" rel="stylesheet">
+
     <!-- =======================================================
   * Template Name: NiceAdmin
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
@@ -67,6 +70,9 @@
 
     <!-- Template Main JS File -->
     <script src="{{asset('backend/assets/js/main.js')}}"></script>
+
+    <!-- Tables dynamiques : recherche instantanée + tri par colonne -->
+    <script src="{{asset('backend/assets/js/dynamic-table.js')}}"></script>
 
     <!-- Scripts personnalisés des pages -->
 

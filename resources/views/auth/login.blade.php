@@ -1,134 +1,72 @@
-<!DOCTYPE html>
-<html lang="fr">
+@extends('layouts.auth')
 
-<head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+@section('title', 'Connexion')
 
-    <title>Connexion - Gestion Déchets Médicaux</title>
-    <link href="{{ asset('backend/assets/img/favicon.png') }}" rel="icon">
-    <link href="{{ asset('backend/assets/img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+@section('content')
+    <h2 class="auth-title">Bon retour&nbsp;!</h2>
+    <p class="auth-sub">Connectez-vous pour accéder à votre espace de gestion.</p>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    @if (session('status'))
+        <div class="pi-alert success">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>{{ session('status') }}</div>
+        </div>
+    @endif
 
-    <style>
-        body {
-            background: url("{{ asset('backend/assets/img/background.jpg') }}") no-repeat center center fixed;
-            background-size: cover;
-            font-family: 'Segoe UI', sans-serif;
-        }
+    @if (session('success'))
+        <div class="pi-alert success">
+            <i class="bi bi-check-circle-fill"></i>
+            <div>{{ session('success') }}</div>
+        </div>
+    @endif
 
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(6px);
-            background: rgba(255, 255, 255, 0.9);
-        }
+    @if ($errors->any())
+        <div class="pi-alert error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>{{ $errors->first() }}</div>
+        </div>
+    @endif
 
-        .btn-custom {
-            background: linear-gradient(90deg, #0d6efd, #20c997);
-            color: #fff;
-            border: none;
-        }
+    <form method="POST" action="{{ route('login.store') }}" data-loading>
+        @csrf
 
-        .btn-custom:hover {
-            opacity: 0.9;
-        }
-
-        .form-control:focus {
-            border-color: #20c997;
-            box-shadow: 0 0 0 0.2rem rgba(32, 201, 151, 0.25);
-        }
-
-        .logo {
-            font-weight: bold;
-            font-size: 1.4rem;
-            color: #0d6efd;
-        }
-    </style>
-</head>
-
-<body>
-    <main class="d-flex align-items-center justify-content-center min-vh-100">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-5">
-                    <div class="card p-4">
-                        <div class="text-center mb-3">
-                            <i class="bi bi-recycle" style="font-size: 3rem; color: #20c997;"></i>
-                            <h4 class="mt-2 logo">Gestion Déchets Médicaux</h4>
-                            <p class="text-muted">Connectez-vous à votre compte</p>
-                        </div>
-
-                        <!-- Affichage des erreurs -->
-                        @if ($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            {{ $errors->first('login') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                        @endif
-
-                        <!-- Formulaire de connexion -->
-                        <form method="POST" action="{{ route('login.store') }}">
-                            @csrf
-
-                            <div class="mb-3">
-                                <input type="text" name="login" id="login" class="form-control"
-                                    placeholder="Email ou nom d'utilisateur" value="{{ old('login') }}" required
-                                    autofocus>
-                            </div>
-
-                            <div class="input-group mb-3">
-                                <input type="password" name="password" id="password" class="form-control"
-                                    placeholder="Mot de passe" required>
-                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                    <i class="bi bi-eye-slash"></i>
-                                </button>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                                    <label class="form-check-label" for="remember">Se souvenir de moi</label>
-                                </div>
-                                <a href="{{ route('password.request') }}" class="text-decoration-none">Mot de passe
-                                    oublié ?</a>
-                            </div>
-
-                            <button type="submit" class="btn btn-custom w-100">Se connecter</button>
-                        </form>
-
-                        <div class="text-center mt-3">
-                            <p class="mb-0">Pas encore de compte ?
-                                <a href="{{ route('register') }}" class="text-decoration-none">Créer un compte</a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        <div class="pi-field">
+            <label for="login">Email ou nom d'utilisateur</label>
+            <div class="pi-input-group">
+                <i class="bi bi-person"></i>
+                <input type="text" name="login" id="login" class="pi-input @error('login') is-invalid @enderror"
+                    placeholder="ex. j.dupont ou nom@domaine.com" value="{{ old('login') }}" required autofocus
+                    autocomplete="username">
             </div>
         </div>
-    </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <div class="pi-field">
+            <label for="password">Mot de passe</label>
+            <div class="pi-input-group">
+                <i class="bi bi-lock"></i>
+                <input type="password" name="password" id="password" class="pi-input" style="padding-right: 46px;"
+                    placeholder="Votre mot de passe" required autocomplete="current-password">
+                <button type="button" class="pi-toggle-eye" data-toggle-password="password" aria-label="Afficher le mot de passe">
+                    <i class="bi bi-eye-slash"></i>
+                </button>
+            </div>
+        </div>
 
-    <!-- Script pour afficher/cacher le mot de passe -->
-    <script>
-        const togglePassword = document.querySelector('#togglePassword');
-        const password = document.querySelector('#password');
-        const icon = togglePassword.querySelector('i');
+        <div class="pi-row">
+            <label class="pi-check">
+                <input type="checkbox" name="remember" id="remember">
+                Se souvenir de moi
+            </label>
+            <a href="{{ route('password.request') }}" class="pi-link">Mot de passe oublié&nbsp;?</a>
+        </div>
 
-        togglePassword.addEventListener('click', function() {
-            // Basculer le type de l'input
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            // Basculer l'icône
-            icon.classList.toggle('bi-eye');
-        });
-    </script>
-</body>
+        <button type="submit" class="pi-btn">
+            <span class="spinner"></span>Se connecter
+        </button>
+    </form>
 
-</html>
+    <p class="auth-alt">
+        Pas encore de compte&nbsp;?
+        <a href="{{ route('register') }}" class="pi-link">Créer un compte</a>
+    </p>
+@endsection
