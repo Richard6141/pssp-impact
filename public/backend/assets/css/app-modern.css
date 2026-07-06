@@ -275,12 +275,12 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
   font-size: 1.5rem;
 }
 
-/* Grille KPI : 6 cartes sur une seule ligne dès 1200px,
-   indépendante des breakpoints Bootstrap (résiste au zoom) */
+/* Grille KPI : les 6 cartes restent TOUJOURS sur une seule ligne
+   (seul le mobile replie en 2 colonnes) */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 14px;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
@@ -292,43 +292,47 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
 }
 
 .kpi-grid .card-title {
-  font-size: .84rem;
-  padding: 12px 0 6px;
+  font-size: .78rem;
+  padding: 10px 0 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.kpi-grid .card-title span { display: none; } /* "| Ce mois" : gain de place */
+
 .kpi-grid .info-card .card-icon {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  font-size: 18px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  font-size: 16px;
+  border-radius: 10px !important;
 }
 
 .kpi-grid .info-card h6 {
-  font-size: 1.2rem;
-  margin-bottom: 2px;
+  font-size: 1.1rem;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kpi-grid .info-card .ps-3 {
-  padding-left: .7rem !important;
+  padding-left: .6rem !important;
   min-width: 0;
 }
 
 .kpi-grid .info-card .small {
-  font-size: .72rem;
+  font-size: .68rem;
 }
 
 .kpi-grid .info-card .card-body {
-  padding: 0 14px 10px;
+  padding: 0 12px 8px;
 }
 
-@media (max-width: 1199px) {
-  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-}
+.kpi-grid .filter { display: none; } /* menus "..." superflus en compact */
 
-@media (max-width: 575px) {
+@media (max-width: 767px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
