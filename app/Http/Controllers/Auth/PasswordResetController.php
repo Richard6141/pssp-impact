@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use App\Mail\PasswordResetMail;
+use App\Models\User;
+use App\Services\MailService;
+use App\Services\PasswordResetService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class PasswordResetController extends Controller
 {
@@ -23,39 +22,49 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Envoi du lien de réinitialisation
+     * Envoi du lien de réinitialisation.
+     *
+     * La réponse est volontairement identique que l'adresse existe ou non
+     * (protection contre l'énumération de comptes).
      */
     public function sendResetLink(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
+        $genericStatus = "Si un compte est associé à cette adresse, un lien de réinitialisation vient de lui être envoyé. Pensez à vérifier votre dossier spam / courrier indésirable.";
+
         $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return back()->withErrors(['email' => "Cet email n'existe pas"]);
+
+        if ($user) {
+            $plainToken = PasswordResetService::createToken($user->email);
+
+            $resetUrl = route('password.reset', [
+                'token' => $plainToken,
+                'email' => $user->email,
+            ]);
+
+            $sent = MailService::send(
+                $user->email,
+                new PasswordResetMail($resetUrl, $user->email),
+                'password-reset'
+            );
+
+            if (!$sent) {
+                Log::warning('Lien de réinitialisation non délivré', ['email' => $user->email]);
+            }
         }
 
-        $token = Str::random(64);
-
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => $token, 'created_at' => Carbon::now()]
-        );
-
-        $resetUrl = route('password.reset', ['token' => $token, 'email' => $request->email]);
-
-        Mail::to($request->email)->send(new PasswordResetMail($resetUrl, $request->email));
-
-        return back()->with('status', "Un lien de réinitialisation a été envoyé à votre adresse email.");
+        return back()->with('status', $genericStatus);
     }
 
     /**
      * Formulaire pour saisir le nouveau mot de passe
      */
-    public function showResetForm(Request $request, $token)
+    public function showResetForm(Request $request, string $token)
     {
         return view('auth.passwords.reset', [
             'token' => $token,
-            'email' => $request->email
+            'email' => $request->email,
         ]);
     }
 
@@ -70,22 +79,24 @@ class PasswordResetController extends Controller
             'password' => 'required|min:8|confirmed',
         ]);
 
-        $reset = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->where('token', $request->token)
-            ->first();
-
-        if (!$reset) {
-            return back()->withErrors(['email' => "Lien invalide ou expiré"]);
+        if (!PasswordResetService::validateToken($request->email, $request->token)) {
+            return back()->withErrors([
+                'email' => 'Ce lien est invalide ou a expiré. Veuillez refaire une demande depuis « Mot de passe oublié ».',
+            ]);
         }
 
-        User::where('email', $request->email)->update([
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::where('email', $request->email)->first();
 
-        // Supprimer le token utilisé
-        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        if (!$user) {
+            return back()->withErrors(['email' => 'Ce lien est invalide ou a expiré.']);
+        }
 
-        return redirect()->route('login')->with('status', "Mot de passe réinitialisé avec succès !");
+        $user->update(['password' => Hash::make($request->password)]);
+
+        PasswordResetService::deleteToken($request->email);
+
+        Log::info('Mot de passe réinitialisé', ['user_id' => $user->user_id]);
+
+        return redirect()->route('login')->with('status', 'Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter.');
     }
 }

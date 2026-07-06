@@ -30,6 +30,7 @@ class TwoFactorEnabledMail extends Mailable
     {
         return new Content(
             view: 'emails.two-factor-enabled',
+            text: 'emails.text.two-factor-enabled',
             with: [
                 'user' => $this->user,
                 'recoveryCodes' => $this->recoveryCodes,

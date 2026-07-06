@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\WelcomeMail;
 use App\Models\User;
 use App\Models\Site;
+use App\Services\MailService;
+use App\Services\PasswordResetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -151,8 +154,24 @@ class UserController extends Controller
             Site::where('site_id', $request->site_id)->update(['responsable' => $user->user_id]);
         }
 
-        return redirect()->route('users.index')
-            ->with('success', 'Utilisateur créé avec succès. Sites affectés : ' . $assignedSitesCount);
+        // Notifier l'utilisateur avec un lien lui permettant de définir son propre mot de passe
+        $setPasswordUrl = route('password.reset', [
+            'token' => PasswordResetService::createToken($user->email),
+            'email' => $user->email,
+        ]);
+
+        $mailSent = MailService::send(
+            $user->email,
+            new WelcomeMail($user, $setPasswordUrl, $request->role),
+            'user-created-by-admin'
+        );
+
+        $message = 'Utilisateur créé avec succès. Sites affectés : ' . $assignedSitesCount;
+        $message .= $mailSent
+            ? ' Un e-mail de bienvenue lui a été envoyé.'
+            : " Attention : l'e-mail de bienvenue n'a pas pu être envoyé (voir les logs).";
+
+        return redirect()->route('users.index')->with('success', $message);
     }
 
     /**

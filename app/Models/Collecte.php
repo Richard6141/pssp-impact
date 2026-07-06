@@ -119,6 +119,33 @@ class Collecte extends Model
         return $query->whereBetween('date_collecte', [$start, $end]);
     }
 
+    /**
+     * Détermine si l'utilisateur peut signer (valider les quantités de)
+     * cette collecte : le responsable du site, ou tout utilisateur disposant
+     * de la permission `collectes.validate_site` rattaché au site de la
+     * collecte (ex. Agent santé — demande client du 29/06/2026).
+     */
+    public function canBeSignedBy(?User $user): bool
+    {
+        if (!$user || !$this->site) {
+            return false;
+        }
+
+        if ((string) $this->site->responsable === (string) $user->user_id) {
+            return true;
+        }
+
+        if (!$user->can('collectes.validate_site')) {
+            return false;
+        }
+
+        if ((string) $user->site_id === (string) $this->site_id) {
+            return true;
+        }
+
+        return $user->sites()->where('sites.site_id', $this->site_id)->exists();
+    }
+
     // Accessors
     public function getPoidsFormateAttribute()
     {

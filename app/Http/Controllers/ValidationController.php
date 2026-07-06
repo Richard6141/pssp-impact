@@ -12,13 +12,7 @@ class ValidationController extends Controller
 {
     private function canSignCollecte(Collecte $collecte): bool
     {
-        $user = auth()->user();
-
-        if (!$user || !$collecte->site) {
-            return false;
-        }
-
-        return (string) $collecte->site->responsable === (string) $user->user_id;
+        return $collecte->canBeSignedBy(auth()->user());
     }
 
     private function ensureCanSignCollecte(Collecte $collecte): void
@@ -38,9 +32,20 @@ class ValidationController extends Controller
             ->orderByDesc('date_collecte');
 
         $user = auth()->user();
-        if ($user && $user->hasRole('Responsable site')) {
-            $query->whereHas('site', function ($q) use ($user) {
-                $q->where('responsable', $user->user_id);
+        if ($user && $user->can('data.own_site_only') && !$user->can('data.all_sites')) {
+            // Limiter aux collectes des sites de l'utilisateur : sites dont il est
+            // responsable, site principal, ou sites rattachés (pivot site_user)
+            $siteIds = $user->sites()->pluck('sites.site_id')
+                ->push($user->site_id)
+                ->filter()
+                ->unique()
+                ->values();
+
+            $query->where(function ($q) use ($user, $siteIds) {
+                $q->whereIn('site_id', $siteIds)
+                    ->orWhereHas('site', function ($s) use ($user) {
+                        $s->where('responsable', $user->user_id);
+                    });
             });
         }
 

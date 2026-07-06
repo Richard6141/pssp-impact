@@ -58,7 +58,7 @@
                                         </td>
                                         <td class="text-center">
                                             @php
-                                            $canSignHere = (string) optional($collecte->site)->responsable === (string) optional(auth()->user())->user_id;
+                                            $canSignHere = $collecte->canBeSignedBy(auth()->user());
                                             @endphp
                                             @if(!$collecte->validation && $canSignHere)
                                             <a href="{{ route('validations.create', ['collecte_id' => $collecte->collecte_id]) }}"

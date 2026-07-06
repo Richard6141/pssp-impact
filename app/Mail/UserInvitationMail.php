@@ -45,6 +45,7 @@ class UserInvitationMail extends Mailable
 
         return new Content(
             view: 'emails.user-invitation',
+            text: 'emails.text.user-invitation',
             with: [
                 'token' => $this->invitation->token,
                 'email' => $this->invitation->email,

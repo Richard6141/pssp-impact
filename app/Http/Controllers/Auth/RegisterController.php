@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Mail\WelcomeMail;
 use App\Models\User;
+use App\Services\MailService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
@@ -57,12 +60,18 @@ class RegisterController extends Controller
 
         $this->assignUserRole($user, $validatedData['email']);
 
-        \Log::info('Nouveau compte créé', [
+        Log::info('Nouveau compte créé', [
             'user_id' => $user->id,
             'role' => $user->roles->pluck('name')->first() ?? 'Aucun rôle',
         ]);
 
-        return redirect()->route('login')->with('success', 'Compte créé avec succès !');
+        MailService::send(
+            $user->email,
+            new WelcomeMail($user, null, $user->roles->pluck('name')->first()),
+            'self-registration'
+        );
+
+        return redirect()->route('login')->with('success', 'Compte créé avec succès ! Un e-mail de confirmation vous a été envoyé.');
     }
 
     private function assignUserRole(User $user, string $email): void
@@ -73,12 +82,12 @@ class RegisterController extends Controller
 
             if (!empty($superAdminEmails) && in_array($normalizedEmail, $superAdminEmails)) {
                 $user->assignRole('Super Admin');
-                \Log::info('Rôle Super Admin assigné automatiquement', ['user_id' => $user->id]);
+                Log::info('Rôle Super Admin assigné automatiquement', ['user_id' => $user->id]);
             } else {
-                \Log::info('Compte créé sans rôle - Attribution manuelle requise', ['user_id' => $user->id]);
+                Log::info('Compte créé sans rôle - Attribution manuelle requise', ['user_id' => $user->id]);
             }
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de l\'attribution du rôle', [
+            Log::error('Erreur lors de l\'attribution du rôle', [
                 'user_id' => $user->id,
                 'error' => $e->getMessage()
             ]);

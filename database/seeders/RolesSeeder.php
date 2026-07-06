@@ -85,6 +85,13 @@ class RolesSeeder extends Seeder
                 // Collectes (consultation de son site)
                 'collectes.view',
 
+                // Validation des quantités de DBM enlevées sur son site
+                // (demande client du 29/06/2026 : débloquer le processus
+                // quand le responsable du site n'est pas disponible)
+                'collectes.validate_site',
+                'validations.view',
+                'validations.create',
+
                 // Sites (son site)
                 'sites.view',
 
