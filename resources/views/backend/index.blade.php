@@ -351,7 +351,7 @@
 
             <!-- Collectes - Permission: collectes.view -->
             @can('collectes.view')
-            <div class="col-xxl-3 col-md-6">
+            <div class="col-xxl-2 col-md-4 col-6">
                 <div class="card info-card collectes-card">
                     <div class="filter">
                         <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -386,7 +386,7 @@
 
             <!-- Factures - Permission: factures.view -->
             @can('factures.view')
-            <div class="col-xxl-3 col-md-6">
+            <div class="col-xxl-2 col-md-4 col-6">
                 <div class="card info-card factures-card">
                     <div class="filter">
                         <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -421,7 +421,7 @@
 
             <!-- Revenus - Permission: rapports.financier -->
             @can('rapports.financier')
-            <div class="col-xxl-3 col-md-6">
+            <div class="col-xxl-2 col-md-4 col-6">
                 <div class="card info-card revenue-card">
                     <div class="card-body">
                         <h5 class="card-title">Revenus <span>| Ce mois</span></h5>
@@ -445,7 +445,7 @@
 
             <!-- Sites Actifs - Permission: sites.view -->
             @can('sites.view')
-            <div class="col-xxl-3 col-md-6">
+            <div class="col-xxl-2 col-md-4 col-6">
                 <div class="card info-card customers-card">
                     <div class="card-body">
                         <h5 class="card-title">Sites Actifs <span>| Total</span></h5>
@@ -468,7 +468,7 @@
 
             <!-- Taux de validation - Permission: validations.view -->
             @can('validations.view')
-            <div class="col-xxl-3 col-md-6">
+            <div class="col-xxl-2 col-md-4 col-6">
                 <div class="card info-card validation-card">
                     <div class="card-body">
                         <h5 class="card-title">Taux de Validation</h5>
@@ -488,7 +488,7 @@
 
             <!-- Factures impayées - Permission: factures.view -->
             @can('factures.view')
-            <div class="col-xxl-3 col-md-6">
+            <div class="col-xxl-2 col-md-4 col-6">
                 <div class="card info-card impayees-card">
                     <div class="card-body">
                         <h5 class="card-title">Factures Impayées</h5>
@@ -505,6 +505,37 @@
                 </div>
             </div>
             @endcan
+
+            <!-- Actions Rapides : barre compacte -->
+            @canany(['collectes.create', 'factures.create', 'sites.view', 'rapports.view'])
+            <div class="col-12">
+                <div class="card quick-actions">
+                    <div class="card-body d-flex flex-wrap align-items-center gap-2 py-2">
+                        <span class="text-muted small me-1">Actions rapides :</span>
+                        @can('collectes.create')
+                        <a href="{{ route('collectes.create') }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Nouvelle collecte
+                        </a>
+                        @endcan
+                        @can('factures.create')
+                        <a href="{{ route('factures.create') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-receipt me-1"></i>Créer une facture
+                        </a>
+                        @endcan
+                        @can('sites.view')
+                        <a href="{{ route('sites.index') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-hospital me-1"></i>Sites
+                        </a>
+                        @endcan
+                        @can('rapports.view')
+                        <a href="{{ route('rapports.collectes') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-bar-chart me-1"></i>Rapports
+                        </a>
+                        @endcan
+                    </div>
+                </div>
+            </div>
+            @endcanany
 
             <!-- ===== GRAPHIQUES ===== -->
 
@@ -551,9 +582,22 @@
                 </div>
             </div>
 
+            <!-- Évolution Mensuelle - Permission: rapports.financier -->
+            @can('rapports.financier')
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Évolution Mensuelle</h5>
+                        <!-- IMPORTANT: div vide sans attribut style -->
+                        <div id="evolutionChart"></div>
+                    </div>
+                </div>
+            </div>
+            @endcan
+
             <!-- Répartition par Type de Déchet - Permission: rapports.collectes -->
             @can('rapports.collectes')
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Répartition par Type de Déchet</h5>
@@ -577,106 +621,9 @@
             </div>
             @endcan
 
-            <!-- Top Sites - Permission: rapports.sites -->
-            @can('rapports.sites')
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Sites Les Plus Actifs <span>| Ce mois</span></h5>
-                        <div class="table-responsive">
-                            <table class="table table-borderless">
-                                <thead>
-                                    <tr>
-                                        <th>Site</th>
-                                        <th>Collectes</th>
-                                        <th>Poids Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($topSites as $index => $site)
-                                    <tr>
-                                        <td>
-                                            <span class="badge bg-primary rounded-pill me-2">{{ $index + 1 }}</span>
-                                            {{ $site->site_name }}
-                                        </td>
-                                        <td><strong>{{ $site->nombre_collectes }}</strong></td>
-                                        <td>{{ number_format($site->poids_total, 1) }} kg</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endcan
-
-            <!-- Actions Rapides - Permissions multiples -->
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Actions Rapides</h5>
-                        <div class="row g-3">
-                            @can('collectes.create')
-                            <div class="col-6">
-                                <a href="{{ route('collectes.create') }}"
-                                    class="btn btn-primary w-100 d-flex flex-column align-items-center p-3">
-                                    <i class="bi bi-plus-circle fs-2 mb-2"></i>
-                                    <span>Nouvelle Collecte</span>
-                                </a>
-                            </div>
-                            @endcan
-
-                            @can('factures.create')
-                            <div class="col-6">
-                                <a href="{{ route('factures.create') }}"
-                                    class="btn btn-success w-100 d-flex flex-column align-items-center p-3">
-                                    <i class="bi bi-receipt fs-2 mb-2"></i>
-                                    <span>Créer Facture</span>
-                                </a>
-                            </div>
-                            @endcan
-
-                            @can('sites.view')
-                            <div class="col-6">
-                                <a href="{{ route('sites.index') }}"
-                                    class="btn btn-warning w-100 d-flex flex-column align-items-center p-3">
-                                    <i class="bi bi-hospital fs-2 mb-2"></i>
-                                    <span>Gérer Sites</span>
-                                </a>
-                            </div>
-                            @endcan
-
-                            @can('rapports.view')
-                            <div class="col-6">
-                                <a href="{{ route('rapports.collectes') }}"
-                                    class="btn btn-info w-100 d-flex flex-column align-items-center p-3">
-                                    <i class="bi bi-bar-chart fs-2 mb-2"></i>
-                                    <span>Rapports</span>
-                                </a>
-                            </div>
-                            @endcan
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Évolution Mensuelle - Permission: rapports.financier -->
-            @can('rapports.financier')
-            <div class="col-lg-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Évolution Mensuelle</h5>
-                        <!-- IMPORTANT: div vide sans attribut style -->
-                        <div id="evolutionChart"></div>
-                    </div>
-                </div>
-            </div>
-            @endcan
-
             <!-- Collectes Récentes - Permission: collectes.view -->
             @can('collectes.view')
-            <div class="col-12">
+            <div class="col-lg-8">
                 <div class="card recent-sales overflow-auto">
                     <div class="filter">
                         <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -691,7 +638,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Collectes Récentes <span id="collectes-filter">| Toutes</span></h5>
                         <div class="table-responsive">
-                            <table class="table table-borderless datatable" id="collectesTable">
+                            <table class="table table-borderless table-sm" id="collectesTable">
                                 <thead>
                                     <tr>
                                         <th scope="col">Numéro</th>
@@ -755,6 +702,40 @@
                                             </div>
                                         </td>
                                         @endcanany
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endcan
+
+            <!-- Top Sites - Permission: rapports.sites -->
+            @can('rapports.sites')
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Sites Les Plus Actifs <span>| Ce mois</span></h5>
+                        <div class="table-responsive">
+                            <table class="table table-borderless table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Site</th>
+                                        <th>Collectes</th>
+                                        <th>Poids</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($topSites as $index => $site)
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary rounded-pill me-2">{{ $index + 1 }}</span>
+                                            {{ $site->site_name }}
+                                        </td>
+                                        <td><strong>{{ $site->nombre_collectes }}</strong></td>
+                                        <td>{{ number_format($site->poids_total, 1) }} kg</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
