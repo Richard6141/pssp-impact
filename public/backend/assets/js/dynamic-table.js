@@ -5,6 +5,11 @@
  *  - tri par clic sur les en-têtes (numérique, dates jj/mm/aaaa, texte)
  *  - compteur de lignes
  *
+ * Mode serveur : <table data-server-search> — la recherche interroge le
+ * serveur (paramètre ?search=) et porte donc sur TOUTES les pages, pas
+ * seulement la page affichée. Ajouter data-total="{{ $items->total() }}"
+ * pour afficher le nombre total de résultats.
+ *
  * Opt-out par table : <table data-no-dt>. Les tables gérées par
  * simple-datatables (classe .datatable) sont ignorées.
  */
@@ -21,14 +26,18 @@
 
         var tbody = table.tBodies[0];
         var dataRows = getDataRows(tbody);
+        var serverMode = table.hasAttribute('data-server-search');
 
         // Tri sur les en-têtes (dès qu'il y a au moins 2 lignes de données)
         if (dataRows.length > 1) {
             initSort(table, tbody);
         }
 
-        // Barre de recherche + compteur (utile à partir de quelques lignes)
-        if (dataRows.length > 3) {
+        if (serverMode) {
+            // Recherche serveur : toujours affichée (même page vide, pour
+            // pouvoir modifier ou effacer un filtre en cours)
+            initServerToolbar(table, tbody);
+        } else if (dataRows.length > 3) {
             initToolbar(table, tbody);
         }
     }
@@ -40,9 +49,61 @@
         });
     }
 
+    /* ---------------------------------- Recherche côté serveur ----- */
+
+    function initServerToolbar(table, tbody) {
+        var parts = buildToolbar(table, 'Rechercher (toutes les pages)...');
+        var input = parts.input;
+        var count = parts.count;
+
+        var params = new URLSearchParams(window.location.search);
+        var current = params.get('search') || '';
+        input.value = current;
+
+        var total = table.getAttribute('data-total');
+        count.textContent = (total !== null ? total + ' résultat(s)' : getDataRows(tbody).length + ' ligne(s)')
+            + (current ? ' pour « ' + current + ' »' : '');
+
+        // Focus restitué après rechargement si une recherche est active
+        if (current && document.activeElement === document.body) {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+
+        var timer = null;
+        input.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                var term = input.value.trim();
+                if (term === current) return;
+
+                var url = new URL(window.location.href);
+                if (term) {
+                    url.searchParams.set('search', term);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                url.searchParams.delete('page'); // repartir de la page 1
+                window.location.assign(url.toString());
+            }, 550);
+        });
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(timer);
+                var url = new URL(window.location.href);
+                var term = input.value.trim();
+                if (term) { url.searchParams.set('search', term); } else { url.searchParams.delete('search'); }
+                url.searchParams.delete('page');
+                window.location.assign(url.toString());
+            }
+        });
+    }
+
     /* ------------------------------------------------ Recherche ---- */
 
-    function initToolbar(table, tbody) {
+    function buildToolbar(table, placeholder) {
         var toolbar = document.createElement('div');
         toolbar.className = 'dt-toolbar';
 
@@ -52,7 +113,7 @@
 
         var input = document.createElement('input');
         input.type = 'search';
-        input.placeholder = 'Rechercher dans ce tableau...';
+        input.placeholder = placeholder;
         input.setAttribute('aria-label', 'Rechercher dans le tableau');
         search.appendChild(input);
 
@@ -63,6 +124,14 @@
         toolbar.appendChild(count);
         var host = table.closest('.table-responsive') || table;
         host.parentNode.insertBefore(toolbar, host);
+
+        return { input: input, count: count };
+    }
+
+    function initToolbar(table, tbody) {
+        var parts = buildToolbar(table, 'Rechercher dans ce tableau...');
+        var input = parts.input;
+        var count = parts.count;
 
         function refresh() {
             var term = input.value.trim().toLowerCase();

@@ -251,3 +251,89 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
   color: var(--pi-ink-soft);
   padding: 22px 0;
 }
+
+/* ------------------------------------------------ Tableau de bord */
+
+.pagetitle h1 {
+  font-size: 1.55rem;
+}
+
+.dashboard-subtitle {
+  color: var(--pi-ink-soft);
+  font-size: .92rem;
+  margin: 2px 0 0;
+}
+
+.dashboard .info-card {
+  overflow: hidden;
+  position: relative;
+  transition: transform .15s, box-shadow .15s;
+}
+
+.dashboard .info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(22, 33, 27, .06), 0 14px 34px rgba(22, 33, 27, .09);
+}
+
+.dashboard .info-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--primary);
+}
+
+.dashboard .info-card .card-icon {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  font-size: 26px;
+  border-radius: 16px !important;
+  color: var(--primary);
+  background: #e7f3ea;
+}
+
+.dashboard .info-card h6 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--pi-ink);
+}
+
+.dashboard .info-card .card-title span {
+  color: var(--pi-ink-soft);
+  font-size: .82rem;
+  font-weight: 400;
+}
+
+/* Déclinaisons par indicateur (famille de verts + accents) */
+.dashboard .collectes-card::before { background: #1e7d47; }
+.dashboard .collectes-card .card-icon { color: #1e7d47; background: #e7f3ea; }
+
+.dashboard .factures-card::before { background: #2cb8a6; }
+.dashboard .factures-card .card-icon { color: #1e8577; background: #e2f5f2; }
+
+.dashboard .revenue-card::before { background: #0f3d26; }
+.dashboard .revenue-card .card-icon { color: #0f3d26; background: #dcebe0; }
+
+.dashboard .customers-card::before { background: #6aa127; }
+.dashboard .customers-card .card-icon { color: #55831d; background: #eef8dc; }
+
+.dashboard .validation-card::before { background: #27995a; }
+.dashboard .validation-card .card-icon { color: #27995a; background: #e7f6ec; }
+
+.dashboard .impayees-card::before { background: #d9962b; }
+.dashboard .impayees-card .card-icon { color: #a56f13; background: #fdf3dd; }
+
+/* Cartes graphiques et listes du dashboard */
+.dashboard .card-title {
+  font-size: 1.02rem;
+}
+
+.dashboard .activity .activity-badge {
+  font-size: 1rem;
+}
+
+/* Timeline d'activité : puces arrondies adoucies */
+.dashboard .activity-item .activite-label {
+  color: var(--pi-ink-soft);
+}

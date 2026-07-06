@@ -4,7 +4,8 @@
 <main id="main" class="main">
     @if(auth()->check() && auth()->user()->hasRole('Responsable site'))
     <div class="pagetitle">
-        <h1>Tableau de bord Responsable Site</h1>
+        <h1>Bonjour, {{ auth()->user()->firstname }} 👋</h1>
+        <p class="dashboard-subtitle">Suivi de vos sites — {{ now()->translatedFormat('l d F Y') }}</p>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
@@ -16,7 +17,7 @@
     <section class="section dashboard">
         <div class="row g-3">
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#103783,#1a59d1); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#0f3d26,#2cb8a6); color:#fff;">
                     <div class="card-body py-3">
                         <small>Sites couverts</small>
                         <h4 class="mb-0">{{ count($siteIds ?? []) }}</h4>
@@ -24,7 +25,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#0a7c53,#18aa70); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#14522f,#27995a); color:#fff;">
                     <div class="card-body py-3">
                         <small>Collectes du mois</small>
                         <h4 class="mb-0">{{ $collectesMois ?? 0 }}</h4>
@@ -40,7 +41,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#4b1f83,#8f4de2); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#1e8577,#2cb8a6); color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures du mois</small>
                         <h4 class="mb-0">{{ $facturesMois ?? 0 }}</h4>
@@ -56,7 +57,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#4a4f58,#6c757d); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#3c4a41,#66786c); color:#fff;">
                     <div class="card-body py-3">
                         <small>Paiements en attente</small>
                         <h4 class="mb-0">{{ $paiementsEnAttenteValidation ?? 0 }}</h4>
@@ -149,7 +150,8 @@
 
     @if(auth()->check() && auth()->user()->hasRole('Comptable Site'))
     <div class="pagetitle">
-        <h1>Tableau de bord Comptable</h1>
+        <h1>Bonjour, {{ auth()->user()->firstname }} 👋</h1>
+        <p class="dashboard-subtitle">Suivi financier de votre établissement — {{ now()->translatedFormat('l d F Y') }}</p>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
@@ -162,7 +164,7 @@
         <div class="row g-3">
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#103783,#1a59d1);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#0f3d26,#2cb8a6);color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures du mois</small>
                         <h4 class="mb-0">{{ $cs_facturesMois ?? 0 }}</h4>
@@ -171,7 +173,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#0a7c53,#18aa70);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#14522f,#27995a);color:#fff;">
                     <div class="card-body py-3">
                         <small>Montant facturé</small>
                         <h4 class="mb-0" style="font-size:1rem;">{{ number_format($cs_montantMois ?? 0, 0, ',', ' ') }} FCFA</h4>
@@ -180,7 +182,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#19692c,#28a745);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#1e7d47,#27995a);color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures payées</small>
                         <h4 class="mb-0">{{ $cs_facturesPayees ?? 0 }}</h4>
@@ -198,7 +200,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#4a4f58,#6c757d);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#3c4a41,#66786c);color:#fff;">
                     <div class="card-body py-3">
                         <small>Paiements soumis</small>
                         <h4 class="mb-0">{{ $cs_paiementsEnAttente ?? 0 }}</h4>
@@ -207,7 +209,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#4b1f83,#8f4de2);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#1e8577,#2cb8a6);color:#fff;">
                     <div class="card-body py-3">
                         <small>Collectes du mois</small>
                         <h4 class="mb-0">{{ $cs_collectesMois ?? 0 }}</h4>
@@ -332,7 +334,8 @@
 
     @if(auth()->check() && auth()->user()->hasRole(['Super Admin','Coordonnateur','Comptable','Agent marketing','Administrateur','Agent collecte']))
     <div class="pagetitle">
-        <h1>Dashboard</h1>
+        <h1>Bonjour, {{ auth()->user()->firstname }} 👋</h1>
+        <p class="dashboard-subtitle">Vue d'ensemble de la plateforme — {{ now()->translatedFormat('l d F Y') }}</p>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
@@ -791,8 +794,8 @@
                         datasets: [{
                             label: 'Collectes',
                             data: evolutionResponsable.map(item => item.collectes),
-                            borderColor: '#1a59d1',
-                            backgroundColor: 'rgba(26, 89, 209, 0.12)',
+                            borderColor: '#2cb8a6',
+                            backgroundColor: 'rgba(44, 184, 166, 0.12)',
                             fill: true,
                             tension: 0.35
                         }, {
@@ -853,8 +856,8 @@
                         datasets: [{
                             label: 'Montant facturé (FCFA)',
                             data: csEvolution.map(item => item.montant),
-                            backgroundColor: 'rgba(26, 89, 209, 0.75)',
-                            borderColor: '#1a59d1',
+                            backgroundColor: 'rgba(44, 184, 166, 0.75)',
+                            borderColor: '#2cb8a6',
                             borderWidth: 1,
                             borderRadius: 4
                         }]
@@ -912,8 +915,8 @@
                         datasets: [{
                             label: 'Collectes',
                             data: evolutionData.map(item => item.collectes),
-                            borderColor: '#4154f1',
-                            backgroundColor: 'rgba(65, 84, 241, 0.1)',
+                            borderColor: '#1e7d47',
+                            backgroundColor: 'rgba(30, 125, 71, 0.1)',
                             tension: 0.4,
                             fill: true
                         }, {
@@ -981,12 +984,12 @@
                         datasets: [{
                             data: typesData.map(item => item.nombre),
                             backgroundColor: [
-                                '#4154f1',
-                                '#2eca6a',
-                                '#ff771d',
-                                '#f1416c',
-                                '#7239ea',
-                                '#ffc107',
+                                '#1e7d47',
+                                '#2cb8a6',
+                                '#a3e635',
+                                '#f0ad4e',
+                                '#0f3d26',
+                                '#7dbb51',
                                 '#20c997'
                             ]
                         }]
@@ -1025,7 +1028,7 @@
                         datasets: [{
                             label: 'Collectes',
                             data: evolutionMenData.map(item => item.collectes),
-                            backgroundColor: '#4154f1',
+                            backgroundColor: '#1e7d47',
                             yAxisID: 'y'
                         }, {
                             label: 'Revenus (FCFA)',

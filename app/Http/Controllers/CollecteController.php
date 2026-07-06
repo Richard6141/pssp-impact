@@ -68,7 +68,7 @@ class CollecteController extends Controller
     /**
      * Affichage de la liste
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = Collecte::with(['typeDechet', 'agent', 'site', 'validation'])
             ->withCount('factures')
@@ -76,7 +76,21 @@ class CollecteController extends Controller
 
         $this->applyCollecteVisibility($query);
 
-        $collectes = $query->paginate(10);
+        // Recherche côté serveur (multi-pages)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_collecte', 'like', "%{$search}%")
+                    ->orWhereHas('site', fn ($s) => $s->where('site_name', 'like', "%{$search}%"))
+                    ->orWhereHas('typeDechet', fn ($t) => $t->where('libelle', 'like', "%{$search}%"))
+                    ->orWhereHas('agent', function ($a) use ($search) {
+                        $a->where('firstname', 'like', "%{$search}%")
+                            ->orWhere('lastname', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $collectes = $query->paginate(10)->withQueryString();
 
         return view('collectes.index', compact('collectes'));
     }

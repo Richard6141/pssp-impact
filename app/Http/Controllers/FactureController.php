@@ -76,11 +76,22 @@ class FactureController extends Controller
     /**
      * Liste des factures
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = Facture::with(['site', 'comptable', 'paiements'])->latest();
         $this->applyVisibility($query);
-        $factures = $query->paginate(10);
+
+        // Recherche côté serveur (multi-pages)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_facture', 'like', "%{$search}%")
+                    ->orWhere('statut', 'like', "%{$search}%")
+                    ->orWhereHas('site', fn ($s) => $s->where('site_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $factures = $query->paginate(10)->withQueryString();
         return view('factures.index', compact('factures'));
     }
 

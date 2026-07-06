@@ -16,7 +16,8 @@
                         <h5 class="card-title">Liste des collectes</h5>
 
                         <div class="table-responsive">
-                            <table class="table datatable table-hover align-middle text-sm"
+                            <table class="table table-hover align-middle text-sm"
+                                data-server-search data-total="{{ $collectes->total() }}"
                                 style="white-space: nowrap; width: 100%;">
                                 <thead class="table-dark text-center">
                                     <tr>

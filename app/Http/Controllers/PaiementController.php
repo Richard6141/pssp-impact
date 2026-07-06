@@ -98,11 +98,27 @@ class PaiementController extends Controller
     /**
      * Liste des paiements
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = Paiement::with(['facture.site'])->latest();
         $this->applyVisibility($query);
-        $paiements = $query->paginate(10);
+
+        // Recherche côté serveur (multi-pages)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_paiement', 'like', "%{$search}%")
+                    ->orWhere('reference', 'like', "%{$search}%")
+                    ->orWhere('mode_paiement', 'like', "%{$search}%")
+                    ->orWhere('statut', 'like', "%{$search}%")
+                    ->orWhereHas('facture', function ($f) use ($search) {
+                        $f->where('numero_facture', 'like', "%{$search}%")
+                            ->orWhereHas('site', fn ($s) => $s->where('site_name', 'like', "%{$search}%"));
+                    });
+            });
+        }
+
+        $paiements = $query->paginate(10)->withQueryString();
         return view('paiements.index', compact('paiements'));
     }
 

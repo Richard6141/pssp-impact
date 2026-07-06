@@ -57,7 +57,7 @@ class UserController extends Controller
             $query->where('site_id', $request->site_id);
         }
 
-        $users = $query->paginate(20);
+        $users = $query->paginate(20)->withQueryString();
 
         // Données pour les filtres
         $roles = Role::all();

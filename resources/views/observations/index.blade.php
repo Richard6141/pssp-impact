@@ -19,7 +19,8 @@
                         <h5 class="card-title">Liste des observations</h5>
 
                         <div class="table-responsive">
-                            <table class="table datatable table-hover align-middle text-sm text-nowrap">
+                            <table class="table table-hover align-middle text-sm text-nowrap"
+                                data-server-search data-total="{{ $observations->total() }}">
 
                                 <thead class="table-dark">
                                     <tr>

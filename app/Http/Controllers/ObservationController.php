@@ -65,11 +65,26 @@ class ObservationController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $observations = $this->applyObservationVisibility(
+        $query = $this->applyObservationVisibility(
             Observation::with(['site', 'user'])
-        )->latest()->paginate(15);
+        )->latest();
+
+        // Recherche côté serveur (multi-pages)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('contenu', 'like', "%{$search}%")
+                    ->orWhereHas('site', fn ($s) => $s->where('site_name', 'like', "%{$search}%"))
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('firstname', 'like', "%{$search}%")
+                            ->orWhere('lastname', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $observations = $query->paginate(15)->withQueryString();
 
         return view('observations.index', compact('observations'));
     }

@@ -10,7 +10,8 @@
                         <h5 class="card-title">Liste des paiements</h5>
 
                         <div class="table-responsive">
-                            <table class="table datatable table-hover align-middle text-sm" style="white-space: nowrap;">
+                            <table class="table table-hover align-middle text-sm"
+                                data-server-search data-total="{{ $paiements->total() }}" style="white-space: nowrap;">
                                 <thead class="table-dark">
                                     <tr>
                                         <th>#</th>

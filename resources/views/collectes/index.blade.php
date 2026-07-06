@@ -36,6 +36,7 @@
                         <!-- Table sans retour à la ligne -->
                         <div class="table-responsive">
                             <table class="table table-hover align-middle text-sm w-100"
+                                data-server-search data-total="{{ $collectes->total() }}"
                                 style="white-space: nowrap; table-layout: auto;">
                                 <thead class="table-dark">
                                     <tr>
@@ -180,6 +181,10 @@
                             </table>
                         </div>
                         <!-- End Table -->
+
+                        <div class="d-flex justify-content-center mt-3">
+                            {{ $collectes->links() }}
+                        </div>
 
                     </div>
                 </div>

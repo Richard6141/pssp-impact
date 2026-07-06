@@ -25,11 +25,20 @@ class ValidationController extends Controller
     /**
      * Afficher la liste des collectes et leurs validations.
      */
-    public function index()
+    public function index(Request $request)
     {
         $query = Collecte::with(['site', 'validation.validator'])
             ->latest()
             ->orderByDesc('date_collecte');
+
+        // Recherche côté serveur (multi-pages)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('numero_collecte', 'like', "%{$search}%")
+                    ->orWhereHas('site', fn ($s) => $s->where('site_name', 'like', "%{$search}%"));
+            });
+        }
 
         $user = auth()->user();
         if ($user && $user->can('data.own_site_only') && !$user->can('data.all_sites')) {
@@ -49,7 +58,7 @@ class ValidationController extends Controller
             });
         }
 
-        $collectes = $query->paginate(10);
+        $collectes = $query->paginate(10)->withQueryString();
 
         return view('validations.index', compact('collectes'));
     }
