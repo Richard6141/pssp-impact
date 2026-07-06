@@ -5,7 +5,7 @@
     @if(auth()->check() && auth()->user()->hasRole('Responsable site'))
     <div class="pagetitle">
         <h1>Bonjour, {{ auth()->user()->firstname }} 👋</h1>
-        <p class="dashboard-subtitle">Suivi de vos sites — {{ now()->translatedFormat('l d F Y') }}</p>
+        <p class="dashboard-subtitle">Suivi de vos sites · {{ now()->translatedFormat('l d F Y') }}</p>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
@@ -17,7 +17,7 @@
     <section class="section dashboard">
         <div class="row g-3">
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#0f3d26,#2cb8a6); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#35604d,#56988e); color:#fff;">
                     <div class="card-body py-3">
                         <small>Sites couverts</small>
                         <h4 class="mb-0">{{ count($siteIds ?? []) }}</h4>
@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#14522f,#27995a); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#3f7a60,#549678); color:#fff;">
                     <div class="card-body py-3">
                         <small>Collectes du mois</small>
                         <h4 class="mb-0">{{ $collectesMois ?? 0 }}</h4>
@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#88510a,#d27b10); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#a06a24,#c98f3d); color:#fff;">
                     <div class="card-body py-3">
                         <small>Poids total (kg)</small>
                         <h4 class="mb-0">{{ number_format($poidsMois ?? 0, 1, ',', ' ') }}</h4>
@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#1e8577,#2cb8a6); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#4c8b82,#56988e); color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures du mois</small>
                         <h4 class="mb-0">{{ $facturesMois ?? 0 }}</h4>
@@ -49,7 +49,7 @@
                 </div>
             </div>
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#88312b,#d9534f); color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#9d4b45,#c76b64); color:#fff;">
                     <div class="card-body py-3">
                         <small>Collectes à signer</small>
                         <h4 class="mb-0">{{ $collectesASigner ?? 0 }}</h4>
@@ -151,7 +151,7 @@
     @if(auth()->check() && auth()->user()->hasRole('Comptable Site'))
     <div class="pagetitle">
         <h1>Bonjour, {{ auth()->user()->firstname }} 👋</h1>
-        <p class="dashboard-subtitle">Suivi financier de votre établissement — {{ now()->translatedFormat('l d F Y') }}</p>
+        <p class="dashboard-subtitle">Suivi financier de votre établissement · {{ now()->translatedFormat('l d F Y') }}</p>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
@@ -164,7 +164,7 @@
         <div class="row g-3">
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#0f3d26,#2cb8a6);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#35604d,#56988e);color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures du mois</small>
                         <h4 class="mb-0">{{ $cs_facturesMois ?? 0 }}</h4>
@@ -173,7 +173,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#14522f,#27995a);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#3f7a60,#549678);color:#fff;">
                     <div class="card-body py-3">
                         <small>Montant facturé</small>
                         <h4 class="mb-0" style="font-size:1rem;">{{ number_format($cs_montantMois ?? 0, 0, ',', ' ') }} FCFA</h4>
@@ -182,7 +182,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#1e7d47,#27995a);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#3f7a60,#549678);color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures payées</small>
                         <h4 class="mb-0">{{ $cs_facturesPayees ?? 0 }}</h4>
@@ -191,7 +191,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#88510a,#d27b10);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#a06a24,#c98f3d);color:#fff;">
                     <div class="card-body py-3">
                         <small>Factures en attente</small>
                         <h4 class="mb-0">{{ $cs_facturesEnAttente ?? 0 }}</h4>
@@ -209,7 +209,7 @@
             </div>
 
             <div class="col-xxl-2 col-md-4 col-6">
-                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#1e8577,#2cb8a6);color:#fff;">
+                <div class="card border-0 shadow-sm h-100" style="background:linear-gradient(135deg,#4c8b82,#56988e);color:#fff;">
                     <div class="card-body py-3">
                         <small>Collectes du mois</small>
                         <h4 class="mb-0">{{ $cs_collectesMois ?? 0 }}</h4>
@@ -220,7 +220,7 @@
             <div class="col-lg-8">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">Revenus facturés — 6 derniers mois</h5>
+                        <h5 class="card-title">Revenus facturés (6 derniers mois)</h5>
                         <div id="csRevenusChart" style="min-height:300px;"></div>
                     </div>
                 </div>
@@ -335,7 +335,7 @@
     @if(auth()->check() && auth()->user()->hasRole(['Super Admin','Coordonnateur','Comptable','Agent marketing','Administrateur','Agent collecte']))
     <div class="pagetitle">
         <h1>Bonjour, {{ auth()->user()->firstname }} 👋</h1>
-        <p class="dashboard-subtitle">Vue d'ensemble de la plateforme — {{ now()->translatedFormat('l d F Y') }}</p>
+        <p class="dashboard-subtitle">Vue d'ensemble de la plateforme · {{ now()->translatedFormat('l d F Y') }}</p>
         <nav>
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Accueil</a></li>
@@ -794,15 +794,15 @@
                         datasets: [{
                             label: 'Collectes',
                             data: evolutionResponsable.map(item => item.collectes),
-                            borderColor: '#2cb8a6',
-                            backgroundColor: 'rgba(44, 184, 166, 0.12)',
+                            borderColor: '#56988e',
+                            backgroundColor: 'rgba(86, 152, 142, 0.12)',
                             fill: true,
                             tension: 0.35
                         }, {
                             label: 'Poids (kg)',
                             data: evolutionResponsable.map(item => item.poids),
-                            borderColor: '#18aa70',
-                            backgroundColor: 'rgba(24, 170, 112, 0.12)',
+                            borderColor: '#549678',
+                            backgroundColor: 'rgba(84, 150, 120, 0.12)',
                             fill: true,
                             tension: 0.35
                         }]
@@ -825,7 +825,7 @@
                         labels: ['Payees', 'En attente'],
                         datasets: [{
                             data: [repartitionResponsable.payees || 0, repartitionResponsable.en_attente || 0],
-                            backgroundColor: ['#18aa70', '#f0ad4e']
+                            backgroundColor: ['#549678', '#f0ad4e']
                         }]
                     },
                     options: {
@@ -856,8 +856,8 @@
                         datasets: [{
                             label: 'Montant facturé (FCFA)',
                             data: csEvolution.map(item => item.montant),
-                            backgroundColor: 'rgba(44, 184, 166, 0.75)',
-                            borderColor: '#2cb8a6',
+                            backgroundColor: 'rgba(86, 152, 142, 0.75)',
+                            borderColor: '#56988e',
                             borderWidth: 1,
                             borderRadius: 4
                         }]
@@ -915,15 +915,15 @@
                         datasets: [{
                             label: 'Collectes',
                             data: evolutionData.map(item => item.collectes),
-                            borderColor: '#1e7d47',
-                            backgroundColor: 'rgba(30, 125, 71, 0.1)',
+                            borderColor: '#3f7a60',
+                            backgroundColor: 'rgba(63, 122, 96, 0.1)',
                             tension: 0.4,
                             fill: true
                         }, {
                             label: 'Poids (kg)',
                             data: evolutionData.map(item => item.poids),
-                            borderColor: '#2eca6a',
-                            backgroundColor: 'rgba(46, 202, 106, 0.1)',
+                            borderColor: '#6fae8c',
+                            backgroundColor: 'rgba(111, 174, 140, 0.12)',
                             tension: 0.4,
                             fill: true
                         }]
@@ -984,12 +984,12 @@
                         datasets: [{
                             data: typesData.map(item => item.nombre),
                             backgroundColor: [
-                                '#1e7d47',
-                                '#2cb8a6',
-                                '#a3e635',
+                                '#3f7a60',
+                                '#56988e',
+                                '#9fce89',
                                 '#f0ad4e',
-                                '#0f3d26',
-                                '#7dbb51',
+                                '#35604d',
+                                '#87ae74',
                                 '#20c997'
                             ]
                         }]
@@ -1028,14 +1028,14 @@
                         datasets: [{
                             label: 'Collectes',
                             data: evolutionMenData.map(item => item.collectes),
-                            backgroundColor: '#1e7d47',
+                            backgroundColor: '#3f7a60',
                             yAxisID: 'y'
                         }, {
                             label: 'Revenus (FCFA)',
                             data: evolutionMenData.map(item => item.revenus),
                             type: 'line',
-                            borderColor: '#2eca6a',
-                            backgroundColor: 'rgba(46, 202, 106, 0.1)',
+                            borderColor: '#6fae8c',
+                            backgroundColor: 'rgba(111, 174, 140, 0.12)',
                             tension: 0.4,
                             yAxisID: 'y1'
                         }]

@@ -59,7 +59,7 @@
                                         <td>{{ number_format($facture->montant_facture, 2, ',', ' ') }} FCFA</td>
 
                                         <td>{{ ucfirst($facture->statut) }}</td>
-                                        <td>{{ $facture->site?->site_name ?? '—' }}</td>
+                                        <td>{{ $facture->site?->site_name ?? '-' }}</td>
                                         <td>{{ $facture->comptable?->firstname ?? '' }}
                                             {{ $facture->comptable?->lastname ?? '' }}
                                         </td>
@@ -100,7 +100,7 @@
                                                 </div>
                                             </div>
                                             @else
-                                            —
+                                            -
                                             @endif
                                         </td>
 

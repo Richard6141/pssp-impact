@@ -129,7 +129,7 @@
                                             {{ in_array($collecte->collecte_id, old('collecte_ids', $facture->collectes->pluck('collecte_id')->toArray())) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="collecte_{{ $collecte->collecte_id }}">
                                             <strong>{{ \Carbon\Carbon::parse($collecte->date_collecte)->format('d/m/Y H:i') }}</strong>
-                                            — {{ $collecte->typeDechet?->libelle ?? 'Type inconnu' }} —
+                                            · {{ $collecte->typeDechet?->libelle ?? 'Type inconnu' }} -
                                             {{ $collecte->poids }} Kg
                                         </label>
                                     </div>

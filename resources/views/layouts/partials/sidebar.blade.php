@@ -347,44 +347,25 @@
 <!-- CSS personnalisé pour le badge de rôle -->
 <style>
     .nav-link .bi-badge-tm {
-        color: #28a745;
+        color: var(--primary, #3f7a60);
     }
 
-    /* Onglet actif dans la sidebar */
+    /* Onglet actif dans la sidebar : suit la couleur du thème */
     #sidebar .nav-link.active,
     #sidebar .nav-content a.active {
         color: #fff !important;
-        background: #0d6efd;
-        border-radius: 6px;
+        background: var(--primary, #3f7a60);
+        border-radius: 8px;
+    }
+
+    #sidebar .nav-link.active i,
+    #sidebar .nav-content a.active i {
+        color: #fff !important;
     }
 
     #sidebar .nav-content a.active {
         padding-left: 1.5rem;
     }
-
-    /* Style conditionnel selon le rôle */
-    @php $userRole=auth()->user()->getRoleNames()->first();
-    $roleColors=[ 'Super Admin'=>'#dc3545',
-    'Administrateur'=>'#fd7e14',
-    'Coordonnateur'=>'#6f42c1',
-    'Comptable'=>'#20c997',
-    'Agent marketing'=>'#0dcaf0',
-    'Agent collecte'=>'#198754',
-    'Responsable site'=>'#ffc107',
-    'Agent santé'=>'#6610f2'
-    ];
-
-    @endphp @if(isset($roleColors[$userRole])) <style>.nav-link .bi-badge-tm {
-        color: {
-                {
-                $roleColors[$userRole]
-            }
-        }
-
-        !important;
-    }
-</style>
-@endif
 </style>
 
 <script>

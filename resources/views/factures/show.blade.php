@@ -65,7 +65,7 @@
                             <div class="col-md-6">
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item">
-                                        <strong>Site :</strong> {{ $facture->site?->site_name ?? '—' }}
+                                        <strong>Site :</strong> {{ $facture->site?->site_name ?? '-' }}
                                     </li>
                                     <li class="list-group-item">
                                         <strong>Comptable :</strong>
@@ -188,7 +188,7 @@
                                             <strong>{{ $collecte->poids }} Kg</strong>
                                         </td>
                                         <td>
-                                            {{ $collecte->agent?->firstname ?? '—' }}
+                                            {{ $collecte->agent?->firstname ?? '-' }}
                                             {{ $collecte->agent?->lastname ?? '' }}
                                         </td>
                                         <td>

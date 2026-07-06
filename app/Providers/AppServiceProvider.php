@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +23,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Le template utilise Bootstrap 5 : sans cela, Laravel rend la
+        // pagination avec sa vue Tailwind par défaut (flèches géantes)
+        Paginator::useBootstrapFive();
+
         RateLimiter::for('auth-login', function (Request $request) {
             $login = (string) $request->input('login', 'guest');
             return Limit::perMinute(5)->by(strtolower($login) . '|' . $request->ip());

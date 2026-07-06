@@ -61,9 +61,9 @@
                                         <td>{{ \Carbon\Carbon::parse($collecte->date_collecte)->format('d/m/Y H:i') }}
                                         </td>
                                         <td>{{ number_format($collecte->poids, 2, ',', ' ') }}</td>
-                                        <td>{{ $collecte->typeDechet?->libelle ?? '—' }}</td>
+                                        <td>{{ $collecte->typeDechet?->libelle ?? '-' }}</td>
                                         <td>{{ $collecte->agent?->firstname }} {{ $collecte->agent?->lastname }}</td>
-                                        <td>{{ $collecte->site?->site_name ?? '—' }}</td>
+                                        <td>{{ $collecte->site?->site_name ?? '-' }}</td>
                                         <td>
                                             @if($collecte->validation?->signature)
                                             <img src="{{ asset('storage/'.$collecte->validation->signature) }}"

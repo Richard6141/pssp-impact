@@ -1,22 +1,21 @@
 /* ==================================================================
-   PSSP IMPACT+ v3.0 — Couche de modernisation (chargée en dernier)
-   Identité : vert institutionnel « précision clinique », cohérente
-   avec les nouvelles pages d'authentification.
+   PSSP IMPACT+ v3.1 — Couche de modernisation (chargée en dernier)
+   Identité : vert sauge apaisé, professionnel et lisible.
    ================================================================== */
 
 :root {
-  --primary: #1e7d47;
-  --primary-dark: #14522f;
-  --primary-light: #27995a;
-  --secondary: #2cb8a6;
-  --accent: #a3e635;
+  --primary: #3f7a60;
+  --primary-dark: #2e5c48;
+  --primary-light: #549678;
+  --secondary: #56988e;
+  --accent: #8fbfa6;
 
-  --pi-ink: #16211b;
-  --pi-ink-soft: #4c5e54;
-  --pi-paper: #f4f7f2;
-  --pi-line: #e3eae4;
+  --pi-ink: #1d2622;
+  --pi-ink-soft: #5b6a62;
+  --pi-paper: #f6f8f7;
+  --pi-line: #e4eae6;
 
-  --gradient-primary: linear-gradient(135deg, #1e7d47 0%, #14522f 100%);
+  --gradient-primary: linear-gradient(135deg, #3f7a60 0%, #2e5c48 100%);
 }
 
 /* ------------------------------------------------ Base ---------- */
@@ -31,6 +30,10 @@ a:hover { color: var(--primary-dark); }
 
 /* ------------------------------------------------ En-têtes ------ */
 
+.logo span {
+  color: var(--primary-dark);
+}
+
 .pagetitle h1 {
   color: var(--primary-dark);
   font-weight: 700;
@@ -42,16 +45,15 @@ a:hover { color: var(--primary-dark); }
 
 .sidebar .nav-link {
   color: var(--pi-ink-soft);
-  border-radius: 10px;
+  border-radius: 8px;
   transition: background .15s, color .15s;
 }
 
 .sidebar .nav-link i { color: inherit; }
 
-.sidebar .nav-link:hover,
-.sidebar .nav-link.active {
+.sidebar .nav-link:hover {
   color: var(--primary-dark);
-  background: #e7f3ea;
+  background: #edf3ef;
 }
 
 .sidebar .nav-link.collapsed {
@@ -61,7 +63,7 @@ a:hover { color: var(--primary-dark); }
 
 .sidebar .nav-link.collapsed:hover {
   color: var(--primary-dark);
-  background: #eef5ef;
+  background: #f0f5f1;
 }
 
 .sidebar .nav-content a.active,
@@ -77,8 +79,8 @@ a:hover { color: var(--primary-dark); }
 
 .card {
   border: 1px solid var(--pi-line);
-  border-radius: 14px;
-  box-shadow: 0 1px 3px rgba(22, 33, 27, .05), 0 8px 24px rgba(22, 33, 27, .04);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(29, 38, 34, .04), 0 6px 18px rgba(29, 38, 34, .04);
 }
 
 .card-title {
@@ -111,26 +113,21 @@ a:hover { color: var(--primary-dark); }
 }
 
 .btn {
-  border-radius: 9px;
-  transition: transform .12s, box-shadow .12s;
-}
-
-.btn:not(.btn-sm):not(.btn-close):hover {
-  transform: translateY(-1px);
+  border-radius: 8px;
 }
 
 /* ------------------------------------------------ Formulaires --- */
 
 .form-control,
 .form-select {
-  border-radius: 9px;
-  border-color: #d6e0d8;
+  border-radius: 8px;
+  border-color: #d9e1db;
 }
 
 .form-control:focus,
 .form-select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 .2rem rgba(30, 125, 71, .12);
+  box-shadow: 0 0 0 .2rem rgba(63, 122, 96, .12);
 }
 
 .form-check-input:checked {
@@ -141,12 +138,17 @@ a:hover { color: var(--primary-dark); }
 /* ------------------------------------------------ Tableaux ------ */
 
 .table {
-  --bs-table-hover-bg: #f0f7f1;
+  --bs-table-hover-bg: #f1f6f3;
   vertical-align: middle;
 }
 
-.table > thead {
-  background: #eef4ef;
+/* Neutralise aussi .table-dark : en-têtes clairs et lisibles partout */
+.table > thead,
+.table > thead.table-dark {
+  --bs-table-bg: #edf3ef;
+  --bs-table-color: var(--primary-dark);
+  --bs-table-border-color: #d7e2da;
+  background: #edf3ef;
 }
 
 .table > thead th {
@@ -155,7 +157,7 @@ a:hover { color: var(--primary-dark); }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .05em;
-  border-bottom: 2px solid #d3e2d6;
+  border-bottom: 2px solid #d7e2da;
   white-space: nowrap;
 }
 
@@ -168,17 +170,32 @@ a:hover { color: var(--primary-dark); }
 }
 
 .table > tbody tr:hover {
-  background: #f0f7f1;
+  background: #f1f6f3;
 }
 
 /* ------------------------------------------------ Pagination ---- */
 
-.page-link { color: var(--primary); border-radius: 8px; margin: 0 2px; }
+.pagination { margin-bottom: 0; }
+
+.page-link {
+  color: var(--primary);
+  border-radius: 8px;
+  margin: 0 2px;
+  border-color: var(--pi-line);
+}
+
+.page-link:hover {
+  color: var(--primary-dark);
+  background: #edf3ef;
+}
 
 .page-item.active .page-link {
   background-color: var(--primary);
   border-color: var(--primary);
+  color: #fff;
 }
+
+.page-item.disabled .page-link { color: #a9b6ae; }
 
 /* ------------------------------------------------ Badges -------- */
 
@@ -205,7 +222,7 @@ a:hover { color: var(--primary-dark); }
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #8ba394;
+  color: #93a49a;
   pointer-events: none;
 }
 
@@ -213,15 +230,15 @@ a:hover { color: var(--primary-dark); }
   width: 100%;
   padding: 8px 12px 8px 36px;
   font-size: .9rem;
-  border: 1.5px solid #d6e0d8;
-  border-radius: 9px;
+  border: 1.5px solid #d9e1db;
+  border-radius: 8px;
   outline: none;
   transition: border-color .15s, box-shadow .15s;
 }
 
 .dt-search input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 .2rem rgba(30, 125, 71, .12);
+  box-shadow: 0 0 0 .2rem rgba(63, 122, 96, .12);
 }
 
 .dt-count {
@@ -255,7 +272,7 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
 /* ------------------------------------------------ Tableau de bord */
 
 .pagetitle h1 {
-  font-size: 1.55rem;
+  font-size: 1.5rem;
 }
 
 .dashboard-subtitle {
@@ -267,12 +284,11 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
 .dashboard .info-card {
   overflow: hidden;
   position: relative;
-  transition: transform .15s, box-shadow .15s;
+  transition: box-shadow .15s;
 }
 
 .dashboard .info-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px rgba(22, 33, 27, .06), 0 14px 34px rgba(22, 33, 27, .09);
+  box-shadow: 0 3px 6px rgba(29, 38, 34, .05), 0 10px 26px rgba(29, 38, 34, .08);
 }
 
 .dashboard .info-card::before {
@@ -284,17 +300,17 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
 }
 
 .dashboard .info-card .card-icon {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  font-size: 26px;
-  border-radius: 16px !important;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  font-size: 24px;
+  border-radius: 14px !important;
   color: var(--primary);
-  background: #e7f3ea;
+  background: #eaf2ed;
 }
 
 .dashboard .info-card h6 {
-  font-size: 1.7rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: var(--pi-ink);
 }
@@ -305,35 +321,25 @@ th.dt-sortable.desc::after { content: "\2193"; opacity: 1; }
   font-weight: 400;
 }
 
-/* Déclinaisons par indicateur (famille de verts + accents) */
-.dashboard .collectes-card::before { background: #1e7d47; }
-.dashboard .collectes-card .card-icon { color: #1e7d47; background: #e7f3ea; }
+/* Déclinaisons par indicateur : nuances douces de la même famille */
+.dashboard .collectes-card::before { background: #3f7a60; }
+.dashboard .collectes-card .card-icon { color: #3f7a60; background: #eaf2ed; }
 
-.dashboard .factures-card::before { background: #2cb8a6; }
-.dashboard .factures-card .card-icon { color: #1e8577; background: #e2f5f2; }
+.dashboard .factures-card::before { background: #56988e; }
+.dashboard .factures-card .card-icon { color: #467c74; background: #e9f2f0; }
 
-.dashboard .revenue-card::before { background: #0f3d26; }
-.dashboard .revenue-card .card-icon { color: #0f3d26; background: #dcebe0; }
+.dashboard .revenue-card::before { background: #2e5c48; }
+.dashboard .revenue-card .card-icon { color: #2e5c48; background: #e5ede8; }
 
-.dashboard .customers-card::before { background: #6aa127; }
-.dashboard .customers-card .card-icon { color: #55831d; background: #eef8dc; }
+.dashboard .customers-card::before { background: #7d9b5a; }
+.dashboard .customers-card .card-icon { color: #64804a; background: #f0f4e8; }
 
-.dashboard .validation-card::before { background: #27995a; }
-.dashboard .validation-card .card-icon { color: #27995a; background: #e7f6ec; }
+.dashboard .validation-card::before { background: #549678; }
+.dashboard .validation-card .card-icon { color: #549678; background: #e9f3ed; }
 
-.dashboard .impayees-card::before { background: #d9962b; }
-.dashboard .impayees-card .card-icon { color: #a56f13; background: #fdf3dd; }
+.dashboard .impayees-card::before { background: #c49a54; }
+.dashboard .impayees-card .card-icon { color: #9a763a; background: #f8f1e3; }
 
-/* Cartes graphiques et listes du dashboard */
 .dashboard .card-title {
-  font-size: 1.02rem;
-}
-
-.dashboard .activity .activity-badge {
   font-size: 1rem;
-}
-
-/* Timeline d'activité : puces arrondies adoucies */
-.dashboard .activity-item .activite-label {
-  color: var(--pi-ink-soft);
 }

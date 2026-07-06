@@ -38,7 +38,7 @@
     <!-- Désactiver les dégradés (couleurs plates uniquement) -->
     <link href="{{asset('backend/assets/css/no-gradients.css')}}" rel="stylesheet">
 
-    <!-- PSSP IMPACT+ v3.0 — Couche de modernisation (identité verte) -->
+    <!-- PSSP IMPACT+ v3.0 · Couche de modernisation (identité verte) -->
     <link href="{{asset('backend/assets/css/app-modern.css')}}" rel="stylesheet">
 
     <!-- =======================================================

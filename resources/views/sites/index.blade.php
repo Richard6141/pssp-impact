@@ -78,7 +78,7 @@
                                             </span>
                                         </td>
                                         <td class="d-none d-sm-table-cell">
-                                            {{ $site->responsableUser ? $site->responsableUser->firstname . ' ' . $site->responsableUser->lastname : '—' }}
+                                            {{ $site->responsableUser ? $site->responsableUser->firstname . ' ' . $site->responsableUser->lastname : '-' }}
                                         </td>
                                         @canany(['sites.view', 'sites.update', 'sites.delete'])
                                         <td>

@@ -52,7 +52,7 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $type->libelle }}</td>
-                                    <td>{{ $type->code ?? '—' }}</td>
+                                    <td>{{ $type->code ?? '-' }}</td>
                                     <td>{{ $type->created_at->format('d/m/Y') }}</td>
                                     @canany(['type_dechets.update', 'type_dechets.delete'])
                                     <td>

@@ -23,7 +23,7 @@
 
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item"><strong>Site :</strong>
-                                {{ $observation->site?->site_name ?? '—' }}
+                                {{ $observation->site?->site_name ?? '-' }}
                             </li>
                             <li class="list-group-item"><strong>Utilisateur :</strong>
                                 {{ $observation->user?->firstname }} {{ $observation->user?->lastname }}

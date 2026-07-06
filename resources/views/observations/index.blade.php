@@ -43,7 +43,7 @@
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $obs->site?->site_name ?? '—' }}</td>
+                                        <td>{{ $obs->site?->site_name ?? '-' }}</td>
                                         <td>{{ $obs->user?->firstname }} {{ $obs->user?->lastname }}</td>
                                         <td>{{ Str::limit($obs->contenu, 50) }}</td>
                                         <td>{{ \Carbon\Carbon::parse($obs->date_obs)->format('d/m/Y H:i') }}</td>
