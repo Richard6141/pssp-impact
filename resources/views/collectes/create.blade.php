@@ -42,10 +42,17 @@
 
                         <div class="col-md-12">
                             <div class="form-floating">
-                                <input type="number" step="0.01" class="form-control" name="poids" id="poids"
-                                    value="{{ old('poids', isset($collecte) ? $collecte->poids : '') }}" required>
+                                <input type="number" step="0.001" min="0" inputmode="decimal"
+                                    class="form-control @error('poids') is-invalid @enderror" name="poids" id="poids"
+                                    value="{{ old('poids', isset($collecte) ? \App\Models\Collecte::poidsInputValue($collecte->poids) : '') }}"
+                                    required>
                                 <label for="poids">Poids (Kg)</label>
+                                @error('poids')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
+                            <small class="form-text text-muted">Jusqu'a 3 decimales (ex. 12,750). La valeur saisie est
+                                conservee telle quelle.</small>
                         </div>
 
                         {{-- Type de déchet et agent --}}

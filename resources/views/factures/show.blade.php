@@ -132,7 +132,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="bg-success text-white rounded p-3">
-                                    <h4>{{ number_format($stats['poids_total'], 2) }} Kg</h4>
+                                    <h4>{{ \App\Models\Collecte::formatPoids($stats['poids_total']) }} Kg</h4>
                                     <small>Poids total</small>
                                 </div>
                             </div>
@@ -185,7 +185,7 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <strong>{{ $collecte->poids }} Kg</strong>
+                                            <strong>{{ \App\Models\Collecte::formatPoids($collecte->poids) }} Kg</strong>
                                         </td>
                                         <td>
                                             {{ $collecte->agent?->firstname ?? '-' }}
@@ -202,7 +202,7 @@
                                 <tfoot class="table-light">
                                     <tr>
                                         <th colspan="2">Total</th>
-                                        <th>{{ $facture->collectes->sum('poids') }} Kg</th>
+                                        <th>{{ \App\Models\Collecte::formatPoids($facture->collectes->sum('poids')) }} Kg</th>
                                         <th colspan="2">{{ $facture->collectes->count() }} collectes</th>
                                     </tr>
                                 </tfoot>

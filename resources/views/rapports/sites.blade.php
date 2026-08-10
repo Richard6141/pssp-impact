@@ -105,7 +105,8 @@
                                 <i class="bi bi-speedometer2"></i>
                             </div>
                             <div class="ps-3">
-                                <h6>{{ number_format($statsGenerales['moyenne_poids_par_site'], 2, ',', ' ') }} kg</h6>
+                                <h6>{{ \App\Models\Collecte::formatPoids($statsGenerales['moyenne_poids_par_site']) }} kg
+                                </h6>
                             </div>
                         </div>
                     </div>
@@ -151,7 +152,7 @@
                                         <td>{{ $site->site_name }}</td>
                                         <td>{{ $site->site_departement }}</td>
                                         <td class="text-center">{{ $site->collectes_count }}</td>
-                                        <td class="text-end fw-bold">{{ number_format($site->collectes_sum_poids ?? 0, 2, ',', ' ') }}</td>
+                                        <td class="text-end fw-bold">{{ \App\Models\Collecte::formatPoids($site->collectes_sum_poids ?? 0) }}</td>
                                         <td class="text-center">
                                             <a href="{{ route('sites.show', $site->site_id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
                                         </td>

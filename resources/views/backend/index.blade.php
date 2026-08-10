@@ -36,7 +36,7 @@
                 <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg,#a06a24,#c98f3d); color:#fff;">
                     <div class="card-body py-3">
                         <small>Poids total (kg)</small>
-                        <h4 class="mb-0">{{ number_format($poidsMois ?? 0, 1, ',', ' ') }}</h4>
+                        <h4 class="mb-0">{{ \App\Models\Collecte::formatPoids($poidsMois ?? 0) }}</h4>
                     </div>
                 </div>
             </div>
@@ -616,7 +616,8 @@
                                 <span>{{ $type->libelle }}</span>
                                 <div class="text-end">
                                     <strong>{{ $type->nombre }} collectes</strong><br>
-                                    <small class="text-muted">{{ number_format($type->poids_total, 1) }} kg</small>
+                                    <small class="text-muted">{{ \App\Models\Collecte::formatPoids($type->poids_total) }}
+                                        kg</small>
                                 </div>
                             </div>
                             @endforeach
@@ -671,7 +672,8 @@
                                         <td>
                                             <span class="badge bg-secondary">{{ $collecte['type_dechet'] }}</span>
                                         </td>
-                                        <td><strong>{{ $collecte['poids'] }} kg</strong></td>
+                                        <td><strong>{{ \App\Models\Collecte::formatPoids($collecte['poids']) }}
+                                                kg</strong></td>
                                         <td>{{ $collecte['agent'] }}</td>
                                         <td>{{ $collecte['date_collecte'] }}</td>
                                         <td>
@@ -740,7 +742,7 @@
                                             {{ $site->site_name }}
                                         </td>
                                         <td><strong>{{ $site->nombre_collectes }}</strong></td>
-                                        <td>{{ number_format($site->poids_total, 1) }} kg</td>
+                                        <td>{{ \App\Models\Collecte::formatPoids($site->poids_total) }} kg</td>
                                     </tr>
                                     @endforeach
                                 </tbody>

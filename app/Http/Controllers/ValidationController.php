@@ -27,7 +27,9 @@ class ValidationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Collecte::with(['site', 'validation.validator'])
+        // typeDechet + agent sont necessaires : l'agent du site doit voir ce
+        // qu'il signe (date, heure, quantite, type, collecteur).
+        $query = Collecte::with(['site', 'typeDechet', 'agent', 'validation.validator'])
             ->latest()
             ->orderByDesc('date_collecte');
 
@@ -68,7 +70,7 @@ class ValidationController extends Controller
      */
     public function create($collecte_id)
     {
-        $collecte = Collecte::with('site')->findOrFail($collecte_id);
+        $collecte = Collecte::with(['site', 'typeDechet', 'agent', 'incident'])->findOrFail($collecte_id);
         $this->ensureCanSignCollecte($collecte);
 
         if ($collecte->validation) {
@@ -143,7 +145,7 @@ class ValidationController extends Controller
      */
     public function show(Validation $validation)
     {
-        $validation->load(['collecte.site', 'validator']);
+        $validation->load(['collecte.site', 'collecte.typeDechet', 'collecte.agent', 'validator']);
 
         return view('validations.show', compact('validation'));
     }

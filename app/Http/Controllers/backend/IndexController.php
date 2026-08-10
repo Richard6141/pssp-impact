@@ -347,7 +347,7 @@ class IndexController extends Controller
                     'icone' => 'bi-truck',
                     'couleur' => 'primary',
                     'titre' => 'Nouvelle collecte',
-                    'description' => $collecte->site->site_name . ' - ' . $collecte->poids . ' kg',
+                    'description' => $collecte->site->site_name . ' - ' . Collecte::formatPoids($collecte->poids, true),
                     'date' => $collecte->created_at
                 ];
             });

@@ -130,7 +130,7 @@
                                         <label class="form-check-label" for="collecte_{{ $collecte->collecte_id }}">
                                             <strong>{{ \Carbon\Carbon::parse($collecte->date_collecte)->format('d/m/Y H:i') }}</strong>
                                             · {{ $collecte->typeDechet?->libelle ?? 'Type inconnu' }} -
-                                            {{ $collecte->poids }} Kg
+                                            {{ \App\Models\Collecte::formatPoids($collecte->poids) }} Kg
                                         </label>
                                     </div>
                                     @endforeach

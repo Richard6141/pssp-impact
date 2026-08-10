@@ -355,7 +355,7 @@
                                 <i class="bi bi-weight"></i>
                             </div>
                             <div class="ps-3">
-                                <h6>{{ number_format($stats['poids_total'], 2) }} kg</h6>
+                                <h6>{{ \App\Models\Collecte::formatPoids($stats['poids_total']) }} kg</h6>
                                 @if($stats['poids_total'] > 0)
                                 <span class="text-success small pt-1 fw-bold">+{{ rand(8, 18) }}%</span>
                                 <span class="text-muted small pt-2 ps-1">ce mois</span>
@@ -477,7 +477,7 @@
                                         <td>{{ $collecte->agent->firstname ?? '' }}
                                             {{ $collecte->agent->lastname ?? '' }}
                                         </td>
-                                        <td>{{ number_format($collecte->poids, 2) }} kg</td>
+                                        <td>{{ \App\Models\Collecte::formatPoids($collecte->poids) }} kg</td>
                                         <td>
                                             <span
                                                 class="badge bg-{{ $collecte->statut == 'validee' ? 'success' : ($collecte->statut == 'en_attente' ? 'warning' : 'info') }}">
@@ -538,7 +538,7 @@
                                             {{ $collecte->agent->lastname ?? '' }}
                                         </td>
                                         <td>{{ $collecte->typeDechet->libelle ?? 'N/A' }}</td>
-                                        <td class="text-end">{{ number_format($collecte->poids, 2) }}</td>
+                                        <td class="text-end">{{ \App\Models\Collecte::formatPoids($collecte->poids) }}</td>
                                         <td>
                                             <span
                                                 class="badge bg-{{ $collecte->statut == 'validee' ? 'success' : ($collecte->statut == 'en_attente' ? 'warning' : 'info') }}">

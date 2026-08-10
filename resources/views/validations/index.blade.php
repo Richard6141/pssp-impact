@@ -24,9 +24,13 @@
                                         <th>#</th>
                                         <th>Collecte</th>
                                         <th>Site</th>
+                                        <th>Date collecte</th>
+                                        <th>Heure</th>
+                                        <th>Quantite</th>
+                                        <th>Type de dechet</th>
+                                        <th>Collecteur</th>
                                         <th>Valide par</th>
-                                        <th>Type</th>
-                                        <th>Date</th>
+                                        <th>Valide le</th>
                                         <th>Commentaire</th>
                                         <th>Signature</th>
                                         <th class="text-center">Actions</th>
@@ -38,11 +42,18 @@
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ $collecte->numero_collecte ?? '-' }}</td>
                                         <td>{{ $collecte->site?->site_name ?? '-' }}</td>
-                                        <td>
-                                            {{ $collecte->validation?->validator?->firstname ?? '-' }}
-                                            {{ $collecte->validation?->validator?->lastname ?? '' }}
+                                        <td>{{ $collecte->date_collecte?->format('d/m/Y') ?? '-' }}</td>
+                                        <td>{{ $collecte->date_collecte?->format('H:i') ?? '-' }}</td>
+                                        <td class="fw-bold">
+                                            {{ \App\Models\Collecte::formatPoids($collecte->poids) }} kg
                                         </td>
-                                        <td>{{ ucfirst($collecte->validation?->type_validation ?? '-') }}</td>
+                                        <td>{{ $collecte->typeDechet?->libelle ?? '-' }}</td>
+                                        <td>
+                                            {{ trim(($collecte->agent?->firstname ?? '') . ' ' . ($collecte->agent?->lastname ?? '')) ?: '-' }}
+                                        </td>
+                                        <td>
+                                            {{ trim(($collecte->validation?->validator?->firstname ?? '') . ' ' . ($collecte->validation?->validator?->lastname ?? '')) ?: '-' }}
+                                        </td>
                                         <td>
                                             {{ $collecte->validation
                                                 ? \Carbon\Carbon::parse($collecte->validation->date_validation)->format('d/m/Y H:i')
@@ -74,7 +85,7 @@
                                     </tr>
                                     @empty
                                     <tr>
-                                        <td colspan="9">Aucune collecte trouvee.</td>
+                                        <td colspan="13">Aucune collecte trouvee.</td>
                                     </tr>
                                     @endforelse
                                 </tbody>

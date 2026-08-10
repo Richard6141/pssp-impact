@@ -6,7 +6,24 @@
         <h2>Détails de la validation</h2>
 
         <ul class="list-group">
-            <li class="list-group-item"><strong>Collecte :</strong> {{ $validation->collecte->titre ?? '-' }}</li>
+            <li class="list-group-item"><strong>Collecte :</strong>
+                {{ $validation->collecte?->numero_collecte ?? '-' }}
+            </li>
+            <li class="list-group-item"><strong>Site :</strong>
+                {{ $validation->collecte?->site?->site_name ?? '-' }}
+            </li>
+            <li class="list-group-item"><strong>Date et heure de collecte :</strong>
+                {{ $validation->collecte?->date_collecte?->format('d/m/Y H:i') ?? '-' }}
+            </li>
+            <li class="list-group-item"><strong>Quantite collectee :</strong>
+                {{ \App\Models\Collecte::formatPoids($validation->collecte?->poids) }} kg
+            </li>
+            <li class="list-group-item"><strong>Type de dechet :</strong>
+                {{ $validation->collecte?->typeDechet?->libelle ?? '-' }}
+            </li>
+            <li class="list-group-item"><strong>Collecteur :</strong>
+                {{ trim(($validation->collecte?->agent?->firstname ?? '') . ' ' . ($validation->collecte?->agent?->lastname ?? '')) ?: '-' }}
+            </li>
             <li class="list-group-item"><strong>Validé par :</strong>
                 {{ $validation->validator->firstname ?? '' }} {{ $validation->validator->lastname ?? '' }}
             </li>

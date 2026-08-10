@@ -51,7 +51,7 @@
         </div>
         <div class="stat-card">
             <div class="label">Moyenne Poids/Site</div>
-            <div class="value">{{ number_format($statsGenerales['moyenne_poids_par_site'], 2, ',', ' ') }} kg</div>
+            <div class="value">{{ \App\Models\Collecte::formatPoids($statsGenerales['moyenne_poids_par_site']) }} kg</div>
         </div>
     </div>
 
@@ -92,7 +92,7 @@
                 <tr>
                     <td>{{ $site->site_name }}</td>
                     <td class="text-right">{{ $site->total_collectes }}</td>
-                    <td class="text-right">{{ number_format($site->poids_total, 2, ',', ' ') }}</td>
+                    <td class="text-right">{{ \App\Models\Collecte::formatPoids($site->poids_total) }}</td>
                 </tr>
                 @endforeach
             </tbody>

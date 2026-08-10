@@ -21,7 +21,8 @@
 
                 <ul class="list-group">
                     <li class="list-group-item"><strong>Date :</strong> {{ $collecte->date_collecte }}</li>
-                    <li class="list-group-item"><strong>Poids :</strong> {{ $collecte->poids }} Kg</li>
+                    <li class="list-group-item"><strong>Poids :</strong>
+                        {{ \App\Models\Collecte::formatPoids($collecte->poids) }} Kg</li>
                     <li class="list-group-item"><strong>Type de déchet :</strong>
                         {{ $collecte->typeDechet->libelle ?? '' }}
                     </li>

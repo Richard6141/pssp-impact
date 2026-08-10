@@ -694,14 +694,16 @@ class RapportController extends Controller
             $reference = $collecte->numero_collecte ?? ($collecte->collecte_id ?? '');
             $codeSite = $collecte->site->site_code ?? ($collecte->site->site_name ?? '');
             $codeTypeDechet = $collecte->typeDechet->code ?? ($collecte->typeDechet->code_dbm ?? '');
-            $poids = number_format((float) ($collecte->poids ?? 0), 2, ',', '');
+            // 3 decimales : la colonne passe de 8 a 12 caracteres pour ne plus
+            // tronquer le poids exact enregistre (retour terrain du 10/08/2026).
+            $poids = number_format((float) ($collecte->poids ?? 0), Collecte::POIDS_DECIMALES, ',', '');
             $lines[] = sprintf(
-                '%-10s| %-10s| %-10s | %-16s| %-8s|',
+                '%-10s| %-10s| %-10s | %-16s| %-12s|',
                 mb_substr($date, 0, 10),
                 mb_substr($reference, 0, 10),
                 mb_substr($codeSite, 0, 10),
                 mb_substr($codeTypeDechet, 0, 16),
-                mb_substr($poids, 0, 8)
+                mb_substr($poids, 0, 12)
             );
         }
 

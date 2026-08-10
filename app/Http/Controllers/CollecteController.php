@@ -114,12 +114,42 @@ class CollecteController extends Controller
     }
 
     /**
+     * Regles de validation du poids : on refuse explicitement une saisie plus
+     * precise que ce que la colonne peut stocker, plutot que de laisser MySQL
+     * l'arrondir en silence (retour terrain du 10/08/2026).
+     */
+    private function poidsRules(): array
+    {
+        return [
+            'required',
+            'numeric',
+            'min:0',
+            'decimal:0,' . Collecte::POIDS_DECIMALES,
+        ];
+    }
+
+    /**
+     * Les claviers mobiles francophones produisent "12,5" : on normalise en
+     * "12.5" avant validation pour ne pas rejeter une saisie legitime.
+     */
+    private function normaliserPoids(Request $request): void
+    {
+        if (is_string($request->input('poids'))) {
+            $request->merge([
+                'poids' => str_replace([' ', ','], ['', '.'], $request->input('poids')),
+            ]);
+        }
+    }
+
+    /**
      * Enregistrement en base
      */
     public function store(Request $request)
     {
+        $this->normaliserPoids($request);
+
         $request->validate([
-            'poids' => 'required|numeric|min:0',
+            'poids' => $this->poidsRules(),
             'type_dechet_id' => 'required|exists:type_dechets,type_dechet_id',
             'site_id' => 'required|exists:sites,site_id',
             // Validation conditionnelle pour l'incident
@@ -200,9 +230,11 @@ class CollecteController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $this->normaliserPoids($request);
+
         $request->validate([
             'date_collecte' => 'required|date',
-            'poids' => 'required|numeric|min:0',
+            'poids' => $this->poidsRules(),
             'type_dechet_id' => 'required|exists:type_dechets,type_dechet_id',
             'agent_id' => 'required|exists:users,user_id',
             'site_id' => 'required|exists:sites,site_id',

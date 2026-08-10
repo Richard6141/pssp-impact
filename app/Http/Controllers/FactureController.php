@@ -341,6 +341,7 @@ class FactureController extends Controller
                 'collecte_id' => $collecte->collecte_id,
                 'date_collecte' => $collecte->date_collecte,
                 'poids' => $collecte->poids,
+                'poids_formate' => Collecte::formatPoids($collecte->poids),
                 'type_dechet' => $collecte->typeDechet->libelle ?? 'N/A'
             ];
         });

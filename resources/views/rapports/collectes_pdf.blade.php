@@ -42,7 +42,7 @@
         </div>
         <div class="stat-card">
             <div class="label">Poids Total (kg)</div>
-            <div class="value">{{ number_format($stats['poids_total'], 2, ',', ' ') }} kg</div>
+            <div class="value">{{ \App\Models\Collecte::formatPoids($stats['poids_total']) }} kg</div>
         </div>
         <div class="stat-card">
             <div class="label">Collectes Validées</div>
@@ -118,7 +118,7 @@
                     <td>{{ $collecte->numero_collecte }}</td>
                     <td>{{ $collecte->site->site_name ?? 'N/A' }}</td>
                     <td>{{ $collecte->typeDechet->libelle ?? 'N/A' }}</td>
-                    <td class="text-right">{{ number_format($collecte->poids, 2, ',', ' ') }}</td>
+                    <td class="text-right">{{ \App\Models\Collecte::formatPoids($collecte->poids) }}</td>
                     <td>{{ $collecte->agent->username ?? 'N/A' }}</td>
                     <td>{{ ucfirst($collecte->statut) }}</td>
                 </tr>

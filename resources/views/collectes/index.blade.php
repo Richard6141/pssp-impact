@@ -60,7 +60,7 @@
                                         <td>{{ $index + 1 }}</td>
                                         <td>{{ \Carbon\Carbon::parse($collecte->date_collecte)->format('d/m/Y H:i') }}
                                         </td>
-                                        <td>{{ number_format($collecte->poids, 2, ',', ' ') }}</td>
+                                        <td>{{ \App\Models\Collecte::formatPoids($collecte->poids) }}</td>
                                         <td>{{ $collecte->typeDechet?->libelle ?? '-' }}</td>
                                         <td>{{ $collecte->agent?->firstname }} {{ $collecte->agent?->lastname }}</td>
                                         <td>{{ $collecte->site?->site_name ?? '-' }}</td>

@@ -34,8 +34,16 @@ class Collecte extends Model
         'isValid'
     ];
 
+    /**
+     * Nombre de decimales conservees pour le poids d'une collecte.
+     * Doit rester aligne avec la migration decimal(12, self::POIDS_DECIMALES)
+     * et avec l'attribut `step` des formulaires de collecte.
+     */
+    public const POIDS_DECIMALES = 3;
+
     protected $casts = [
         'date_collecte' => 'datetime',
+        'poids' => 'decimal:' . self::POIDS_DECIMALES,
     ];
 
 
@@ -146,10 +154,45 @@ class Collecte extends Model
         return $user->sites()->where('sites.site_id', $this->site_id)->exists();
     }
 
+    /**
+     * Formate un poids exactement tel qu'il a ete enregistre : jusqu'a
+     * POIDS_DECIMALES decimales, sans arrondi et sans zeros inutiles.
+     * 12.500 -> "12,5"   12.000 -> "12"   1234.125 -> "1 234,125"
+     *
+     * A utiliser partout ou un poids de collecte est affiche, afin de ne
+     * jamais retomber sur un number_format(..., 1) qui arrondit.
+     */
+    public static function formatPoids($poids, bool $avecUnite = false): string
+    {
+        $valeur = number_format((float) ($poids ?? 0), self::POIDS_DECIMALES, ',', ' ');
+
+        // Retire les zeros de fin (et la virgule si plus rien derriere)
+        if (str_contains($valeur, ',')) {
+            $valeur = rtrim(rtrim($valeur, '0'), ',');
+        }
+
+        return $avecUnite ? $valeur . ' kg' : $valeur;
+    }
+
+    /**
+     * Valeur destinee a un <input type="number"> : point decimal, sans les
+     * zeros de fin ajoutes par le cast decimal (12.500 -> 12.5).
+     */
+    public static function poidsInputValue($poids): string
+    {
+        $valeur = (string) ($poids ?? '');
+
+        if ($valeur === '' || !str_contains($valeur, '.')) {
+            return $valeur;
+        }
+
+        return rtrim(rtrim($valeur, '0'), '.');
+    }
+
     // Accessors
     public function getPoidsFormateAttribute()
     {
-        return number_format($this->poids, 2) . ' kg';
+        return self::formatPoids($this->poids, true);
     }
 
     public function getStatutBadgeAttribute()
