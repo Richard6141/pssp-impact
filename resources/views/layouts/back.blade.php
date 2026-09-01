@@ -26,6 +26,9 @@
     <link href="{{asset('backend/assets/vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
     <link href="{{asset('backend/assets/vendor/remixicon/remixicon.css')}}" rel="stylesheet">
     <link href="{{asset('backend/assets/vendor/simple-datatables/style.css')}}" rel="stylesheet">
+    <link href="{{asset('backend/assets/vendor/select2/select2.min.css')}}" rel="stylesheet">
+    <link href="{{asset('backend/assets/vendor/select2/select2-bootstrap-5-theme.min.css')}}" rel="stylesheet">
+    <link href="{{asset('backend/assets/css/select-search.css')}}" rel="stylesheet">
 
     <!-- Template Main CSS File -->
     <link href="{{asset('backend/assets/css/style.css')}}" rel="stylesheet">
@@ -66,13 +69,18 @@
     <script src="{{asset('backend/assets/vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
     <script src="{{asset('backend/assets/vendor/simple-datatables/simple-datatables.js')}}"></script>
     <script src="{{asset('backend/assets/vendor/php-email-form/validate.js')}}"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{asset('backend/assets/vendor/jquery/jquery.min.js')}}"></script>
+    <script src="{{asset('backend/assets/vendor/select2/select2.min.js')}}"></script>
+    <script src="{{asset('backend/assets/vendor/select2/i18n-fr.js')}}"></script>
 
     <!-- Template Main JS File -->
     <script src="{{asset('backend/assets/js/main.js')}}"></script>
 
     <!-- Tables dynamiques : recherche instantanée + tri par colonne -->
     <script src="{{asset('backend/assets/js/dynamic-table.js')}}"></script>
+
+    <!-- Recherche dans les listes déroulantes (select2 appliqué globalement) -->
+    <script src="{{asset('backend/assets/js/select-search.js')}}"></script>
 
     <!-- Scripts personnalisés des pages -->
 
