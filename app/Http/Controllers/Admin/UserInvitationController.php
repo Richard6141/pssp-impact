@@ -23,9 +23,27 @@ class UserInvitationController extends Controller
     /**
      * Liste des invitations
      */
-    public function index()
+    public function index(Request $request)
     {
-        $invitations = UserInvitation::with(['inviter', 'site'])->latest()->paginate(10);
+        $query = UserInvitation::with(['inviter', 'site'])->latest();
+
+        // Recherche cote serveur (porte sur toutes les pages)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('email', 'like', "%{$search}%")
+                    ->orWhereIn('role_id', \Spatie\Permission\Models\Role::where('name', 'like', "%{$search}%")->pluck('id'))
+                    ->orWhereHas('site', fn ($s) => $s->where('site_name', 'like', "%{$search}%"))
+                    ->orWhereHas('inviter', function ($u) use ($search) {
+                        $u->where('firstname', 'like', "%{$search}%")
+                            ->orWhere('lastname', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $invitations = $query->paginate(10)->withQueryString();
+
         return view('admin.users.invitations.index', compact('invitations'));
     }
 

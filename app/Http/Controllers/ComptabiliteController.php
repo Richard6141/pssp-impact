@@ -18,6 +18,32 @@ class ComptabiliteController extends Controller
         $this->middleware('permission:rapports.financier');
     }
 
+    /**
+     * Recherche libre sur le journal : numero de piece, libelle, comptes ou
+     * auteur de l'ecriture. Partagee entre l'affichage et les exports pour
+     * que le PDF corresponde exactement a ce qui est affiche.
+     */
+    private function applyJournalSearch($query, Request $request): void
+    {
+        if (!$request->filled('search')) {
+            return;
+        }
+
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('numero_piece', 'like', "%{$search}%")
+                ->orWhere('libelle', 'like', "%{$search}%")
+                ->orWhere('type_piece', 'like', "%{$search}%")
+                ->orWhere('compte_debit', 'like', "%{$search}%")
+                ->orWhere('compte_credit', 'like', "%{$search}%")
+                ->orWhereHas('user', function ($u) use ($search) {
+                    $u->where('firstname', 'like', "%{$search}%")
+                        ->orWhere('lastname', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+        });
+    }
+
     public function journal(Request $request)
     {
         ComptabiliteService::backfillIfEmpty();
@@ -40,7 +66,9 @@ class ComptabiliteController extends Controller
             $query->whereDate('date_ecriture', '<=', $request->date_fin);
         }
 
-        $ecritures = $query->paginate(20);
+        $this->applyJournalSearch($query, $request);
+
+        $ecritures = $query->paginate(20)->withQueryString();
 
         return view('comptabilite.journal', compact('ecritures'));
     }
@@ -196,6 +224,8 @@ class ComptabiliteController extends Controller
         if ($request->filled('date_fin')) {
             $query->whereDate('date_ecriture', '<=', $request->date_fin);
         }
+
+        $this->applyJournalSearch($query, $request);
 
         $ecritures = $query->get();
 

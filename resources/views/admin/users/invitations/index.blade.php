@@ -44,7 +44,8 @@
                         </div>
 
                         <div class="table-responsive">
-                            <table class="table table-hover table-premium">
+                            <table class="table table-hover table-premium"
+                                data-server-search data-total="{{ $invitations->total() }}">
                                 <thead>
                                     <tr>
                                         <th>Email</th>

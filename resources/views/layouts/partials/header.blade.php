@@ -11,7 +11,7 @@
 
     <div class="search-bar">
         <form class="search-form d-flex align-items-center" method="GET" action="{{ route('search.global') }}">
-            <input type="text" id="globalSearchInput" name="query" placeholder="Rechercher..."
+            <input type="text" id="globalSearchInput" name="query" placeholder="Rechercher un site, une collecte, un agent..."
                 autocomplete="off"
                 title="Rechercher des sites, collectes, factures..." value="{{ request('query') }}">
             <button type="submit" title="Rechercher"><i class="bi bi-search"></i></button>
@@ -22,7 +22,7 @@
     <nav class="header-nav ms-auto">
         <ul class="d-flex align-items-center">
 
-            <li class="nav-item d-block d-lg-none">
+            <li class="nav-item d-block d-xl-none">
                 <a class="nav-link nav-icon search-bar-toggle" href="#">
                     <i class="bi bi-search"></i>
                 </a>

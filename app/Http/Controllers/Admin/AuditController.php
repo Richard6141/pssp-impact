@@ -25,7 +25,7 @@ class AuditController extends Controller
     public function index(Request $request)
     {
         // Préparer les filtres
-        $filters = $request->only(['user_id', 'action', 'entity_type', 'entity_id', 'start_date', 'end_date']);
+        $filters = $request->only(['user_id', 'action', 'entity_type', 'entity_id', 'start_date', 'end_date', 'search']);
         
         // Récupérer les logs
         $logs = $this->auditService->getLogs($filters, 25);

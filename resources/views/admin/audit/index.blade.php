@@ -101,7 +101,7 @@
         {{-- Tableau des logs --}}
         <x-premium-card title="Logs d'Audit">
             <div class="table-responsive">
-                <table class="table table-premium">
+                <table class="table table-premium" data-server-search data-total="{{ $logs->total() }}">
                     <thead>
                         <tr>
                             <th>Date</th>

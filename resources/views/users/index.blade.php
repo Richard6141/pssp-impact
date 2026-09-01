@@ -51,17 +51,27 @@
             <div class="card-body">
                 <h5 class="card-title">Liste des utilisateurs</h5>
 
+                {{-- La recherche texte est fournie par la barre du tableau
+                     (data-server-search) : on la conserve ici en champ cache pour
+                     ne pas la perdre en appliquant un filtre. --}}
                 <form method="GET" class="row g-3 mb-3">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
                     <div class="col-md-4">
-                        <input type="text" name="search" class="form-control" placeholder="Recherche..."
-                            value="{{ request('search') }}">
-                    </div>
-                    <div class="col-md-3">
                         <select name="role" class="form-select">
                             <option value="">Tous les rôles</option>
                             @foreach($roles as $role)
                             <option value="{{ $role->name }}" @selected(request('role')===$role->name)>
                                 {{ $role->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="site_id" class="form-select">
+                            <option value="">Tous les sites</option>
+                            @foreach($sites as $site)
+                            <option value="{{ $site->site_id }}" @selected(request('site_id')===$site->site_id)>
+                                {{ $site->site_name }}
                             </option>
                             @endforeach
                         </select>
@@ -79,7 +89,8 @@
                 </form>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle"
+                        data-server-search data-total="{{ $users->total() }}">
                         <thead class="table-dark">
                             <tr>
                                 <th>Utilisateur</th>

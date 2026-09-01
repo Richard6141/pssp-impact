@@ -46,7 +46,24 @@ class AuditService
             $query->where('performed_at', '<=', $filters['end_date']);
         }
 
-        return $query->paginate($perPage);
+        // Recherche libre (toutes les pages) : action, entité, description
+        // ou nom / email de l'utilisateur a l'origine de l'action.
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('action', 'like', "%{$search}%")
+                    ->orWhere('entity_type', 'like', "%{$search}%")
+                    ->orWhere('entity_id', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($u) use ($search) {
+                        $u->where('firstname', 'like', "%{$search}%")
+                            ->orWhere('lastname', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        return $query->paginate($perPage)->withQueryString();
     }
 
     /**

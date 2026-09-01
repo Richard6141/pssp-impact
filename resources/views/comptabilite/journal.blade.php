@@ -56,7 +56,8 @@
                 @endcan
 
                 <div class="table-responsive">
-                    <table class="table table-striped align-middle table-nowrap">
+                    <table class="table table-striped align-middle table-nowrap"
+                        data-server-search data-total="{{ $ecritures->total() }}">
                         <thead class="table-dark">
                             <tr>
                                 <th>Date</th>
